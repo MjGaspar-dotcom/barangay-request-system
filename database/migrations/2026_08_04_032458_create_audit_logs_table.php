@@ -11,10 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('audit_logs', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+       Schema::create('audit_logs', function (Blueprint $table) {
+    $table->id('audit_log_id');
+
+    $table->foreignId('staff_id')
+          ->nullable()
+          ->constrained('staff', 'staff_id')
+          ->nullOnDelete();
+
+    $table->string('action');
+
+    $table->string('table_name');
+    $table->unsignedBigInteger('record_id');
+
+    $table->text('description')->nullable();
+
+    $table->ipAddress('ip_address')->nullable();
+
+    $table->timestamps();
+});
     }
 
     /**

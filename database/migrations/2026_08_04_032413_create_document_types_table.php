@@ -12,7 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('document_types', function (Blueprint $table) {
-            $table->id();
+            $table->id('document_type_id');
+
+            $table -> string('document_name')->unique();
+            $table -> text('description')->nullable();
+
+            $table->unsignedTinyInteger('processing_days')->default(1);
+            $table->boolean('is_active')->default(true);
+            
             $table->timestamps();
         });
     }
