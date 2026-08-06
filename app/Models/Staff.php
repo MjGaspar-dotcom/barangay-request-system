@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BarangayRequest;
 
 class Staff extends Model
 {
 public function verifiedRequests()
 {
-    return $this->hasMany(Request::class, 'verified_by', 'staff_id');
+    return $this->hasMany(BarangayRequest::class, 'verified_by', 'staff_id');
 }
 public function notifications()
 {
@@ -21,4 +22,5 @@ public function auditLogs()
 }
     /** @use HasFactory<\Database\Factories\StaffFactory> */
     use HasFactory;
+    protected $primaryKey = 'staff_id';
 }

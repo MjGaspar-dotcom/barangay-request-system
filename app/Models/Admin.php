@@ -9,4 +9,5 @@ class Admin extends Model
 {
     /** @use HasFactory<\Database\Factories\AdminFactory> */
     use HasFactory;
+    protected $primaryKey = 'admin_id';
 }

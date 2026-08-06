@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Requirement;
+use App\Models\BarangayRequest;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class RequirementPolicy
+class BarangayRequestPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class RequirementPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Requirement $requirement): bool
+    public function view(User $user, BarangayRequest $request): bool
     {
         return false;
     }
@@ -35,7 +35,7 @@ class RequirementPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Requirement $requirement): bool
+    public function update(User $user, BarangayRequest $request): bool
     {
         return false;
     }
@@ -43,7 +43,7 @@ class RequirementPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Requirement $requirement): bool
+    public function delete(User $user, BarangayRequest $request): bool
     {
         return false;
     }
@@ -51,7 +51,7 @@ class RequirementPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Requirement $requirement): bool
+    public function restore(User $user, BarangayRequest $request): bool
     {
         return false;
     }
@@ -59,7 +59,7 @@ class RequirementPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Requirement $requirement): bool
+    public function forceDelete(User $user, BarangayRequest $request): bool
     {
         return false;
     }

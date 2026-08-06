@@ -10,4 +10,5 @@ class AuditLog extends Model
 {
     return $this->belongsTo(Staff::class, 'staff_id', 'staff_id');
 }
+protected $primaryKey = 'audit_log_id';
 }

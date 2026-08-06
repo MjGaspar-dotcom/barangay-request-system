@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Request;
+use App\Models\BarangayRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Request>
+ * @extends Factory<BarangayRequest >
  */
-class RequestFactory extends Factory
+class BarangayRequestFactory extends Factory
 {
     /**
      * Define the model's default state.
