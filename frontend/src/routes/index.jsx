@@ -1,90 +1,75 @@
-// ===========================================
-// FILE: src/routes/index.jsx
-// PURPOSE:
-// This file defines all application routes.
-// It maps URL paths to React pages using
-// react-router-dom.
-//
-// Public pages are wrapped with PublicLayout
-// so they automatically display the Navbar
-// and Footer.
-// ===========================================
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Import the reusable layout for public pages
 import PublicLayout from "../layouts/PublicLayout";
+import Landing from "../pages/public/Landing";
 
-// Public Pages
-import Home from "../pages/public/Home";
-import About from "../pages/public/About";
-import Contact from "../pages/public/Contact";
+import Login from "../pages/user/Login";
+import Register from "../pages/user/Register";
 
-// Authentication Pages
-import Login from "../pages/auth/Login";
-import Register from "../pages/auth/Register";
-
-// User Pages
 import UserDashboard from "../pages/user/Dashboard";
-
-// Admin Pages
 import AdminDashboard from "../pages/admin/Dashboard";
+
+// Guest Pages
+import GuestRequest from "../pages/guest/Request";
+import TrackRequest from "../pages/guest/TrackRequest";
 
 export default function AppRoutes() {
     return (
         <BrowserRouter>
+
             <Routes>
 
-                {/* ==========================================
-                    PUBLIC ROUTES
-                    These pages use PublicLayout so they
-                    automatically display the Navbar and Footer.
-                ========================================== */}
-
+                {/* PUBLIC */}
                 <Route
                     path="/"
                     element={
                         <PublicLayout>
-                            <Home />
+                            <Landing />
                         </PublicLayout>
                     }
+                />
+
+
+                {/* AUTH */}
+                <Route
+                    path="/login"
+                    element={<Login />}
                 />
 
                 <Route
-                    path="/about"
-                    element={
-                        <PublicLayout>
-                            <About />
-                        </PublicLayout>
-                    }
+                    path="/register"
+                    element={<Register />}
                 />
 
+
+                {/* USER */}
                 <Route
-                    path="/contact"
-                    element={
-                        <PublicLayout>
-                            <Contact />
-                        </PublicLayout>
-                    }
+                    path="/dashboard"
+                    element={<UserDashboard />}
                 />
 
-                {/* Authentication Routes */}
 
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-
-                {/* Registered User Dashboard */}
-
-                <Route path="/dashboard" element={<UserDashboard />} />
-
-                {/* Administrator Dashboard */}
-
+                {/* ADMIN */}
                 <Route
                     path="/admin/dashboard"
                     element={<AdminDashboard />}
                 />
 
+
+                {/* GUEST */}
+                <Route
+                    path="/request"
+                    element={<GuestRequest />}
+                />
+
+                <Route
+                    path="/track-request"
+                    element={<TrackRequest />}
+                />
+
+                    
             </Routes>
+
         </BrowserRouter>
     );
 }

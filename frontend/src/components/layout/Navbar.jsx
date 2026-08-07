@@ -2,32 +2,68 @@ import { Link } from "react-router-dom";
 
 export default function Navbar() {
     return (
-    <header>
-        <nav>
-            <h2>Barangay Document Request System</h2>
+        <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+            <div className="container">
 
-            <ul>
-                <li>
-                    <Link to="/">Home</Link>
-                </li>
+                <Link 
+                    className="navbar-brand fw-bold"
+                    to="/"
+                >
+                    Barangay Document Request System
+                </Link>
 
-                <li>
-                    <Link to="/about">About</Link>
-                </li>
 
-                <li>
-                    <Link to="/contact">Contact</Link>
-                </li>
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarMenu"
+                >
+                    <span className="navbar-toggler-icon"></span>
+                </button>
 
-                <li>
-                    <Link to="/login">Login</Link>
-                </li>
 
-                <li>
-                    <Link to="/register">Register</Link>
-                </li>
-            </ul>
+                <div 
+                    className="collapse navbar-collapse"
+                    id="navbarMenu"
+                >
+
+                    <ul className="navbar-nav ms-auto">
+
+                        <li className="nav-item">
+                            <Link 
+                                className="nav-link"
+                                to="/"
+                            >
+                                Home
+                            </Link>
+                        </li>
+
+
+                        <li className="nav-item">
+                            <Link 
+                                className="nav-link"
+                                to="/login"
+                            >
+                                Login
+                            </Link>
+                        </li>
+
+
+                        <li className="nav-item">
+                            <Link 
+                                className="nav-link"
+                                to="/register"
+                            >
+                                Register
+                            </Link>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
         </nav>
-    </header>
     );
 }
