@@ -1,65 +1,67 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\BarangayRequest;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBarangayRequest;
-use App\Http\Requests\UpdateBarangayRequest;
+use App\Models\BarangayRequest;
+use Illuminate\Support\Str;
 
 class BarangayRequestController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Store a newly created resource.
      */
-    public function index()
+    public function store(StoreBarangayRequest $request)
     {
-        //
-    }
+        $data = $request->validated();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | Upload Valid ID
+        |--------------------------------------------------------------------------
+        */
 
-    /**
-     * Store a newly created resource in storage.
-     */
-   public function store(StoreBarangayRequest $request){
-        //
-    }
+        if ($request->hasFile('guest_valid_id_image')) {
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(BarangayRequest $barangayRequest)
-    {
-        //
-    }
+            $data['guest_valid_id_image'] = $request
+                ->file('guest_valid_id_image')
+                ->store('valid-ids', 'public');
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BarangayRequest $barangayRequest)
-    {
-        //
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | Generate Tracking Number
+        |--------------------------------------------------------------------------
+        */
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateBarangayRequest $request, BarangayRequest $barangayRequest)
-    {
-        //
-    }
+        $data['tracking_number'] =
+            'BRGY-' .
+            now()->format('Y') .
+            '-' .
+            strtoupper(Str::random(6));
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(BarangayRequest $barangayRequest)
-    {
-        //
+        /*
+        |--------------------------------------------------------------------------
+        | Default Status
+        |--------------------------------------------------------------------------
+        */
+
+        $data['status'] = 'Pending';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save Request
+        |--------------------------------------------------------------------------
+        */
+
+        $barangayRequest = BarangayRequest::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Request submitted successfully.',
+            'tracking_number' => $barangayRequest->tracking_number,
+            'data' => $barangayRequest,
+        ], 201);
     }
 }

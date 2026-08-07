@@ -11,32 +11,35 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('notifications', function (Blueprint $table) {
-    $table->id('notification_id');
+        Schema::create('notifications', function (Blueprint $table) {
 
-    $table->foreignId('user_id')
-          ->nullable()
-          ->constrained('users', 'user_id')
-          ->nullOnDelete();
+            $table->id('notification_id');
 
-    $table->foreignId('staff_id')
-          ->nullable()
-          ->constrained('staff', 'staff_id')
-          ->nullOnDelete();
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained('users', 'user_id')
+                ->nullOnDelete();
 
-    $table->foreignId('request_id')
-          ->nullable()
-          ->constrained('requests', 'request_id')
-          ->cascadeOnDelete();
+            $table->foreignId('staff_id')
+                ->nullable()
+                ->constrained('staff', 'staff_id')
+                ->nullOnDelete();
 
-    $table->string('title');
-    $table->text('message');
+            $table->foreignId('request_id')
+                ->nullable()
+                ->constrained('barangay_requests', 'request_id')
+                ->cascadeOnDelete();
 
-    $table->boolean('is_read')->default(false);
-    $table->timestamp('read_at')->nullable();
+            $table->string('title');
 
-    $table->timestamps();
-});
+            $table->text('message');
+
+            $table->boolean('is_read')->default(false);
+
+            $table->timestamp('read_at')->nullable();
+
+            $table->timestamps();
+        });
     }
 
     /**
