@@ -17,99 +17,31 @@ class StoreBarangayRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
-    public function rules(): array
-    {
-        return [
+   public function rules(): array
+{
+    return [
+        'user_id' => 'nullable|exists:users,user_id',
 
-            /*
-            |--------------------------------------------------------------------------
-            | Guest Information
-            |--------------------------------------------------------------------------
-            */
+        'guest_first_name' => 'required_without:user_id|string|max:255',
+        'guest_middle_name' => 'nullable|string|max:255',
+        'guest_last_name' => 'required_without:user_id|string|max:255',
 
-            'guest_first_name' => [
-                'required',
-                'string',
-                'max:100',
-            ],
+        'guest_birth_date' => 'required|date',
+        'guest_gender' => 'required|string|max:50',
+        'guest_civil_status' => 'required|string|max:50',
 
-            'guest_middle_name' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
+        'guest_address' => 'required_without:user_id|string',
+        'guest_contact_number' => 'required_without:user_id|string|max:20',
+        'guest_email' => 'nullable|email|max:255',
 
-            'guest_last_name' => [
-                'required',
-                'string',
-                'max:100',
-            ],
+        'guest_valid_id_type' => 'required_without:user_id|string|max:100',
+        'guest_valid_id_image' => 'required_without:user_id|file|image|max:5120',
+        'valid_id_image' => 'nullable|file|image|max:5120',
 
-            'guest_birth_date' => [
-                'required',
-                'date',
-            ],
+        'document_type_id' => 'required|exists:document_types,document_type_id',
+        'purpose' => 'required|string',
+    ];
 
-            'guest_gender' => [
-                'required',
-                'in:Male,Female,Prefer not to say',
-            ],
-
-            'guest_civil_status' => [
-                'required',
-                'string',
-                'max:50',
-            ],
-
-            'guest_address' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'guest_contact_number' => [
-                'required',
-                'string',
-                'max:20',
-            ],
-
-            'guest_email' => [
-                'nullable',
-                'email',
-                'max:255',
-            ],
-
-            'guest_valid_id_type' => [
-                'required',
-                'string',
-                'max:100',
-            ],
-
-            'guest_valid_id_image' => [
-                'required',
-                'image',
-                'mimes:jpg,jpeg,png',
-                'max:2048',
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Request Information
-            |--------------------------------------------------------------------------
-            */
-
-            'document_type_id' => [
-                'required',
-                'exists:document_types,document_type_id',
-            ],
-
-            'purpose' => [
-                'required',
-                'string',
-                'max:500',
-            ],
-
-        ];
     }
 
     /**

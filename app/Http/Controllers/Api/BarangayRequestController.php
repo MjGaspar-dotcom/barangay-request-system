@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateBarangayRequest;
 use App\Models\BarangayRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -99,24 +100,71 @@ class BarangayRequestController extends Controller
      *
      * GET /api/barangay-requests/{id}
      */
-    public function show(string $id)
+    public function show(BarangayRequest $barangayRequest)
     {
-        //
+    // Return the requested barangay document request as JSON.
+    // Include the related document type and user information.
+    // Return a 404 response automatically if the request does not exist.
+    $barangayRequest -> load([
+            'user',
+            'documentType',
+            'verifier'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $barangayRequest
+        ]);
+
+    
+
+    
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function update(
+    
+        //Update an existing barangay document request.
+    // Use UpdateBarangayRequest for validation.
+    // Only update fields that are allowed by the BarangayRequest model.
+    // Preserve the existing request ID and tracking number.
+    // Update the request status, remarks, and verification information when provided.
+    // Save the changes to the database.
+    // Return a JSON response using the project's success/data API structure.
+
+    UpdateBarangayRequest $request,
+    BarangayRequest $barangayRequest
+) {
+    $validated = $request->validated();
+
+    $barangayRequest->update($validated);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Barangay request updated successfully.',
+        'data' => $barangayRequest->fresh(),
+    ]);
+
+
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(BarangayRequest $barangayRequest)
     {
-        //
+        //Delete the specified barangay document request.
+    // Use the existing BarangayRequest model instance provided by Laravel route model binding.
+    // Return a JSON response indicating that the request was deleted successfully.
+    $barangayRequest->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Barangay request deleted successfully.',
+    ]);
+    
     }
 }
