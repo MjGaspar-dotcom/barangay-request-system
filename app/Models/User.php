@@ -1,12 +1,11 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Models\BarangayRequest;
 
-class User extends Model
+class User extends Authenticatable
 
 {
 
@@ -21,6 +20,29 @@ class User extends Model
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     protected $primaryKey = 'user_id';
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $fillable = [
+    'username',
+    'password',
+    'first_name',
+    'middle_name',
+    'last_name',
+    'birth_date',
+    'gender',
+    'civil_status',
+    'address',
+    'contact_number',
+    'email',
+    'valid_id_type',
+    'valid_id_front',
+    'valid_id_back',
+];
+
 }
 
 

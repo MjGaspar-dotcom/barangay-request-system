@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
+class AuthController extends Controller
+{
+    /**
+     * Login a user.
+     *
+     * POST /api/login
+     */
+    public function login(Request $request)
+    {
+        // Validate the login information.
+        //
+        // The user must provide:
+        // - username
+        // - password
+        $validated = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        // Find the user using the username.
+        $user = User::where(
+            'username',
+            $validated['username']
+        )->first();
+
+        // Check if the user exists AND
+        // if the provided password matches
+        // the hashed password in the database.
+        if (!$user || !Hash::check(
+            $validated['password'],
+            $user->password
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid username or password.'
+            ], 401);
+        }
+
+        // Return successful login information.
+        //
+        // Do NOT return the password.
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => $user
+        ]);
+    }
+}

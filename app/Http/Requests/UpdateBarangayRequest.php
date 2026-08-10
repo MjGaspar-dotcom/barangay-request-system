@@ -12,6 +12,9 @@ class UpdateBarangayRequest  extends FormRequest
      */
     public function authorize(): bool
     {
+        // Allow this request for now
+        // Authorization can be restricted later using
+        // Authentication and User Roles 
         return true;
     }
 
@@ -23,7 +26,27 @@ class UpdateBarangayRequest  extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            // request processing status
+            'status' => 'sometimes|in:Pending,Approved,Rejected,Completed',
+
+            //Staff/Admin remarks about Request
+            'remarks' => 'sometimes|nullable|string',
+
+            //Staff member who verified the Status
+            'verified_by' => 'sometimes|nullable|exists:staff,staff_id',
+
+            // Data and Time when the Request was Verified
+            'verified_at' =>'sometimes|nullable|date',
+
+            // Date and Time when Approve
+            'approved_at' => 'sometimes|nullable|date',
+
+            // Date and Time when the document Became Ready
+            'ready_for_pickup' =>  'sometimes|nullable|date',
+
+            // Date and Time when the residents claimed the Documents
+            'claimed_at' =>  'sometimes|nullable|date',
+
         ];
     }
 }
