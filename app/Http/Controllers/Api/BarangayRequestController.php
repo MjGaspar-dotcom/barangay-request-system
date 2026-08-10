@@ -70,8 +70,16 @@ class BarangayRequestController extends Controller
             'guest_contact_number' => 'nullable|string|max:255',
             'guest_email' => 'nullable|email|max:255',
             'guest_valid_id_type' => 'nullable|string|max:255',
-            'guest_valid_id_image' => 'nullable|string|max:255',
+            'guest_valid_id_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
+
+                 // Upload the guest's valid ID image if one was provided.
+                if ($request->hasFile('guest_valid_id_image')) {
+
+                 $validated['guest_valid_id_image'] = $request
+                 ->file('guest_valid_id_image')
+                ->store('valid-ids', 'public');
+}
 
         // Generate a unique tracking number.
         //
