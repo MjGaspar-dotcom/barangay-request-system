@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\BarangayRequest;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 
@@ -18,7 +19,7 @@ class User extends Authenticatable
     }    
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory;
+    use HasApiTokens, HasFactory;
     protected $primaryKey = 'user_id';
 
     protected $hidden = [
