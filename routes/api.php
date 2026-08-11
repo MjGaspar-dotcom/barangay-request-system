@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\AuthController;
 
 
+
 Route::get('/test', function () {
     return response()->json([
         'message' => 'API is working'
@@ -25,8 +26,3 @@ Route::apiResource(
 );
 
 
-Route::apiResource('barangay-requests', BarangayRequestController::class);
-
-Route::apiResource('document-types', DocumentTypeController::class);
-
-Route::post('/login', [AuthController::class, 'login']);
