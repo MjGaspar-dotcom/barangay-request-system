@@ -13,12 +13,50 @@ Route::get('/test', function () {
     ]);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-Route::apiResource(
-    'barangay-requests',
-    BarangayRequestController::class
+// Guest request are public; other request actions require login
+Route::post(
+    '/barangay-requests',
+    [BarangayRequestController::class,'store']
 );
+
+Route::middleware('auth:sanctum')->group(function(){
+
+// View all Barangay Request
+Route::get(
+    '/barangay-requests',
+    [BarangayRequestController::class, 'index']
+);
+
+// View one barangay request.
+Route::get(
+    '/barangay-requests/{barangayRequest}',
+    [BarangayRequestController::class,'show']
+);
+
+ // Update a barangay request.
+  Route::put(
+        '/barangay-requests/{barangayRequest}',
+        [BarangayRequestController::class, 'update']
+    );
+
+// Partially update a barangay request.
+    Route::patch(
+        '/barangay-requests/{barangayRequest}',
+        [BarangayRequestController::class, 'update']
+    );
+// Delete a barangay request.
+    Route::delete(
+        '/barangay-requests/{barangayRequest}',
+        [BarangayRequestController::class, 'destroy']
+    );
+
+
+});
+
+
+
 
 Route::apiResource(
     'document-types',

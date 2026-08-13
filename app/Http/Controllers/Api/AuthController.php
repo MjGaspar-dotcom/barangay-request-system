@@ -45,12 +45,17 @@ class AuthController extends Controller
             ], 401);
         }
 
+        // Create a Sanctum API token for the authenticated user.
+        $token = $user->createToken(
+                'api-token')->plainTextToken;
+
         // Return successful login information.
         //
         // Do NOT return the password.
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
+            'token' => $token,
             'data' => $user
         ]);
     }
