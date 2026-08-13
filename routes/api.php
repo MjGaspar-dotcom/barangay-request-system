@@ -52,15 +52,18 @@ Route::get(
         [BarangayRequestController::class, 'destroy']
     );
 
+    // Document types require authentication
+    Route::apiResource(
+    'document-types',
+    DocumentTypeController::class
+);
+
+
 
 });
 
 
 
 
-Route::apiResource(
-    'document-types',
-    DocumentTypeController::class
-);
 
 
