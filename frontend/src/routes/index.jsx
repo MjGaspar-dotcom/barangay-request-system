@@ -9,6 +9,8 @@ import Register from "../pages/user/Register";
 import UserDashboard from "../pages/user/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 
+import ProtectedRoute from "../components/auth/ProtectedRoute";
+
 // Guest Pages
 import GuestRequest from "../pages/guest/Request";
 import TrackRequest from "../pages/guest/TrackRequest";
@@ -29,7 +31,6 @@ export default function AppRoutes() {
                     }
                 />
 
-
                 {/* AUTH */}
                 <Route
                     path="/login"
@@ -41,20 +42,21 @@ export default function AppRoutes() {
                     element={<Register />}
                 />
 
-
-                {/* USER */}
+                {/* USER - PROTECTED */}
                 <Route
                     path="/dashboard"
-                    element={<UserDashboard />}
+                    element={
+                        <ProtectedRoute>
+                            <UserDashboard />
+                        </ProtectedRoute>
+                    }
                 />
-
 
                 {/* ADMIN */}
                 <Route
                     path="/admin/dashboard"
                     element={<AdminDashboard />}
                 />
-
 
                 {/* GUEST */}
                 <Route
@@ -67,7 +69,6 @@ export default function AppRoutes() {
                     element={<TrackRequest />}
                 />
 
-                    
             </Routes>
 
         </BrowserRouter>
