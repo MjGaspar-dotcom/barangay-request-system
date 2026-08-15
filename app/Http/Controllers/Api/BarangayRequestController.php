@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateBarangayRequest;
 use App\Models\BarangayRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class BarangayRequestController extends Controller
@@ -17,22 +18,12 @@ class BarangayRequestController extends Controller
      */
     public function index()
     {
-        // Get all barangay requests from the database.
-        //
-        // with() loads the related records at the same time:
-        // - user
-        // - documentType
-        // - verifier
-        //
-        // This allows the API response to include information
-        // about the requester, document type, and verifier.
         $requests = BarangayRequest::with([
             'user',
             'documentType',
             'verifier'
         ])->get();
 
-        // Return the requests as JSON.
         return response()->json([
             'success' => true,
             'data' => $requests
@@ -46,20 +37,11 @@ class BarangayRequestController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the information submitted by the requester.
-        //
-        // These are the fields a requester is allowed to submit.
-        // Processing fields such as status, approved_at, and claimed_at
-        // are NOT accepted from the requester.
         $validated = $request->validate([
-            'user_id' => 'nullable|exists:users,user_id',
-
             'document_type_id' => 'required|exists:document_types,document_type_id',
-
             'purpose' => 'required|string',
 
-            // Guest fields are optional because this request
-            // may belong to a registered user instead.
+            // Guest fields
             'guest_first_name' => 'nullable|string|max:255',
             'guest_middle_name' => 'nullable|string|max:255',
             'guest_last_name' => 'nullable|string|max:255',
@@ -73,29 +55,32 @@ class BarangayRequestController extends Controller
             'guest_valid_id_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
-                 // Upload the guest's valid ID image if one was provided.
-                if ($request->hasFile('guest_valid_id_image')) {
+        // Automatically associate the request with
+        // the authenticated user when a valid Sanctum token exists.
+        $user = Auth::guard('sanctum')->user();
 
-                 $validated['guest_valid_id_image'] = $request
-                 ->file('guest_valid_id_image')
+        if ($user) {
+            $validated['user_id'] = $user->user_id;
+        } else {
+            $validated['user_id'] = null;
+        }
+
+        // Upload guest ID image if provided.
+        if ($request->hasFile('guest_valid_id_image')) {
+            $validated['guest_valid_id_image'] = $request
+                ->file('guest_valid_id_image')
                 ->store('valid-ids', 'public');
-}
+        }
 
-        // Generate a unique tracking number.
-        //
-        // Example:
-        // BR-20260808-ABC123
+        // Generate tracking number.
         $validated['tracking_number'] =
             'BR-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
 
-        // New requests always start with Pending status.
-        // The requester does not control this value.
+        // Every new request starts as Pending.
         $validated['status'] = 'Pending';
 
-        // Save the request to the database.
         $barangayRequest = BarangayRequest::create($validated);
 
-        // Return the newly created request.
         return response()->json([
             'success' => true,
             'message' => 'Barangay request created successfully.',
@@ -110,10 +95,7 @@ class BarangayRequestController extends Controller
      */
     public function show(BarangayRequest $barangayRequest)
     {
-    // Return the requested barangay document request as JSON.
-    // Include the related document type and user information.
-    // Return a 404 response automatically if the request does not exist.
-    $barangayRequest -> load([
+        $barangayRequest->load([
             'user',
             'documentType',
             'verifier'
@@ -123,40 +105,24 @@ class BarangayRequestController extends Controller
             'success' => true,
             'data' => $barangayRequest
         ]);
-
-    
-
-    
     }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(
-    
-        //Update an existing barangay document request.
-    // Use UpdateBarangayRequest for validation.
-    // Only update fields that are allowed by the BarangayRequest model.
-    // Preserve the existing request ID and tracking number.
-    // Update the request status, remarks, and verification information when provided.
-    // Save the changes to the database.
-    // Return a JSON response using the project's success/data API structure.
+        UpdateBarangayRequest $request,
+        BarangayRequest $barangayRequest
+    ) {
+        $validated = $request->validated();
 
-    UpdateBarangayRequest $request,
-    BarangayRequest $barangayRequest
-) {
-    $validated = $request->validated();
+        $barangayRequest->update($validated);
 
-    $barangayRequest->update($validated);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Barangay request updated successfully.',
-        'data' => $barangayRequest->fresh(),
-    ]);
-
-
-
+        return response()->json([
+            'success' => true,
+            'message' => 'Barangay request updated successfully.',
+            'data' => $barangayRequest->fresh(),
+        ]);
     }
 
     /**
@@ -164,15 +130,11 @@ class BarangayRequestController extends Controller
      */
     public function destroy(BarangayRequest $barangayRequest)
     {
-        //Delete the specified barangay document request.
-    // Use the existing BarangayRequest model instance provided by Laravel route model binding.
-    // Return a JSON response indicating that the request was deleted successfully.
-    $barangayRequest->delete();
+        $barangayRequest->delete();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Barangay request deleted successfully.',
-    ]);
-    
+        return response()->json([
+            'success' => true,
+            'message' => 'Barangay request deleted successfully.',
+        ]);
     }
 }
