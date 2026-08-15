@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
 
 function UserDashboard() {
+    const { logout } = useAuth();
+
     const [documentTypes, setDocumentTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -33,6 +36,10 @@ function UserDashboard() {
     return (
         <div>
             <h1>User Dashboard</h1>
+
+            <button onClick={logout}>
+                Logout
+            </button>
 
             <h2>Available Document Types</h2>
 

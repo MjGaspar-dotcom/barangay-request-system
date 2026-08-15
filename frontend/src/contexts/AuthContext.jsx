@@ -25,11 +25,17 @@ export function AuthProvider({ children }) {
         return response.data;
     };
 
-    const logout = () => {
+    const logout = async () => {
+    try {
+        await api.post("/logout");
+    } catch (error) {
+        console.error("Logout error:", error);
+    } finally {
         localStorage.removeItem("auth_token");
         setToken(null);
         setUser(null);
-    };
+    }
+};
 
     return (
         <AuthContext.Provider

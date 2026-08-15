@@ -12,8 +12,11 @@ Route::get('/test', function () {
         'message' => 'API is working'
     ]);
 });
-
+//login route
 Route::post('/login', [AuthController::class, 'login'])->name('login');
+
+//logout route
+Route::post('/logout', [AuthController::class, 'logout']);
 
 // Guest request are public; other request actions require login
 Route::post(
@@ -22,6 +25,7 @@ Route::post(
 );
 
 Route::middleware('auth:sanctum')->group(function(){
+
 
 // View all Barangay Request
 Route::get(
@@ -58,6 +62,9 @@ Route::get(
     DocumentTypeController::class
 );
 
+Route::post('/logout', [AuthController::class, 'logout']);
+
+Route::apiResource('barangay-requests', BarangayRequestController::class);
 
 
 });
