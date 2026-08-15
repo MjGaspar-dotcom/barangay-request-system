@@ -10,15 +10,19 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+
     const [token, setToken] = useState(
         localStorage.getItem("auth_token")
     );
+
+    const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
         const restoreUser = async () => {
             const storedToken = localStorage.getItem("auth_token");
 
             if (!storedToken) {
+                setAuthLoading(false);
                 return;
             }
 
@@ -32,6 +36,8 @@ export function AuthProvider({ children }) {
                 localStorage.removeItem("auth_token");
                 setToken(null);
                 setUser(null);
+            } finally {
+                setAuthLoading(false);
             }
         };
 
@@ -74,6 +80,7 @@ export function AuthProvider({ children }) {
                 login,
                 logout,
                 isAuthenticated: !!token,
+                authLoading,
             }}
         >
             {children}
