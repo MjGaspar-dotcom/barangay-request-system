@@ -1,4 +1,9 @@
-import { createContext, useContext, useState } from "react";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useState
+} from "react";
 import api from "../services/api";
 
 const AuthContext = createContext(null);
@@ -8,6 +13,30 @@ export function AuthProvider({ children }) {
     const [token, setToken] = useState(
         localStorage.getItem("auth_token")
     );
+
+    useEffect(() => {
+        const restoreUser = async () => {
+            const storedToken = localStorage.getItem("auth_token");
+
+            if (!storedToken) {
+                return;
+            }
+
+            try {
+                const response = await api.get("/user");
+
+                setUser(response.data.data);
+            } catch (error) {
+                console.error("Failed to restore user:", error);
+
+                localStorage.removeItem("auth_token");
+                setToken(null);
+                setUser(null);
+            }
+        };
+
+        restoreUser();
+    }, []);
 
     const login = async (username, password) => {
         const response = await api.post("/login", {
@@ -26,16 +55,16 @@ export function AuthProvider({ children }) {
     };
 
     const logout = async () => {
-    try {
-        await api.post("/logout");
-    } catch (error) {
-        console.error("Logout error:", error);
-    } finally {
-        localStorage.removeItem("auth_token");
-        setToken(null);
-        setUser(null);
-    }
-};
+        try {
+            await api.post("/logout");
+        } catch (error) {
+            console.error("Logout error:", error);
+        } finally {
+            localStorage.removeItem("auth_token");
+            setToken(null);
+            setUser(null);
+        }
+    };
 
     return (
         <AuthContext.Provider

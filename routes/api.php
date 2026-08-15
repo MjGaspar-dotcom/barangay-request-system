@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\AuthController;
-
+use Illuminate\Http\Request;
 
 
 Route::get('/test', function () {
@@ -15,8 +15,7 @@ Route::get('/test', function () {
 //login route
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-//logout route
-Route::post('/logout', [AuthController::class, 'logout']);
+
 
 // Guest request are public; other request actions require login
 Route::post(
@@ -66,6 +65,11 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::apiResource('barangay-requests', BarangayRequestController::class);
 
+Route::get('/user', function (Request $request) {
+    return response()->json([
+        'data' => $request->user(),
+    ]);
+});
 
 });
 
