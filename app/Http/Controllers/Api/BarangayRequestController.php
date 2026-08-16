@@ -17,18 +17,21 @@ class BarangayRequestController extends Controller
      * GET /api/barangay-requests
      */
     public function index()
-    {
-        $requests = BarangayRequest::with([
-            'user',
-            'documentType',
-            'verifier'
-        ])->get();
+{
+    $user = Auth::user();
 
-        return response()->json([
-            'success' => true,
-            'data' => $requests
-        ]);
-    }
+    $requests = BarangayRequest::with([
+        'documentType',
+        'verifier'
+    ])
+    ->where('user_id', $user->user_id)
+    ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $requests
+    ]);
+}
 
     /**
      * Store a newly created barangay request.
