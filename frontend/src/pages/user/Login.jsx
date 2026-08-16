@@ -35,26 +35,32 @@ function Login() {
         <div>
             <h1>User Login</h1>
 
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Username</label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)}
-                        required
-                    />
-                </div>
+      <form onSubmit={handleSubmit}>
+    <div>
+        <label htmlFor="username">Username</label>
+        <input
+            id="username"
+            name="username"
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            required
+        />
+    </div>
 
-                <div>
-                    <label>Password</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        required
-                    />
-                </div>
+    <div>
+        <label htmlFor="password">Password</label>
+        <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+        />
+    </div>
 
                 {error && <p>{error}</p>}
 
