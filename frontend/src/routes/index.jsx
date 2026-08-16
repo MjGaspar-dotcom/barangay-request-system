@@ -5,9 +5,11 @@ import Landing from "../pages/public/Landing";
 
 import Login from "../pages/user/Login";
 import Register from "../pages/user/Register";
-
 import UserDashboard from "../pages/user/Dashboard";
+import RequestDetails from "../pages/user/RequestDetails";
+
 import AdminDashboard from "../pages/admin/Dashboard";
+import StaffDashboard from "../pages/staff/Dashboard";
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
@@ -52,6 +54,16 @@ export default function AppRoutes() {
                     }
                 />
 
+                {/* USER REQUEST DETAILS - PROTECTED */}
+                <Route
+                    path="/requests/:requestId"
+                    element={
+                        <ProtectedRoute>
+                            <RequestDetails />
+                        </ProtectedRoute>
+                    }
+                />
+
                 {/* ADMIN */}
                 <Route
                     path="/admin/dashboard"
@@ -67,6 +79,11 @@ export default function AppRoutes() {
                 <Route
                     path="/track-request"
                     element={<TrackRequest />}
+                />
+
+                <Route
+                    path="/staff/dashboard"
+                    element={<StaffDashboard />}
                 />
 
             </Routes>

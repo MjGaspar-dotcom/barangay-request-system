@@ -23,4 +23,8 @@ public function auditLogs()
     /** @use HasFactory<\Database\Factories\StaffFactory> */
     use HasFactory;
     protected $primaryKey = 'staff_id';
+    protected $fillable = [
+    'user_id',
+    'assigned_by',
+];
 }

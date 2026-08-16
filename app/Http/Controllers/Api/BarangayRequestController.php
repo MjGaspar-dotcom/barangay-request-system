@@ -96,20 +96,27 @@ class BarangayRequestController extends Controller
      *
      * GET /api/barangay-requests/{id}
      */
-    public function show(BarangayRequest $barangayRequest)
-    {
-        $barangayRequest->load([
-            'user',
-            'documentType',
-            'verifier'
-        ]);
+   public function show(BarangayRequest $barangayRequest)
+{
+    $user = Auth::user();
 
+    if ($barangayRequest->user_id !== $user->user_id) {
         return response()->json([
-            'success' => true,
-            'data' => $barangayRequest
-        ]);
+            'success' => false,
+            'message' => 'Unauthorized.'
+        ], 403);
     }
 
+    $barangayRequest->load([
+        'documentType',
+        'verifier'
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'data' => $barangayRequest
+    ]);
+}
     /**
      * Update the specified resource in storage.
      */
