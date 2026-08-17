@@ -16,16 +16,24 @@ class BarangayRequestController extends Controller
      *
      * GET /api/barangay-requests
      */
-    public function index()
+public function index()
 {
     $user = Auth::user();
 
-    $requests = BarangayRequest::with([
+    $query = BarangayRequest::with([
         'documentType',
         'verifier'
-    ])
-    ->where('user_id', $user->user_id)
-    ->get();
+    ]);
+
+    // Staff can see all barangay requests.
+    if ($user->staff) {
+        $requests = $query->get();
+    } else {
+        // Normal users can only see their own requests.
+        $requests = $query
+            ->where('user_id', $user->user_id)
+            ->get();
+    }
 
     return response()->json([
         'success' => true,

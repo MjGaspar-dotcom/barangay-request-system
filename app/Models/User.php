@@ -5,6 +5,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\BarangayRequest;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Staff;
 
 class User extends Authenticatable
 
@@ -16,7 +17,16 @@ class User extends Authenticatable
 }
     public function notifications(){
         return $this->hasMany(Notification::class, 'user_id', 'user_id');
-    }    
+    } 
+    
+    public function staff()
+{
+    return $this->hasOne(
+        Staff::class,
+        'user_id',
+        'user_id'
+    );
+}
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory;
