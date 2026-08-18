@@ -20,6 +20,12 @@ public function auditLogs()
 {
     return $this->hasMany(AuditLog::class, 'staff_id', 'staff_id');
 }
+
+public function user() 
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
+
     /** @use HasFactory<\Database\Factories\StaffFactory> */
     use HasFactory;
     protected $primaryKey = 'staff_id';

@@ -20,13 +20,14 @@ class User extends Authenticatable
     } 
     
     public function staff()
-{
-    return $this->hasOne(
-        Staff::class,
-        'user_id',
-        'user_id'
-    );
-}
+    {
+        return $this->hasOne(Staff::class, 'user_id', 'user_id');
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(Admin::class, 'user_id', 'user_id');
+    }
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory;

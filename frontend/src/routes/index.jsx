@@ -9,6 +9,9 @@ import UserDashboard from "../pages/user/Dashboard";
 import RequestDetails from "../pages/user/RequestDetails";
 
 import AdminDashboard from "../pages/admin/Dashboard";
+import AdminLogin from "../pages/admin/Login";
+
+import StaffLogin from "../pages/staff/Login";
 import StaffDashboard from "../pages/staff/Dashboard";
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -70,6 +73,11 @@ export default function AppRoutes() {
                     element={<AdminDashboard />}
                 />
 
+                <Route
+                    path="/admin/login"
+                    element={<AdminLogin />}
+                />
+
                 {/* GUEST */}
                 <Route
                     path="/request"
@@ -82,8 +90,18 @@ export default function AppRoutes() {
                 />
 
                 <Route
+                    path="/staff/login"
+                    element={<StaffLogin />}
+                />
+
+               {/* STAFF - PROTECTED */}
+                <Route
                     path="/staff/dashboard"
-                    element={<StaffDashboard />}
+                    element={
+                        <ProtectedRoute>
+                            <StaffDashboard />
+                        </ProtectedRoute>
+                    }
                 />
 
             </Routes>

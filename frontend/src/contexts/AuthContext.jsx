@@ -50,12 +50,15 @@ export function AuthProvider({ children }) {
             password,
         });
 
-        const { token, data } = response.data;
+        const { token, data, role } = response.data;
 
         localStorage.setItem("auth_token", token);
 
         setToken(token);
-        setUser(data);
+        setUser({
+            ...data,
+            role: role,
+        });
 
         return response.data;
     };

@@ -18,12 +18,20 @@ function Login() {
         setLoading(true);
 
         try {
-            await login(username, password);
-            navigate("/dashboard");
+            const user = await login(username, password);
+            if(user.role === "admin"){
+                navigate("/admin/dashboard");
+            }else if(user.role === "staff"){
+                navigate("/staff/dashboard");
+            }else{
+                navigate("/dashboard");
+            }
+
         } catch (error) {
             if (error.response?.status === 401) {
-                setError("Invalid username or password.");
+                setError("Invalid username or password.");  
             } else {
+                // console.log("ERROR".error);
                 setError("Login failed. Please try again.");
             }
         } finally {

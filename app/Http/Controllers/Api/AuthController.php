@@ -44,6 +44,14 @@ class AuthController extends Controller
                 'message' => 'Invalid username or password.'
             ], 401);
         }
+            // Determine role
+        if ($user->admin) {
+            $role = 'admin';
+        } elseif ($user->staff) {
+            $role = 'staff';
+        } else {
+            $role = 'user';
+        }
 
         // Create a Sanctum API token for the authenticated user.
         $token = $user->createToken(
@@ -56,6 +64,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login successful.',
             'token' => $token,
+            'role' => $role,
             'data' => $user
         ]);
     }
