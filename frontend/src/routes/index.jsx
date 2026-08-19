@@ -20,6 +20,8 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import GuestRequest from "../pages/guest/Request";
 import TrackRequest from "../pages/guest/TrackRequest";
 
+import StaffRequestDetails from "../pages/staff/RequestDetails";
+
 export default function AppRoutes() {
     return (
         <BrowserRouter>
@@ -100,6 +102,15 @@ export default function AppRoutes() {
                     element={
                         <ProtectedRoute>
                             <StaffDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/staff/requests/:requestId"
+                    element={
+                        <ProtectedRoute>
+                            <StaffRequestDetails />
                         </ProtectedRoute>
                     }
                 />

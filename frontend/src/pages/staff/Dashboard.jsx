@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 function StaffDashboard() {
+    const navigate = useNavigate();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -48,6 +50,7 @@ function StaffDashboard() {
                             <th>Status</th>
                             <th>Purpose</th>
                             <th>Submitted</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
 
@@ -75,6 +78,97 @@ function StaffDashboard() {
                                     {new Date(
                                         request.created_at
                                     ).toLocaleString()}
+                                </td>
+
+                                <td>
+                                    <button
+                                        onClick={() =>
+                                            navigate(
+                                                `/staff/requests/${request.request_id}`
+                                            )
+                                        }
+                                    >
+                                        View Details
+                                    </button>
+
+
+                                    <button
+                                        onClick={async () => {
+                                            const confirmApprove = window.confirm(
+                                                "Are you sure you want to approve this request?"
+                                            );
+
+                                            if (!confirmApprove) {
+                                                return;
+                                            }
+
+                                            try {
+                                                await api.put(
+                                                    `/barangay-requests/${request.request_id}`,
+                                                    {
+                                                        status: "Approved",
+                                                    }
+                                                );
+
+                                                alert("Request approved successfully.");
+
+                                                const response = await api.get(
+                                                    "/barangay-requests"
+                                                );
+
+                                                setRequests(response.data.data);
+
+                                            } catch (error) {
+                                                console.error(
+                                                    "Failed to approve request:",
+                                                    error
+                                                );
+
+                                                alert("Failed to approve request.");
+                                            }
+                                        }}
+                                    >
+                                        Approve
+                                    </button>
+
+                                    <button
+                                        onClick={async () => {
+                                            const confirmReject = window.confirm(
+                                                "Are you sure you want to reject this request?"
+                                            );
+
+                                            if (!confirmReject) {
+                                                return;
+                                            }
+
+                                            try {
+                                                await api.put(
+                                                    `/barangay-requests/${request.request_id}`,
+                                                    {
+                                                        status: "Rejected",
+                                                    }
+                                                );
+
+                                                alert("Request rejected successfully.");
+
+                                                const response = await api.get(
+                                                    "/barangay-requests"
+                                                );
+
+                                                setRequests(response.data.data);
+
+                                            } catch (error) {
+                                                console.error(
+                                                    "Failed to reject request:",
+                                                    error
+                                                );
+
+                                                alert("Failed to reject request.");
+                                            }
+                                        }}
+                                    >
+                                        Reject
+                                    </button>
                                 </td>
                             </tr>
                         ))}

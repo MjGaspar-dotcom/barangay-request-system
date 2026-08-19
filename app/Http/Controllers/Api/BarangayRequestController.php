@@ -104,15 +104,19 @@ public function index()
      *
      * GET /api/barangay-requests/{id}
      */
-   public function show(BarangayRequest $barangayRequest)
+  public function show(BarangayRequest $barangayRequest)
 {
     $user = Auth::user();
 
-    if ($barangayRequest->user_id !== $user->user_id) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized.'
-        ], 403);
+    // Staff and Admin can view any request.
+    // Regular users can only view their own requests.
+    if (!$user->staff && !$user->admin) {
+        if ($barangayRequest->user_id !== $user->user_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.'
+            ], 403);
+        }
     }
 
     $barangayRequest->load([
