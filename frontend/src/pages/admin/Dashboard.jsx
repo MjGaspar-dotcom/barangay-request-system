@@ -1,8 +1,16 @@
 function AdminDashboard() {
     return (
-        <div>
-            <h1>Admin Dashboard</h1>
-        </div>
+       // WELCOME TO ADMIN DASHBOARD
+       <div>
+           <h1>Admin Dashboard</h1>
+       </div>
+
+       //MANAGE USERS
+       
+       // ASSIGN STAFF
+
+       // MANAGE REQUESTS
+       //DOCUMENT TYPES
     );
 }
 

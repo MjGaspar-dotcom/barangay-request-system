@@ -22,6 +22,8 @@ import TrackRequest from "../pages/guest/TrackRequest";
 
 import StaffRequestDetails from "../pages/staff/RequestDetails";
 
+import Staff from "../pages/admin/Staff";
+
 export default function AppRoutes() {
     return (
         <BrowserRouter>
@@ -114,6 +116,11 @@ export default function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
+
+                 <Route
+                path="/admin/staff"
+                element={<Staff />}
+            />
 
             </Routes>
 
