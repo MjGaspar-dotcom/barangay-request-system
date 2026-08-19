@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\BarangayRequest;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Staff;
+use App\Models\Admin;
 
 class User extends Authenticatable
 
@@ -23,11 +24,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(Staff::class, 'user_id', 'user_id');
     }
-
+    //admin
     public function admin()
     {
         return $this->hasOne(Admin::class, 'user_id', 'user_id');
     }
+
+    
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory;

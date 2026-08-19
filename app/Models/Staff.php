@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BarangayRequest;
+use App\Models\User;
+use App\Models\Admin;
 
 class Staff extends Model
 {
@@ -20,7 +22,12 @@ public function auditLogs()
 {
     return $this->hasMany(AuditLog::class, 'staff_id', 'staff_id');
 }
-
+//admin
+public function admin()
+{
+    return $this->belongsTo(Admin::class, 'assigned_by');
+}   
+//user
 public function user() 
 {
     return $this->belongsTo(User::class, 'user_id');
