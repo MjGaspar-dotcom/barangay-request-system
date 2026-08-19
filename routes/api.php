@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Api\StaffController;
 
 
 
@@ -14,6 +15,8 @@ Route::get('/test', function () {
         'message' => 'API is working'
     ]);
 });
+
+
 
 
 // ==========================
@@ -39,6 +42,8 @@ Route::post(
 // ==========================
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/staff', [StaffController::class, 'index']);
 
     // Current authenticated user
     Route::get('/user', function (Request $request) {
