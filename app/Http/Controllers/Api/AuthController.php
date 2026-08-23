@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\StoreUserRequest;
 
 class AuthController extends Controller
 {
@@ -76,6 +77,31 @@ public function logout(Request $request)
     return response()->json([
         'message' => 'Logged out successfully'
     ]);
+}
+
+public function register(StoreUserRequest $request)
+{
+    $validated = $request->validated();
+
+    $user = User::create([
+        'username' => $validated['username'],
+        'password' => Hash::make($validated['password']),
+        'first_name' => $validated['first_name'],
+        'middle_name' => $validated['middle_name'] ?? null,
+        'last_name' => $validated['last_name'],
+        'birth_date' => $validated['birth_date'],
+        'gender' => $validated['gender'],
+        'civil_status' => $validated['civil_status'],
+        'address' => $validated['address'],
+        'contact_number' => $validated['contact_number'],
+        'email' => $validated['email'],
+        'verification_status' => 'pending',
+    ]);
+
+    return response()->json([
+        'message' => 'User registered successfully',
+        'data' => $user,
+    ], 201);
 }
 
 }

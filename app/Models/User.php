@@ -53,6 +53,7 @@ class User extends Authenticatable
     'address',
     'contact_number',
     'email',
+    'verification_status',
     'valid_id_type',
     'valid_id_front',
     'valid_id_back',
