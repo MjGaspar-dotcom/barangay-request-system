@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Api\StaffController;
-
+use App\Http\Controllers\Api\UserController;
 
 
 Route::get('/test', function () {
@@ -93,5 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
         DocumentTypeController::class
     );
 
+    // User Profile Update
+    Route::patch('/profile', [UserController::class, 'updateProfile']);
     
 });
