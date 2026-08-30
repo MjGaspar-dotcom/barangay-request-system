@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\AuthController;
-use Illuminate\Support\Facades\Auth;
+
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
 
@@ -48,13 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/staff', [StaffController::class, 'index']);
 
-    // Current authenticated user
-    Route::get('/user', function (Request $request) {
-        return response()->json([
-            'success' => true,
-            'data' => $request->user(),
-        ]);
-    });
+    // Current authenticated user — returns user data WITH role.
+    // Used by AuthContext on page refresh to restore the session.
+    // The role is needed so the frontend knows where to navigate.
+    Route::get('/user', [AuthController::class, 'me']);
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -95,5 +92,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User Profile Update
     Route::patch('/profile', [UserController::class, 'updateProfile']);
-    
+
 });
