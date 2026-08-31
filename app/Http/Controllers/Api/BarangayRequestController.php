@@ -162,6 +162,13 @@ class BarangayRequestController extends Controller
                 'Completed' => [],
             ];
 
+            if ($currentStatus === $newStatus) {
+            if ($currentStatus === $newStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Request is already {$currentStatus}.",
+                ], 422);
+            }
             if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
                 return response()->json([
                     'success' => false,
