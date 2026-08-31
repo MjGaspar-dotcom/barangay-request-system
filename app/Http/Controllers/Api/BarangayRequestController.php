@@ -16,30 +16,30 @@ class BarangayRequestController extends Controller
      *
      * GET /api/barangay-requests
      */
-public function index()
-{
-    $user = Auth::user();
+    public function index()
+    {
+        $user = Auth::user();
 
-    $query = BarangayRequest::with([
-        'documentType',
-        'verifier'
-    ]);
+        $query = BarangayRequest::with([
+            'documentType',
+            'verifier'
+        ]);
 
-    // Staff can see all barangay requests.
-    if ($user->staff) {
-        $requests = $query->get();
-    } else {
-        // Normal users can only see their own requests.
-        $requests = $query
-            ->where('user_id', $user->user_id)
-            ->get();
+        // Staff can see all barangay requests.
+        if ($user->staff) {
+            $requests = $query->get();
+        } else {
+            // Normal users can only see their own requests.
+            $requests = $query
+                ->where('user_id', $user->user_id)
+                ->get();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $requests
+        ]);
     }
-
-    return response()->json([
-        'success' => true,
-        'data' => $requests
-    ]);
-}
 
     /**
      * Store a newly created barangay request.
@@ -104,31 +104,31 @@ public function index()
      *
      * GET /api/barangay-requests/{id}
      */
-  public function show(BarangayRequest $barangayRequest)
-{
-    $user = Auth::user();
+    public function show(BarangayRequest $barangayRequest)
+    {
+        $user = Auth::user();
 
-    // Staff and Admin can view any request.
-    // Regular users can only view their own requests.
-    if (!$user->staff && !$user->admin) {
-        if ($barangayRequest->user_id !== $user->user_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized.'
-            ], 403);
+        // Staff and Admin can view any request.
+        // Regular users can only view their own requests.
+        if (!$user->staff && !$user->admin) {
+            if ($barangayRequest->user_id !== $user->user_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized.'
+                ], 403);
+            }
         }
+
+        $barangayRequest->load([
+            'documentType',
+            'verifier'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $barangayRequest
+        ]);
     }
-
-    $barangayRequest->load([
-        'documentType',
-        'verifier'
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'data' => $barangayRequest
-    ]);
-}
     /**
      * Update the specified resource in storage.
      */
@@ -136,7 +136,52 @@ public function index()
         UpdateBarangayRequest $request,
         BarangayRequest $barangayRequest
     ) {
+        $user = Auth::user();
+
+        // Only Staff and Admin can process barangay requests.
+        if (!$user->staff && !$user->admin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only Staff or Admin can process requests.',
+            ], 403);
+        }
+
         $validated = $request->validated();
+
+        // Check status transition if a new status was provided.
+        if (isset($validated['status'])) {
+            $currentStatus = $barangayRequest->status;
+            $newStatus = $validated['status'];
+
+            $allowedTransitions = [
+                'Pending' => ['Approved', 'Rejected'],
+                'Approved' => ['Processing'],
+                'Processing' => ['Ready for Pickup'],
+                'Ready for Pickup' => ['Completed'],
+                'Rejected' => [],
+                'Completed' => [],
+            ];
+
+            if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
+                ], 422);
+            }
+
+            // Automatically record important timestamps.
+            if ($newStatus === 'Approved') {
+                $validated['approved_at'] = now();
+            }
+
+            if ($newStatus === 'Ready for Pickup') {
+                $validated['ready_for_pickup_at'] = now();
+            }
+
+            if ($newStatus === 'Completed') {
+                $validated['claimed_at'] = now();
+            }
+        }
 
         $barangayRequest->update($validated);
 
@@ -146,7 +191,6 @@ public function index()
             'data' => $barangayRequest->fresh(),
         ]);
     }
-
     /**
      * Remove the specified resource from storage.
      */

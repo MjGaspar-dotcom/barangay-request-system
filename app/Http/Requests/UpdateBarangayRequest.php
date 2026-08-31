@@ -27,7 +27,7 @@ class UpdateBarangayRequest  extends FormRequest
     {
         return [
             // request processing status
-            'status' => 'sometimes|in:Pending,Approved,Rejected,Completed',
+            'status' => 'sometimes|in:Pending,Processing,Approved,Ready for Pickup,Rejected,Completed',
 
             //Staff/Admin remarks about Request
             'remarks' => 'sometimes|nullable|string',
