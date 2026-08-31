@@ -153,6 +153,10 @@ class BarangayRequestController extends Controller
             $currentStatus = $barangayRequest->status;
             $newStatus = $validated['status'];
 
+            // Request status workflow:
+            // Pending → Approved → Processing → Ready for Pickup → Completed
+            // Pending can also be Rejected.
+            // Rejected and Completed are final statuses.
             $allowedTransitions = [
                 'Pending' => ['Approved', 'Rejected'],
                 'Approved' => ['Processing'],
