@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBarangayRequest;
 use App\Http\Requests\UpdateBarangayRequest;
 use App\Models\BarangayRequest;
 use Illuminate\Http\Request;
@@ -46,25 +47,9 @@ class BarangayRequestController extends Controller
      *
      * POST /api/barangay-requests
      */
-    public function store(Request $request)
+    public function store(StoreBarangayRequest $request)
     {
-        $validated = $request->validate([
-            'document_type_id' => 'required|exists:document_types,document_type_id',
-            'purpose' => 'required|string',
-
-            // Guest fields
-            'guest_first_name' => 'nullable|string|max:255',
-            'guest_middle_name' => 'nullable|string|max:255',
-            'guest_last_name' => 'nullable|string|max:255',
-            'guest_birth_date' => 'nullable|date',
-            'guest_gender' => 'nullable|in:Male,Female,Prefer not to say',
-            'guest_civil_status' => 'nullable|string|max:255',
-            'guest_address' => 'nullable|string|max:255',
-            'guest_contact_number' => 'nullable|string|max:255',
-            'guest_email' => 'nullable|email|max:255',
-            'guest_valid_id_type' => 'nullable|string|max:255',
-            'guest_valid_id_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
-        ]);
+        $validated = $request->validated();
 
         // Automatically associate the request with
         // the authenticated user when a valid Sanctum token exists.

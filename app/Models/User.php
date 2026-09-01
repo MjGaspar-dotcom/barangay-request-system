@@ -30,6 +30,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(Admin::class, 'user_id', 'user_id');
     }
+    //     //admin
+    // public function isAdmin()
+    // {
+    //     return $this->role === 'admin';
+    // }
+
+    
 
 
 
