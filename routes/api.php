@@ -51,6 +51,7 @@ Route::get(
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/staff', [StaffController::class, 'index']);
+    Route::get('/staff/requests', [StaffController::class, 'allRequests']);
 
     // Current authenticated user — returns user data WITH role.
     // Used by AuthContext on page refresh to restore the session.
