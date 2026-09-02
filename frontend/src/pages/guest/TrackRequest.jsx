@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import { useState } from "react";
 import api from "../../services/api";
-=======
->>>>>>> origin/frontend
 
 export default function TrackRequest() {
     const [trackingNumber, setTrackingNumber] = useState("");
