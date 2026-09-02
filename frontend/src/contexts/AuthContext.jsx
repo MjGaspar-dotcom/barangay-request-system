@@ -1,24 +1,17 @@
-import {
-    createContext,
-    useContext,
-    useEffect,
-    useState
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import api from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-
-    const [token, setToken] = useState(
-        localStorage.getItem("auth_token")
+    const [token, setToken] = useState(() =>
+        localStorage.getItem("auth_token"),
     );
-
     const [authLoading, setAuthLoading] = useState(true);
 
     useEffect(() => {
-        const restoreUser = async () => {
+        const verifyAuthentication = async () => {
             const storedToken = localStorage.getItem("auth_token");
 
             if (!storedToken) {
@@ -29,9 +22,12 @@ export function AuthProvider({ children }) {
             try {
                 const response = await api.get("/user");
 
-                setUser(response.data.data);
+                const authenticatedUser = response.data?.data ?? response.data;
+
+                setUser(authenticatedUser);
+                setToken(storedToken);
             } catch (error) {
-                console.error("Failed to restore user:", error);
+                console.error("Authentication verification failed:", error);
 
                 localStorage.removeItem("auth_token");
                 setToken(null);
@@ -41,7 +37,7 @@ export function AuthProvider({ children }) {
             }
         };
 
-        restoreUser();
+        verifyAuthentication();
     }, []);
 
     const login = async (username, password) => {
@@ -50,47 +46,71 @@ export function AuthProvider({ children }) {
             password,
         });
 
-        const { token, data, role } = response.data;
+        const responseData = response.data;
+        const authToken = responseData.token;
 
-        localStorage.setItem("auth_token", token);
+        if (!authToken) {
+            throw new Error("Authentication token was not returned.");
+        }
 
-        setToken(token);
-        setUser({
-            ...data,
-            role: role,
-        });
+        localStorage.setItem("auth_token", authToken);
 
-        return response.data;
+        setToken(authToken);
+
+        const authenticatedUser =
+            responseData.data ?? responseData.user ?? null;
+
+        const role = responseData.role ?? authenticatedUser?.role;
+
+        const completeUser = authenticatedUser
+            ? {
+                  ...authenticatedUser,
+                  role,
+              }
+            : {
+                  role,
+              };
+
+        setUser(completeUser);
+
+        return responseData;
     };
 
     const logout = async () => {
         try {
-            await api.post("/logout");
+            if (token) {
+                await api.post("/logout");
+            }
         } catch (error) {
-            console.error("Logout error:", error);
+            console.error("Logout request failed:", error);
         } finally {
             localStorage.removeItem("auth_token");
+
             setToken(null);
             setUser(null);
         }
     };
 
+    const value = {
+        user,
+        token,
+        login,
+        logout,
+        isAuthenticated: Boolean(token && user),
+        authLoading,
+    };
+
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                login,
-                logout,
-                isAuthenticated: !!token,
-                authLoading,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
 }
 
 export function useAuth() {
-    return useContext(AuthContext);
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error("useAuth must be used inside an AuthProvider");
+    }
+
+    return context;
 }

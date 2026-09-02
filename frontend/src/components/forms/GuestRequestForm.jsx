@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+=======
+
+import { useState } from "react";
+>>>>>>> origin/frontend
 
 export default function GuestRequestForm() {
     const [documentTypes, setDocumentTypes] = useState([]);

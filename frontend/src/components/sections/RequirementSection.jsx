@@ -1,62 +1,61 @@
-export default function RequirementSection() {
-
+function RequirementSection() {
     const requirements = [
-        "Valid Government ID",
-        "Proof of Residency",
-        "Complete Personal Information",
-        "Clear Photo of Required Documents"
+        {
+            title: "Valid Government ID",
+            description:
+                "Prepare a valid identification document for verification.",
+        },
+        {
+            title: "Proof of Residency",
+            description:
+                "Provide proof that establishes your residence when required.",
+        },
+        {
+            title: "Complete Information",
+            description:
+                "Make sure your personal and request information is accurate.",
+        },
+        {
+            title: "Supporting Documents",
+            description:
+                "Prepare any additional documents required for your request.",
+        },
     ];
 
-
     return (
-        <section className="py-5 bg-light">
-
+        <section className="content-section requirement-section">
             <div className="container">
+                <div className="section-heading">
+                    <span className="section-label">REQUIREMENTS</span>
 
-                <div className="text-center mb-5">
+                    <h2>Prepare Before You Request</h2>
 
-                    <h2 className="fw-bold">
-                        Requirements
-                    </h2>
-
-                    <p className="text-muted">
-                        Prepare the following requirements before submitting your request.
+                    <p>
+                        Having the required information and documents ready
+                        helps make the request process easier.
                     </p>
-
                 </div>
 
+                <div className="row g-4">
+                    {requirements.map((requirement, index) => (
+                        <div className="col-md-6" key={requirement.title}>
+                            <div className="requirement-card">
+                                <div className="requirement-number">
+                                    {String(index + 1).padStart(2, "0")}
+                                </div>
 
-                <div className="row justify-content-center">
+                                <div>
+                                    <h3>{requirement.title}</h3>
 
-                    <div className="col-lg-6">
-
-                        <ul className="list-group shadow-sm">
-
-                            {requirements.map((requirement, index) => (
-
-                                <li
-                                    className="list-group-item d-flex align-items-center"
-                                    key={index}
-                                >
-
-                                    <span className="me-3 text-success">
-                                        ✓
-                                    </span>
-
-                                    {requirement}
-
-                                </li>
-
-                            ))}
-
-                        </ul>
-
-                    </div>
-
+                                    <p>{requirement.description}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-
             </div>
-
         </section>
     );
 }
+
+export default RequirementSection;

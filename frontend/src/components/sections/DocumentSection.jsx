@@ -1,86 +1,67 @@
-export default function DocumentSection() {
+import { useNavigate } from "react-router-dom";
+
+function DocumentSection() {
+    const navigate = useNavigate();
 
     const documents = [
         {
             title: "Barangay Clearance",
             description:
-                "A certification issued by the barangay for employment, business, and other purposes."
+                "A certification commonly required for employment, business, school, and other official transactions.",
         },
         {
             title: "Certificate of Residency",
             description:
-                "Proof that a resident is currently living within the barangay."
+                "A document certifying that an individual is a resident of the barangay.",
         },
         {
             title: "Certificate of Indigency",
             description:
-                "A document certifying that a person belongs to a low-income household."
+                "A certification used to establish an individual's indigency for applicable purposes.",
         },
         {
             title: "Business Clearance",
             description:
-                "A clearance required for businesses operating within the barangay."
-        }
+                "A barangay-level clearance used as part of business registration and related transactions.",
+        },
     ];
 
-
     return (
-        <section className="py-5">
-
+        <section id="services" className="content-section document-section">
             <div className="container">
+                <div className="section-heading">
+                    <span className="section-label">DOCUMENT SERVICES</span>
 
-                <div className="text-center mb-5">
+                    <h2>Available Documents</h2>
 
-                    <h2 className="fw-bold">
-                        Available Documents
-                    </h2>
-
-                    <p className="text-muted">
-                        Request your barangay documents online.
+                    <p>
+                        Request common barangay documents through the online
+                        document request system.
                     </p>
-
                 </div>
 
+                <div className="row g-4">
+                    {documents.map((document) => (
+                        <div className="col-md-6 col-lg-3" key={document.title}>
+                            <div className="document-card">
+                                <h3>{document.title}</h3>
 
-                <div className="row">
+                                <p>{document.description}</p>
 
-                    {documents.map((document, index) => (
-
-                        <div 
-                            className="col-md-6 col-lg-3 mb-4"
-                            key={index}
-                        >
-
-                            <div className="card h-100 shadow-sm border-0">
-
-                                <div className="card-body text-center">
-
-                                    <h5 className="card-title fw-bold">
-                                        {document.title}
-                                    </h5>
-
-
-                                    <p className="card-text text-muted">
-                                        {document.description}
-                                    </p>
-
-
-                                    <button className="btn btn-primary">
-                                        Request Now
-                                    </button>
-
-                                </div>
-
+                                <button
+                                    type="button"
+                                    className="btn btn-success"
+                                    onClick={() => navigate("/request")}
+                                >
+                                    Request Now
+                                </button>
                             </div>
-
                         </div>
-
                     ))}
-
                 </div>
-
             </div>
-
         </section>
     );
 }
+
+export default DocumentSection;
