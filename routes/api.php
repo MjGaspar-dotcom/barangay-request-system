@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentTypeController;
-use App\Http\Controllers\Api\AuthController;
-
+use App\Http\Controllers\Api\GuestRequestController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
 
@@ -15,8 +14,6 @@ Route::get('/test', function () {
         'message' => 'API is working'
     ]);
 });
-
-
 
 
 // ==========================
@@ -31,14 +28,21 @@ Route::post('/register', [AuthController::class, 'register'])
 
 
 // ==========================
-// PUBLIC REQUEST
+// GUEST REQUESTS (Public)
 // ==========================
 
-// Guest and registered-user request submission
+// Submit a new guest request — no login required.
 Route::post(
-    '/barangay-requests',
-    [BarangayRequestController::class, 'store']
+    '/guest-requests',
+    [GuestRequestController::class, 'store']
 );
+
+// Track a guest request by tracking number — no login required.
+Route::get(
+    '/guest-requests/track/{trackingNumber}',
+    [GuestRequestController::class, 'track']
+);
+
 
 // ==========================
 // PROTECTED API
@@ -50,17 +54,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Current authenticated user — returns user data WITH role.
     // Used by AuthContext on page refresh to restore the session.
-    // The role is needed so the frontend knows where to navigate.
     Route::get('/user', [AuthController::class, 'me']);
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
 
-    // Barangay Requests
+    // --------------------------------------------------
+    // Barangay Requests (Registered Users)
+    // --------------------------------------------------
+
     Route::get(
         '/barangay-requests',
         [BarangayRequestController::class, 'index']
+    );
+
+    Route::post(
+        '/barangay-requests',
+        [BarangayRequestController::class, 'store']
     );
 
     Route::get(
@@ -84,7 +95,40 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
 
+    // --------------------------------------------------
+    // Guest Requests (Staff/Admin management)
+    // --------------------------------------------------
+
+    Route::get(
+        '/guest-requests',
+        [GuestRequestController::class, 'index']
+    );
+
+    Route::get(
+        '/guest-requests/{guestRequest}',
+        [GuestRequestController::class, 'show']
+    );
+
+    Route::put(
+        '/guest-requests/{guestRequest}',
+        [GuestRequestController::class, 'update']
+    );
+
+    Route::patch(
+        '/guest-requests/{guestRequest}',
+        [GuestRequestController::class, 'update']
+    );
+
+    Route::delete(
+        '/guest-requests/{guestRequest}',
+        [GuestRequestController::class, 'destroy']
+    );
+
+
+    // --------------------------------------------------
     // Document Types
+    // --------------------------------------------------
+
     Route::apiResource(
         'document-types',
         DocumentTypeController::class

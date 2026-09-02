@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBarangayRequest;
 use App\Http\Requests\UpdateBarangayRequest;
 use App\Models\BarangayRequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -23,7 +22,7 @@ class BarangayRequestController extends Controller
 
         $query = BarangayRequest::with([
             'documentType',
-            'verifier'
+            'verifier',
         ]);
 
         // Staff can see all barangay requests.
@@ -38,12 +37,14 @@ class BarangayRequestController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $requests
+            'data' => $requests,
         ]);
     }
 
     /**
      * Store a newly created barangay request.
+     * Only authenticated (registered) users can submit here.
+     * Guests must use POST /api/guest-requests instead.
      *
      * POST /api/barangay-requests
      */
@@ -51,24 +52,10 @@ class BarangayRequestController extends Controller
     {
         $validated = $request->validated();
 
-        // Automatically associate the request with
-        // the authenticated user when a valid Sanctum token exists.
-        $user = Auth::guard('sanctum')->user();
+        // Associate the request with the authenticated user.
+        $validated['user_id'] = Auth::id();
 
-        if ($user) {
-            $validated['user_id'] = $user->user_id;
-        } else {
-            $validated['user_id'] = null;
-        }
-
-        // Upload guest ID image if provided.
-        if ($request->hasFile('guest_valid_id_image')) {
-            $validated['guest_valid_id_image'] = $request
-                ->file('guest_valid_id_image')
-                ->store('valid-ids', 'public');
-        }
-
-        // Generate tracking number.
+        // Generate a unique tracking number.
         $validated['tracking_number'] =
             'BR-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
 
@@ -80,14 +67,14 @@ class BarangayRequestController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Barangay request created successfully.',
-            'data' => $barangayRequest
+            'data' => $barangayRequest,
         ], 201);
     }
 
     /**
      * Display the specified resource.
      *
-     * GET /api/barangay-requests/{id}
+     * GET /api/barangay-requests/{barangayRequest}
      */
     public function show(BarangayRequest $barangayRequest)
     {
@@ -99,23 +86,26 @@ class BarangayRequestController extends Controller
             if ($barangayRequest->user_id !== $user->user_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized.'
+                    'message' => 'Unauthorized.',
                 ], 403);
             }
         }
 
         $barangayRequest->load([
             'documentType',
-            'verifier'
+            'verifier',
         ]);
 
         return response()->json([
             'success' => true,
-            'data' => $barangayRequest
+            'data' => $barangayRequest,
         ]);
     }
+
     /**
      * Update the specified resource in storage.
+     *
+     * PUT/PATCH /api/barangay-requests/{barangayRequest}
      */
     public function update(
         UpdateBarangayRequest $request,
@@ -189,8 +179,11 @@ class BarangayRequestController extends Controller
             'data' => $barangayRequest->fresh(),
         ]);
     }
+
     /**
      * Remove the specified resource from storage.
+     *
+     * DELETE /api/barangay-requests/{barangayRequest}
      */
     public function destroy(BarangayRequest $barangayRequest)
     {

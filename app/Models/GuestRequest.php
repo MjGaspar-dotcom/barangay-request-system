@@ -5,18 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class BarangayRequest extends Model
+class GuestRequest extends Model
 {
     use HasFactory;
 
-    protected $table = 'barangay_requests';
+    protected $table = 'guest_requests';
 
-    protected $primaryKey = 'request_id';
+    protected $primaryKey = 'guest_request_id';
 
     protected $fillable = [
 
-        // Registered User
-        'user_id',
+        // Guest Personal Information
+        'first_name',
+        'middle_name',
+        'last_name',
+        'birth_date',
+        'gender',
+        'civil_status',
+        'address',
+        'contact_number',
+        'email',
+        'valid_id_type',
+        'valid_id_image',
 
         // Request
         'document_type_id',
@@ -34,6 +44,7 @@ class BarangayRequest extends Model
     ];
 
     protected $casts = [
+        'birth_date' => 'date',
         'verified_at' => 'datetime',
         'approved_at' => 'datetime',
         'ready_for_pickup_at' => 'datetime',
@@ -45,11 +56,6 @@ class BarangayRequest extends Model
     | Relationships
     |--------------------------------------------------------------------------
     */
-
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
-    }
 
     public function documentType()
     {

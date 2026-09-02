@@ -1,0 +1,229 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreGuestRequest;
+use App\Http\Requests\UpdateGuestRequest;
+use App\Models\GuestRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+class GuestRequestController extends Controller
+{
+    /**
+     * Display a listing of all guest requests.
+     * Only accessible by staff and admin.
+     *
+     * GET /api/guest-requests
+     */
+    public function index()
+    {
+        $user = Auth::user();
+
+        if (!$user->staff && !$user->admin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only Staff or Admin can view guest requests.',
+            ], 403);
+        }
+
+        $guestRequests = GuestRequest::with([
+            'documentType',
+            'verifier',
+        ])->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $guestRequests,
+        ]);
+    }
+
+    /**
+     * Store a newly created guest request.
+     * This is a public endpoint — no authentication required.
+     *
+     * POST /api/guest-requests
+     */
+    public function store(StoreGuestRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Upload the valid ID image.
+        $validated['valid_id_image'] = $request
+            ->file('valid_id_image')
+            ->store('guest-valid-ids', 'public');
+
+        // Generate a unique tracking number for this guest request.
+        $validated['tracking_number'] =
+            'GR-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+
+        // Every new request starts as Pending.
+        $validated['status'] = 'Pending';
+
+        $guestRequest = GuestRequest::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Guest request submitted successfully.',
+            'data' => $guestRequest,
+        ], 201);
+    }
+
+    /**
+     * Display a specific guest request.
+     * Only accessible by staff and admin.
+     *
+     * GET /api/guest-requests/{guestRequest}
+     */
+    public function show(GuestRequest $guestRequest)
+    {
+        $user = Auth::user();
+
+        if (!$user->staff && !$user->admin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $guestRequest->load([
+            'documentType',
+            'verifier',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $guestRequest,
+        ]);
+    }
+
+    /**
+     * Update (process) a guest request.
+     * Only staff and admin can change the status.
+     *
+     * PUT/PATCH /api/guest-requests/{guestRequest}
+     */
+    public function update(UpdateGuestRequest $request, GuestRequest $guestRequest)
+    {
+        $user = Auth::user();
+
+        if (!$user->staff && !$user->admin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only Staff or Admin can process guest requests.',
+            ], 403);
+        }
+
+        $validated = $request->validated();
+
+        // Enforce the same status transition workflow as registered requests.
+        // Pending → Approved → Processing → Ready for Pickup → Completed
+        // Pending can also go to Rejected.
+        if (isset($validated['status'])) {
+            $currentStatus = $guestRequest->status;
+            $newStatus = $validated['status'];
+
+            $allowedTransitions = [
+                'Pending' => ['Approved', 'Rejected'],
+                'Approved' => ['Processing'],
+                'Processing' => ['Ready for Pickup'],
+                'Ready for Pickup' => ['Completed'],
+                'Rejected' => [],
+                'Completed' => [],
+            ];
+
+            if ($currentStatus === $newStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Request is already {$currentStatus}.",
+                ], 422);
+            }
+
+            if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
+                ], 422);
+            }
+
+            // Automatically record important timestamps.
+            if ($newStatus === 'Approved') {
+                $validated['approved_at'] = now();
+            }
+
+            if ($newStatus === 'Ready for Pickup') {
+                $validated['ready_for_pickup_at'] = now();
+            }
+
+            if ($newStatus === 'Completed') {
+                $validated['claimed_at'] = now();
+            }
+        }
+
+        $guestRequest->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Guest request updated successfully.',
+            'data' => $guestRequest->fresh(),
+        ]);
+    }
+
+    /**
+     * Remove a guest request.
+     * Only staff and admin can delete.
+     *
+     * DELETE /api/guest-requests/{guestRequest}
+     */
+    public function destroy(GuestRequest $guestRequest)
+    {
+        $user = Auth::user();
+
+        if (!$user->staff && !$user->admin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $guestRequest->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Guest request deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Track a guest request by tracking number.
+     * Public endpoint — anyone with the tracking number can check status.
+     *
+     * GET /api/guest-requests/track/{tracking_number}
+     */
+    public function track(string $trackingNumber)
+    {
+        $guestRequest = GuestRequest::with('documentType')
+            ->where('tracking_number', $trackingNumber)
+            ->first();
+
+        if (!$guestRequest) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No guest request found with that tracking number.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tracking_number' => $guestRequest->tracking_number,
+                'status' => $guestRequest->status,
+                'document' => $guestRequest->documentType->document_name ?? 'Unknown',
+                'purpose' => $guestRequest->purpose,
+                'submitted_at' => $guestRequest->created_at,
+                'remarks' => $guestRequest->remarks,
+            ],
+        ]);
+    }
+}
