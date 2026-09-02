@@ -10,26 +10,21 @@ import RequestDetails from "../pages/user/RequestDetails";
 
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminLogin from "../pages/admin/Login";
+import Staff from "../pages/admin/staff";
 
 import StaffLogin from "../pages/staff/Login";
 import StaffDashboard from "../pages/staff/Dashboard";
+import StaffRequestDetails from "../pages/staff/RequestDetails";
 
-import ProtectedRoute from "../components/auth/ProtectedRoute";
-
-// Guest Pages
 import GuestRequest from "../pages/guest/Request";
 import TrackRequest from "../pages/guest/TrackRequest";
 
-import StaffRequestDetails from "../pages/staff/RequestDetails";
-
-import Staff from "../pages/admin/Staff";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 export default function AppRoutes() {
     return (
         <BrowserRouter>
-
             <Routes>
-
                 {/* PUBLIC */}
                 <Route
                     path="/"
@@ -41,68 +36,39 @@ export default function AppRoutes() {
                 />
 
                 {/* AUTH */}
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
+                <Route path="/login" element={<Login />} />
 
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
+                <Route path="/register" element={<Register />} />
 
-                {/* USER - PROTECTED */}
+                {/* GUEST */}
+                <Route path="/request" element={<GuestRequest />} />
+
+                <Route path="/track-request" element={<TrackRequest />} />
+
+                {/* RESIDENT / USER */}
                 <Route
                     path="/dashboard"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["user"]}>
                             <UserDashboard />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* USER REQUEST DETAILS - PROTECTED */}
                 <Route
                     path="/requests/:requestId"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["user"]}>
                             <RequestDetails />
                         </ProtectedRoute>
                     }
                 />
 
-                {/* ADMIN */}
-                <Route
-                    path="/admin/dashboard"
-                    element={<AdminDashboard />}
-                />
-
-                <Route
-                    path="/admin/login"
-                    element={<AdminLogin />}
-                />
-
-                {/* GUEST */}
-                <Route
-                    path="/request"
-                    element={<GuestRequest />}
-                />
-
-                <Route
-                    path="/track-request"
-                    element={<TrackRequest />}
-                />
-
-                <Route
-                    path="/staff/login"
-                    element={<StaffLogin />}
-                />
-
-               {/* STAFF - PROTECTED */}
+                {/* STAFF */}
                 <Route
                     path="/staff/dashboard"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["staff"]}>
                             <StaffDashboard />
                         </ProtectedRoute>
                     }
@@ -111,19 +77,36 @@ export default function AppRoutes() {
                 <Route
                     path="/staff/requests/:requestId"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["staff"]}>
                             <StaffRequestDetails />
                         </ProtectedRoute>
                     }
                 />
 
-                 <Route
-                path="/admin/staff"
-                element={<Staff />}
-            />
+                {/* ADMIN */}
+                <Route
+                    path="/admin/dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <AdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
 
+                <Route
+                    path="/admin/staff"
+                    element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <Staff />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* ROLE-SPECIFIC LOGIN */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+
+                <Route path="/staff/login" element={<StaffLogin />} />
             </Routes>
-
         </BrowserRouter>
     );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 function StaffLogin() {
@@ -10,103 +10,141 @@ function StaffLogin() {
     // Used to redirect the Staff after successful login.
     const navigate = useNavigate();
 
-    // Store the values entered in the login form.
+    // Store the values entered into the login form.
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    // Store and display login errors.
+    // Stores an error message when login fails.
     const [error, setError] = useState("");
 
-    // Used to disable the button while login is processing.
+    // Prevents multiple submissions while login is processing.
     const [loading, setLoading] = useState(false);
 
-    // Handle Staff login form submission.
+    // Handles submission of the Staff login form.
     const handleSubmit = async (event) => {
         // Prevent the browser from refreshing the page.
         event.preventDefault();
 
-        // Clear any previous error message.
+        // Remove any previous error before attempting login.
         setError("");
 
-        // Start loading state.
+        // Disable the login button while the request is processing.
         setLoading(true);
 
         try {
-            // Send credentials to the Laravel login API.
+            // Send the credentials to the shared authentication function.
             await login(username, password);
 
-            // Login successful:
-            // Redirect the Staff to the Staff Dashboard.
+            // Login succeeded, so redirect the Staff to their dashboard.
             navigate("/staff/dashboard");
         } catch (error) {
-            // Laravel returns 401 when username/password is invalid.
+            // HTTP 401 means the username or password is incorrect.
             if (error.response?.status === 401) {
                 setError("Invalid username or password.");
             } else {
-                // Handles other errors such as server/API problems.
+                // Handles other problems such as server or network errors.
                 setError("Login failed. Please try again.");
             }
         } finally {
-            // Stop loading whether login succeeds or fails.
+            // Always stop the loading state after the request finishes.
             setLoading(false);
         }
     };
 
     return (
-        <div>
-            {/* Staff login page title */}
-            <h1>Staff Login</h1>
+        <div className="auth-page">
+            <div className="auth-card">
 
-            {/* Staff login form */}
-            <form onSubmit={handleSubmit}>
+                {/* Login page header and Staff portal identification */}
+                <div className="auth-header">
+                    <div className="auth-logo">B</div>
 
-                {/* Username */}
-                <div>
-                    <label htmlFor="staff-username">
-                        Username
-                    </label>
+                    <span className="section-label">
+                        STAFF PORTAL
+                    </span>
 
-                    <input
-                        id="staff-username"
-                        name="username"
-                        type="text"
-                        autoComplete="username"
-                        value={username}
-                        onChange={(event) =>
-                            setUsername(event.target.value)
-                        }
-                        required
-                    />
+                    <h1>Staff Login</h1>
+
+                    <p>
+                        Sign in to manage and process barangay
+                        document requests.
+                    </p>
                 </div>
 
-                {/* Password */}
-                <div>
-                    <label htmlFor="staff-password">
-                        Password
-                    </label>
+                {/* Display an error message when authentication fails */}
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}
+                    </div>
+                )}
 
-                    <input
-                        id="staff-password"
-                        name="password"
-                        type="password"
-                        autoComplete="current-password"
-                        value={password}
-                        onChange={(event) =>
-                            setPassword(event.target.value)
-                        }
-                        required
-                    />
+                {/* Staff authentication form */}
+                <form onSubmit={handleSubmit}>
+                    {/* Username field */}
+                    <div className="mb-3">
+                        <label
+                            htmlFor="staff-username"
+                            className="form-label"
+                        >
+                            Username
+                        </label>
+
+                        <input
+                            id="staff-username"
+                            name="username"
+                            type="text"
+                            className="form-control"
+                            autoComplete="username"
+                            value={username}
+                            onChange={(event) =>
+                                setUsername(event.target.value)
+                            }
+                            placeholder="Enter your username"
+                            required
+                        />
+                    </div>
+
+                    {/* Password field */}
+                    <div className="mb-4">
+                        <label
+                            htmlFor="staff-password"
+                            className="form-label"
+                        >
+                            Password
+                        </label>
+
+                        <input
+                            id="staff-password"
+                            name="password"
+                            type="password"
+                            className="form-control"
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={(event) =>
+                                setPassword(event.target.value)
+                            }
+                            placeholder="Enter your password"
+                            required
+                        />
+                    </div>
+
+                    {/* Submit button */}
+                    <button
+                        type="submit"
+                        className="btn btn-success w-100"
+                        disabled={loading}
+                    >
+                        {loading ? "Signing in..." : "Sign In"}
+                    </button>
+                </form>
+
+                {/* Return to the public landing page */}
+                <div className="auth-footer">
+                    <Link to="/">
+                        ← Back to Barangay Document System
+                    </Link>
                 </div>
-
-                {/* Display login error if one exists */}
-                {error && <p>{error}</p>}
-
-                {/* Submit button */}
-                <button type="submit" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
-                </button>
-
-            </form>
+            </div>
         </div>
     );
 }

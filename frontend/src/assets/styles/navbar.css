@@ -1,0 +1,346 @@
+/* =========================
+NAVBAR
+========================= */
+
+.navbar {
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    width: min(1200px, 92%);
+    min-height: 72px;
+    margin: 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+}
+
+/* =========================
+BRAND
+========================= */
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    flex-shrink: 0;
+}
+
+.navbar-logo {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background-color: #166534;
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.navbar-title {
+    display: flex;
+    flex-direction: column;
+}
+
+.barangay-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #166534;
+}
+
+.system-name {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* =========================
+NAVIGATION LINKS
+========================= */
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.nav-links a {
+    color: #374151;
+    font-size: 15px;
+    font-weight: 500;
+
+    transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: #166534;
+}
+
+/* =========================
+NAVBAR ACTIONS
+========================= */
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.login-link {
+    color: #166534;
+    font-weight: 600;
+
+    transition: color 0.2s ease;
+}
+
+.login-link:hover {
+    color: #14532d;
+}
+
+.register-button {
+    padding: 10px 18px;
+
+    background-color: #166534;
+    color: #ffffff;
+
+    border-radius: 6px;
+
+    font-weight: 600;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.register-button:hover {
+    background-color: #14532d;
+    transform: translateY(-1px);
+}
+
+/* =========================
+MOBILE MENU BUTTON
+========================= */
+
+.mobile-menu-button {
+    display: none;
+
+    width: 42px;
+    height: 42px;
+
+    background: transparent;
+    border: none;
+
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+}
+
+.mobile-menu-button span {
+    width: 24px;
+    height: 2px;
+
+    background-color: #166534;
+
+    border-radius: 2px;
+}
+
+/* =========================
+MOBILE MENU
+========================= */
+
+.mobile-menu {
+    display: none;
+}
+
+/* =========================
+BREADCRUMB
+========================= */
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.breadcrumb a {
+    color: #166534;
+    font-weight: 500;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-separator {
+    color: #9ca3af;
+}
+
+.breadcrumb-current {
+    color: #6b7280;
+}
+
+/* =========================
+ROLE CARD
+========================= */
+
+.role-card {
+    width: 100%;
+    padding: 28px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    text-align: left;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-4px);
+
+    border-color: #166534;
+
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.role-card-icon {
+    width: 56px;
+    height: 56px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 18px;
+
+    border-radius: 12px;
+
+    background-color: #dcfce7;
+
+    font-size: 26px;
+}
+
+.role-card h3 {
+    margin-bottom: 8px;
+
+    font-size: 20px;
+
+    color: #166534;
+}
+
+.role-card p {
+    margin-bottom: 20px;
+
+    color: #6b7280;
+}
+
+.role-card-action {
+    color: #166534;
+    font-weight: 600;
+}
+
+/* =========================
+RESPONSIVE DESIGN
+========================= */
+
+@media (max-width: 768px) {
+    .desktop-navigation,
+    .navbar-actions {
+        display: none;
+    }
+
+    .mobile-menu-button {
+        display: flex;
+    }
+
+    .mobile-menu {
+        display: flex;
+        flex-direction: column;
+
+        padding: 20px 4%;
+
+        background-color: #ffffff;
+
+        border-top: 1px solid #e5e7eb;
+
+        gap: 24px;
+    }
+
+    .mobile-menu .nav-links {
+        flex-direction: column;
+        align-items: flex-start;
+
+        gap: 18px;
+    }
+
+    .mobile-menu-actions {
+        display: flex;
+        flex-direction: column;
+
+        gap: 12px;
+    }
+
+    .mobile-menu-actions .login-link,
+    .mobile-menu-actions .register-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .mobile-menu-actions .login-link {
+        padding: 10px;
+    }
+
+    .system-name {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-container {
+        width: 94%;
+        min-height: 64px;
+    }
+
+    .navbar-logo {
+        width: 38px;
+        height: 38px;
+
+        font-size: 17px;
+    }
+
+    .barangay-name {
+        font-size: 14px;
+    }
+}
