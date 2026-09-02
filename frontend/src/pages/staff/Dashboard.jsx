@@ -9,22 +9,40 @@ function StaffDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const fetchRequests = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get("/staff/requests");
+            setRequests(response.data.data);
+        } catch (error) {
+            console.error(error);
+            setError("Failed to load requests.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchRequests = async () => {
-            try {
-                const response = await api.get("/barangay-requests");
-
-                setRequests(response.data.data);
-            } catch (error) {
-                console.error(error);
-                setError("Failed to load barangay requests.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchRequests();
     }, []);
+
+    // Helper: get the correct API path for a request
+    const getEndpoint = (request) => {
+        return request.request_type === "guest"
+            ? `/guest-requests/${request.request_id}`
+            : `/barangay-requests/${request.request_id}`;
+    };
+
+    // Helper: get requester display name
+    const getRequesterName = (request) => {
+        if (request.request_type === "registered" && request.user) {
+            return `${request.user.first_name} ${request.user.last_name}`;
+        }
+        if (request.request_type === "guest" && request.guest) {
+            return `${request.guest.first_name} ${request.guest.last_name}`;
+        }
+        return "Unknown";
+    };
 
     if (loading) {
         return <div>Loading requests...</div>;
@@ -38,15 +56,17 @@ function StaffDashboard() {
         <div>
             <h1>Staff Dashboard</h1>
 
-            <h2>Barangay Requests</h2>
+            <h2>All Requests</h2>
 
             {requests.length === 0 ? (
-                <p>No barangay requests found.</p>
+                <p>No requests found.</p>
             ) : (
                 <table>
                     <thead>
                         <tr>
                             <th>Tracking Number</th>
+                            <th>Type</th>
+                            <th>Requester</th>
                             <th>Document</th>
                             <th>Status</th>
                             <th>Purpose</th>
@@ -57,9 +77,19 @@ function StaffDashboard() {
 
                     <tbody>
                         {requests.map((request) => (
-                            <tr key={request.request_id}>
+                            <tr key={`${request.request_type}-${request.request_id}`}>
                                 <td>
                                     {request.tracking_number}
+                                </td>
+
+                                <td>
+                                    {request.request_type === "registered"
+                                        ? "Registered"
+                                        : "Guest"}
+                                </td>
+
+                                <td>
+                                    {getRequesterName(request)}
                                 </td>
 
                                 <td>
@@ -85,13 +115,12 @@ function StaffDashboard() {
                                     <button
                                         onClick={() =>
                                             navigate(
-                                                `/staff/requests/${request.request_id}`
+                                                `/staff/requests/${request.request_type}/${request.request_id}`
                                             )
                                         }
                                     >
                                         View Details
                                     </button>
-
 
                                     <button
                                         onClick={async () => {
@@ -99,32 +128,18 @@ function StaffDashboard() {
                                                 "Are you sure you want to approve this request?"
                                             );
 
-                                            if (!confirmApprove) {
-                                                return;
-                                            }
+                                            if (!confirmApprove) return;
 
                                             try {
                                                 await api.put(
-                                                    `/barangay-requests/${request.request_id}`,
-                                                    {
-                                                        status: "Approved",
-                                                    }
+                                                    getEndpoint(request),
+                                                    { status: "Approved" }
                                                 );
 
                                                 alert("Request approved successfully.");
-
-                                                const response = await api.get(
-                                                    "/barangay-requests"
-                                                );
-
-                                                setRequests(response.data.data);
-
+                                                fetchRequests();
                                             } catch (error) {
-                                                console.error(
-                                                    "Failed to approve request:",
-                                                    error
-                                                );
-
+                                                console.error("Failed to approve request:", error);
                                                 alert("Failed to approve request.");
                                             }
                                         }}
@@ -138,32 +153,18 @@ function StaffDashboard() {
                                                 "Are you sure you want to reject this request?"
                                             );
 
-                                            if (!confirmReject) {
-                                                return;
-                                            }
+                                            if (!confirmReject) return;
 
                                             try {
                                                 await api.put(
-                                                    `/barangay-requests/${request.request_id}`,
-                                                    {
-                                                        status: "Rejected",
-                                                    }
+                                                    getEndpoint(request),
+                                                    { status: "Rejected" }
                                                 );
 
                                                 alert("Request rejected successfully.");
-
-                                                const response = await api.get(
-                                                    "/barangay-requests"
-                                                );
-
-                                                setRequests(response.data.data);
-
+                                                fetchRequests();
                                             } catch (error) {
-                                                console.error(
-                                                    "Failed to reject request:",
-                                                    error
-                                                );
-
+                                                console.error("Failed to reject request:", error);
                                                 alert("Failed to reject request.");
                                             }
                                         }}
