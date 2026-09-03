@@ -36,15 +36,6 @@ class StaffController extends Controller
 
     public function allRequests()
     {
-        $user = Auth::user();
-
-        // Only Staff and Admin can access all requests
-        if (!$user->staff && !$user->admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized.'
-            ], 403);
-        }
 
         $registeredRequests = BarangayRequest::with([
             'user',

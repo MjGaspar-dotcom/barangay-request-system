@@ -2,9 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\GuestRequestController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
 
@@ -50,9 +52,6 @@ Route::get(
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::get('/staff', [StaffController::class, 'index']);
-    Route::get('/staff/requests', [StaffController::class, 'allRequests']);
-
     // Current authenticated user — returns user data WITH role.
     // Used by AuthContext on page refresh to restore the session.
     Route::get('/user', [AuthController::class, 'me']);
@@ -97,6 +96,40 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // --------------------------------------------------
+    // Document Types
+    // --------------------------------------------------
+
+    Route::apiResource(
+        'document-types',
+        DocumentTypeController::class
+    );
+
+    // User Profile Update
+    Route::patch('/profile', [UserController::class, 'updateProfile']);
+
+
+    // --------------------------------------------------
+    // Notifications
+    // --------------------------------------------------
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
+});
+
+
+// ==========================
+// STAFF / ADMIN ONLY
+// ==========================
+
+Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
+
+    Route::get('/staff', [StaffController::class, 'index']);
+    Route::get('/staff/requests', [StaffController::class, 'allRequests']);
+
+    // --------------------------------------------------
     // Guest Requests (Staff/Admin management)
     // --------------------------------------------------
 
@@ -127,15 +160,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // --------------------------------------------------
-    // Document Types
+    // Audit Logs (Admin only — enforced in controller)
     // --------------------------------------------------
 
-    Route::apiResource(
-        'document-types',
-        DocumentTypeController::class
-    );
-
-    // User Profile Update
-    Route::patch('/profile', [UserController::class, 'updateProfile']);
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
+    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show']);
 
 });

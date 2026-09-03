@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreGuestRequest;
 use App\Http\Requests\UpdateGuestRequest;
 use App\Models\GuestRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Services\AuditService;
 use Illuminate\Support\Str;
 
 class GuestRequestController extends Controller
@@ -19,14 +19,6 @@ class GuestRequestController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-
-        if (!$user->staff && !$user->admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Only Staff or Admin can view guest requests.',
-            ], 403);
-        }
 
         $guestRequests = GuestRequest::with([
             'documentType',
@@ -63,6 +55,22 @@ class GuestRequestController extends Controller
 
         $guestRequest = GuestRequest::create($validated);
 
+        // Audit: log the creation (no user since this is public).
+        AuditService::log(
+            'created',
+            $guestRequest,
+            "New guest request submitted by {$guestRequest->first_name} {$guestRequest->last_name} (Tracking: {$guestRequest->tracking_number})"
+        );
+
+        // Notify all staff about the new guest request.
+        AuditService::notifyAllStaff(
+            'new_guest_request',
+            'New Guest Request',
+            "A new guest request ({$guestRequest->tracking_number}) has been submitted by {$guestRequest->first_name} {$guestRequest->last_name}.",
+            null,
+            $guestRequest->guest_request_id
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Guest request submitted successfully.',
@@ -78,14 +86,6 @@ class GuestRequestController extends Controller
      */
     public function show(GuestRequest $guestRequest)
     {
-        $user = Auth::user();
-
-        if (!$user->staff && !$user->admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized.',
-            ], 403);
-        }
 
         $guestRequest->load([
             'documentType',
@@ -106,14 +106,6 @@ class GuestRequestController extends Controller
      */
     public function update(UpdateGuestRequest $request, GuestRequest $guestRequest)
     {
-        $user = Auth::user();
-
-        if (!$user->staff && !$user->admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. Only Staff or Admin can process guest requests.',
-            ], 403);
-        }
 
         $validated = $request->validated();
 
@@ -163,6 +155,11 @@ class GuestRequestController extends Controller
 
         $guestRequest->update($validated);
 
+        // Audit: log the status change.
+        if (isset($currentStatus, $newStatus)) {
+            AuditService::logStatusChange($guestRequest, $currentStatus, $newStatus);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Guest request updated successfully.',
@@ -178,14 +175,13 @@ class GuestRequestController extends Controller
      */
     public function destroy(GuestRequest $guestRequest)
     {
-        $user = Auth::user();
 
-        if (!$user->staff && !$user->admin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized.',
-            ], 403);
-        }
+        // Audit: log the deletion before deleting.
+        AuditService::log(
+            'deleted',
+            $guestRequest,
+            "Guest request ({$guestRequest->tracking_number}) was deleted."
+        );
 
         $guestRequest->delete();
 
@@ -201,6 +197,7 @@ class GuestRequestController extends Controller
      *
      * GET /api/guest-requests/track/{tracking_number}
      */
+
     public function track(string $trackingNumber)
     {
         $guestRequest = GuestRequest::with('documentType')

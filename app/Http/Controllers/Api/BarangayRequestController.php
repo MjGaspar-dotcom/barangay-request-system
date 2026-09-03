@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBarangayRequest;
 use App\Http\Requests\UpdateBarangayRequest;
 use App\Models\BarangayRequest;
+use App\Services\AuditService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -63,6 +64,21 @@ class BarangayRequestController extends Controller
         $validated['status'] = 'Pending';
 
         $barangayRequest = BarangayRequest::create($validated);
+
+        // Audit: log the creation.
+        AuditService::log(
+            'created',
+            $barangayRequest,
+            "New barangay request submitted (Tracking: {$barangayRequest->tracking_number})"
+        );
+
+        // Notify all staff about the new request.
+        AuditService::notifyAllStaff(
+            'new_request',
+            'New Barangay Request',
+            "A new document request ({$barangayRequest->tracking_number}) has been submitted and is awaiting processing.",
+            $barangayRequest->request_id
+        );
 
         return response()->json([
             'success' => true,
@@ -173,6 +189,20 @@ class BarangayRequestController extends Controller
 
         $barangayRequest->update($validated);
 
+        // Audit: log the status change.
+        if (isset($currentStatus, $newStatus)) {
+            AuditService::logStatusChange($barangayRequest, $currentStatus, $newStatus);
+
+            // Notify the request owner about the status change.
+            AuditService::notify(
+                'status_update',
+                $barangayRequest->user_id,
+                'Request Status Updated',
+                "Your request ({$barangayRequest->tracking_number}) status has been changed from {$currentStatus} to {$newStatus}.",
+                $barangayRequest->request_id
+            );
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Barangay request updated successfully.',
@@ -187,6 +217,13 @@ class BarangayRequestController extends Controller
      */
     public function destroy(BarangayRequest $barangayRequest)
     {
+        // Audit: log the deletion before deleting.
+        AuditService::log(
+            'deleted',
+            $barangayRequest,
+            "Barangay request ({$barangayRequest->tracking_number}) was deleted."
+        );
+
         $barangayRequest->delete();
 
         return response()->json([
