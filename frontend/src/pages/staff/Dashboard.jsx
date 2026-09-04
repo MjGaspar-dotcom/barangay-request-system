@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
@@ -28,9 +27,10 @@ function StaffDashboard() {
 
     // Helper: get the correct API path for a request
     const getEndpoint = (request) => {
+        const id = request.request_id || request.guest_request_id;
         return request.request_type === "guest"
-            ? `/guest-requests/${request.request_id}`
-            : `/barangay-requests/${request.request_id}`;
+            ? `/guest-requests/${id}`
+            : `/barangay-requests/${id}`;
     };
 
     // Helper: get requester display name
@@ -38,10 +38,47 @@ function StaffDashboard() {
         if (request.request_type === "registered" && request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
         }
-        if (request.request_type === "guest" && request.guest) {
-            return `${request.guest.first_name} ${request.guest.last_name}`;
+        if (request.request_type === "guest") {
+            const g = request.guest || request;
+            if (g.first_name) {
+                return `${g.first_name} ${g.last_name}`;
+            }
         }
         return "Unknown";
+    };
+
+    const handleStatusUpdate = async (request, newStatus) => {
+        const confirmAction = window.confirm(
+            `Are you sure you want to change status to "${newStatus}"?`
+        );
+        if (!confirmAction) return;
+
+        try {
+            await api.put(getEndpoint(request), { status: newStatus });
+            alert(`Request status updated to ${newStatus}.`);
+            fetchRequests();
+        } catch (err) {
+            console.error("Failed to update status:", err);
+            const msg = err.response?.data?.message || "Failed to update status.";
+            alert(msg);
+        }
+    };
+
+    const handleDelete = async (request) => {
+        const confirmDelete = window.confirm(
+            `Are you sure you want to delete tracking number ${request.tracking_number}?`
+        );
+        if (!confirmDelete) return;
+
+        try {
+            await api.delete(getEndpoint(request));
+            alert("Request deleted successfully.");
+            fetchRequests();
+        } catch (err) {
+            console.error("Failed to delete request:", err);
+            const msg = err.response?.data?.message || "Failed to delete request.";
+            alert(msg);
+        }
     };
 
     if (loading) {
@@ -55,7 +92,6 @@ function StaffDashboard() {
     return (
         <div>
             <h1>Staff Dashboard</h1>
-
             <h2>All Requests</h2>
 
             {requests.length === 0 ? (
@@ -76,104 +112,123 @@ function StaffDashboard() {
                     </thead>
 
                     <tbody>
-                        {requests.map((request) => (
-                            <tr key={`${request.request_type}-${request.request_id}`}>
-                                <td>
-                                    {request.tracking_number}
-                                </td>
+                        {requests.map((request) => {
+                            const reqId = request.request_id || request.guest_request_id;
+                            const reqType = request.request_type || "registered";
 
-                                <td>
-                                    {request.request_type === "registered"
-                                        ? "Registered"
-                                        : "Guest"}
-                                </td>
+                            return (
+                                <tr key={`${reqType}-${reqId}`}>
+                                    <td>{request.tracking_number}</td>
 
-                                <td>
-                                    {getRequesterName(request)}
-                                </td>
+                                    <td>
+                                        {reqType === "registered"
+                                            ? "Registered"
+                                            : "Guest"}
+                                    </td>
 
-                                <td>
-                                    {request.document_type?.document_name ||
-                                        "Unknown"}
-                                </td>
+                                    <td>{getRequesterName(request)}</td>
 
-                                <td>
-                                    {request.status}
-                                </td>
+                                    <td>
+                                        {request.document_type?.document_name ||
+                                            request.document_name ||
+                                            "Unknown"}
+                                    </td>
 
-                                <td>
-                                    {request.purpose}
-                                </td>
+                                    <td>{request.status}</td>
 
-                                <td>
-                                    {new Date(
-                                        request.created_at
-                                    ).toLocaleString()}
-                                </td>
+                                    <td>{request.purpose}</td>
 
-                                <td>
-                                    <button
-                                        onClick={() =>
-                                            navigate(
-                                                `/staff/requests/${request.request_type}/${request.request_id}`
-                                            )
-                                        }
-                                    >
-                                        View Details
-                                    </button>
+                                    <td>
+                                        {new Date(
+                                            request.created_at
+                                        ).toLocaleString()}
+                                    </td>
 
-                                    <button
-                                        onClick={async () => {
-                                            const confirmApprove = window.confirm(
-                                                "Are you sure you want to approve this request?"
-                                            );
-
-                                            if (!confirmApprove) return;
-
-                                            try {
-                                                await api.put(
-                                                    getEndpoint(request),
-                                                    { status: "Approved" }
-                                                );
-
-                                                alert("Request approved successfully.");
-                                                fetchRequests();
-                                            } catch (error) {
-                                                console.error("Failed to approve request:", error);
-                                                alert("Failed to approve request.");
+                                    <td>
+                                        <button
+                                            onClick={() =>
+                                                navigate(
+                                                    `/staff/requests/${reqType}/${reqId}`
+                                                )
                                             }
-                                        }}
-                                    >
-                                        Approve
-                                    </button>
+                                        >
+                                            View Details
+                                        </button>
 
-                                    <button
-                                        onClick={async () => {
-                                            const confirmReject = window.confirm(
-                                                "Are you sure you want to reject this request?"
-                                            );
+                                        {request.status === "Pending" && (
+                                            <>
+                                                <button
+                                                    onClick={() =>
+                                                        handleStatusUpdate(
+                                                            request,
+                                                            "Approved"
+                                                        )
+                                                    }
+                                                >
+                                                    Approve
+                                                </button>
 
-                                            if (!confirmReject) return;
+                                                <button
+                                                    onClick={() =>
+                                                        handleStatusUpdate(
+                                                            request,
+                                                            "Rejected"
+                                                        )
+                                                    }
+                                                >
+                                                    Reject
+                                                </button>
+                                            </>
+                                        )}
 
-                                            try {
-                                                await api.put(
-                                                    getEndpoint(request),
-                                                    { status: "Rejected" }
-                                                );
+                                        {request.status === "Approved" && (
+                                            <button
+                                                onClick={() =>
+                                                    handleStatusUpdate(
+                                                        request,
+                                                        "Processing"
+                                                    )
+                                                }
+                                            >
+                                                Start Processing
+                                            </button>
+                                        )}
 
-                                                alert("Request rejected successfully.");
-                                                fetchRequests();
-                                            } catch (error) {
-                                                console.error("Failed to reject request:", error);
-                                                alert("Failed to reject request.");
-                                            }
-                                        }}
-                                    >
-                                        Reject
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                                        {request.status === "Processing" && (
+                                            <button
+                                                onClick={() =>
+                                                    handleStatusUpdate(
+                                                        request,
+                                                        "Ready for Pickup"
+                                                    )
+                                                }
+                                            >
+                                                Ready for Pickup
+                                            </button>
+                                        )}
+
+                                        {request.status === "Ready for Pickup" && (
+                                            <button
+                                                onClick={() =>
+                                                    handleStatusUpdate(
+                                                        request,
+                                                        "Completed"
+                                                    )
+                                                }
+                                            >
+                                                Mark Completed
+                                            </button>
+                                        )}
+
+                                        <button
+                                            onClick={() => handleDelete(request)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             )}

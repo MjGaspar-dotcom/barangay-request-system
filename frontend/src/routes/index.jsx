@@ -75,9 +75,17 @@ export default function AppRoutes() {
                 />
 
                 <Route
+                    path="/staff/requests/:type/:requestId"
+                    element={
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                            <StaffRequestDetails />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/staff/requests/:requestId"
                     element={
-                        <ProtectedRoute allowedRoles={["staff"]}>
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
                             <StaffRequestDetails />
                         </ProtectedRoute>
                     }
