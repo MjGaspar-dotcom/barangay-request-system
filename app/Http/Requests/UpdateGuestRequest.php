@@ -38,14 +38,7 @@ class UpdateGuestRequest extends FormRequest
             // Date and time when the request was verified
             'verified_at' => 'sometimes|nullable|date',
 
-            // Date and time when approved
-            'approved_at' => 'sometimes|nullable|date',
-
-            // Date and time when the document became ready
-            'ready_for_pickup_at' => 'sometimes|nullable|date',
-
-            // Date and time when the resident claimed the document
-            'claimed_at' => 'sometimes|nullable|date',
+            
         ];
     }
 }

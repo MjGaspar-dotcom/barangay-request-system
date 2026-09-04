@@ -7,6 +7,7 @@ use App\Http\Requests\StoreGuestRequest;
 use App\Http\Requests\UpdateGuestRequest;
 use App\Models\GuestRequest;
 use App\Services\AuditService;
+use App\Services\RequestStatusService;
 use Illuminate\Support\Str;
 
 class GuestRequestController extends Controller
@@ -109,55 +110,25 @@ class GuestRequestController extends Controller
 
         $validated = $request->validated();
 
-        // Enforce the same status transition workflow as registered requests.
-        // Pending → Approved → Processing → Ready for Pickup → Completed
-        // Pending can also go to Rejected.
-        if (isset($validated['status'])) {
-            $currentStatus = $guestRequest->status;
-            $newStatus = $validated['status'];
-
-            $allowedTransitions = [
-                'Pending' => ['Approved', 'Rejected'],
-                'Approved' => ['Processing'],
-                'Processing' => ['Ready for Pickup'],
-                'Ready for Pickup' => ['Completed'],
-                'Rejected' => [],
-                'Completed' => [],
-            ];
-
-            if ($currentStatus === $newStatus) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Request is already {$currentStatus}.",
-                ], 422);
+        try {
+            // If a new status was provided, do the entire update atomically
+            // (status + extra fields) inside RequestStatusService.
+            if (isset($validated['status'])) {
+                $guestRequest = RequestStatusService::updateGuestRequestAtomically(
+                    $guestRequest,
+                    $validated['status'],
+                    $validated,
+                    $validated['remarks'] ?? null
+                );
+            } else {
+                // No status change — just update the other fields.
+                $guestRequest->update($validated);
             }
-
-            if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
-                ], 422);
-            }
-
-            // Automatically record important timestamps.
-            if ($newStatus === 'Approved') {
-                $validated['approved_at'] = now();
-            }
-
-            if ($newStatus === 'Ready for Pickup') {
-                $validated['ready_for_pickup_at'] = now();
-            }
-
-            if ($newStatus === 'Completed') {
-                $validated['claimed_at'] = now();
-            }
-        }
-
-        $guestRequest->update($validated);
-
-        // Audit: log the status change.
-        if (isset($currentStatus, $newStatus)) {
-            AuditService::logStatusChange($guestRequest, $currentStatus, $newStatus);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
 
         return response()->json([

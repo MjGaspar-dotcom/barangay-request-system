@@ -7,6 +7,7 @@ use App\Http\Requests\StoreBarangayRequest;
 use App\Http\Requests\UpdateBarangayRequest;
 use App\Models\BarangayRequest;
 use App\Services\AuditService;
+use App\Services\RequestStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -26,8 +27,8 @@ class BarangayRequestController extends Controller
             'verifier',
         ]);
 
-        // Staff can see all barangay requests.
-        if ($user->staff) {
+        // Staff and Admin can see all barangay requests.
+        if ($user->staff || $user->admin) {
             $requests = $query->get();
         } else {
             // Normal users can only see their own requests.
@@ -139,68 +140,25 @@ class BarangayRequestController extends Controller
 
         $validated = $request->validated();
 
-        // Check status transition if a new status was provided.
-        if (isset($validated['status'])) {
-            $currentStatus = $barangayRequest->status;
-            $newStatus = $validated['status'];
-
-            // Request status workflow:
-            // Pending → Approved → Processing → Ready for Pickup → Completed
-            // Pending can also be Rejected.
-            // Rejected and Completed are final statuses.
-            $allowedTransitions = [
-                'Pending' => ['Approved', 'Rejected'],
-                'Approved' => ['Processing'],
-                'Processing' => ['Ready for Pickup'],
-                'Ready for Pickup' => ['Completed'],
-                'Rejected' => [],
-                'Completed' => [],
-            ];
-
-            // Prevent changing to the same status.
-            if ($currentStatus === $newStatus) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Request is already {$currentStatus}.",
-                ], 422);
+        try {
+            // If a new status was provided, do the entire update atomically
+            // (status + extra fields) inside RequestStatusService.
+            if (isset($validated['status'])) {
+                $barangayRequest = RequestStatusService::updateBarangayRequestAtomically(
+                    $barangayRequest,
+                    $validated['status'],
+                    $validated,
+                    $validated['remarks'] ?? null
+                );
+            } else {
+                // No status change — just update the other fields.
+                $barangayRequest->update($validated);
             }
-
-            // Prevent invalid status transitions.
-            if (!in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
-                ], 422);
-            }
-
-            // Automatically record important timestamps.
-            if ($newStatus === 'Approved') {
-                $validated['approved_at'] = now();
-            }
-
-            if ($newStatus === 'Ready for Pickup') {
-                $validated['ready_for_pickup_at'] = now();
-            }
-
-            if ($newStatus === 'Completed') {
-                $validated['claimed_at'] = now();
-            }
-        }
-
-        $barangayRequest->update($validated);
-
-        // Audit: log the status change.
-        if (isset($currentStatus, $newStatus)) {
-            AuditService::logStatusChange($barangayRequest, $currentStatus, $newStatus);
-
-            // Notify the request owner about the status change.
-            AuditService::notify(
-                'status_update',
-                $barangayRequest->user_id,
-                'Request Status Updated',
-                "Your request ({$barangayRequest->tracking_number}) status has been changed from {$currentStatus} to {$newStatus}.",
-                $barangayRequest->request_id
-            );
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
 
         return response()->json([
@@ -217,6 +175,16 @@ class BarangayRequestController extends Controller
      */
     public function destroy(BarangayRequest $barangayRequest)
     {
+        $user = Auth::user();
+
+        // Defense-in-depth: route is also protected by staff.or.admin middleware.
+        if (!$user->staff && !$user->admin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only Staff or Admin can delete requests.',
+            ], 403);
+        }
+
         // Audit: log the deletion before deleting.
         AuditService::log(
             'deleted',

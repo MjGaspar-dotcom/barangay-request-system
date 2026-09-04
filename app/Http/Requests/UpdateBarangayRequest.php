@@ -38,15 +38,7 @@ class UpdateBarangayRequest  extends FormRequest
             // Data and Time when the Request was Verified
             'verified_at' =>'sometimes|nullable|date',
 
-            // Date and Time when Approve
-            'approved_at' => 'sometimes|nullable|date',
-
-            // Date and Time when the document Became Ready
-            'ready_for_pickup_at' =>  'sometimes|nullable|date',
-
-            // Date and Time when the residents claimed the Documents
-            'claimed_at' =>  'sometimes|nullable|date',
-
+            
         ];
     }
 }

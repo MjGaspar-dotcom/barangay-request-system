@@ -89,11 +89,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [BarangayRequestController::class, 'update']
     );
 
-    Route::delete(
-        '/barangay-requests/{barangayRequest}',
-        [BarangayRequestController::class, 'destroy']
-    );
-
 
     // --------------------------------------------------
     // Document Types
@@ -116,7 +111,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
-
 });
 
 
@@ -158,6 +152,12 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
         [GuestRequestController::class, 'destroy']
     );
 
+    // Delete is staff/admin only — moved out of the registered-user route group.
+    Route::delete(
+        '/barangay-requests/{barangayRequest}',
+        [BarangayRequestController::class, 'destroy']
+    );
+
 
     // --------------------------------------------------
     // Audit Logs (Admin only — enforced in controller)
@@ -165,5 +165,4 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 
     Route::get('/audit-logs', [AuditLogController::class, 'index']);
     Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show']);
-
 });
