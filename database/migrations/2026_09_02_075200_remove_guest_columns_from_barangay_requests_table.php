@@ -13,21 +13,27 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('barangay_requests', function (Blueprint $table) {
-            $table->dropColumn([
-                'guest_first_name',
-                'guest_middle_name',
-                'guest_last_name',
-                'guest_birth_date',
-                'guest_gender',
-                'guest_civil_status',
-                'guest_address',
-                'guest_contact_number',
-                'guest_email',
-                'guest_valid_id_type',
-                'guest_valid_id_image',
-            ]);
-        });
+        $columns = [
+            'guest_first_name',
+            'guest_middle_name',
+            'guest_last_name',
+            'guest_birth_date',
+            'guest_gender',
+            'guest_civil_status',
+            'guest_address',
+            'guest_contact_number',
+            'guest_email',
+            'guest_valid_id_type',
+            'guest_valid_id_image',
+        ];
+
+        $columnsToDrop = array_filter($columns, fn($col) => Schema::hasColumn('barangay_requests', $col));
+
+        if (!empty($columnsToDrop)) {
+            Schema::table('barangay_requests', function (Blueprint $table) use ($columnsToDrop) {
+                $table->dropColumn(array_values($columnsToDrop));
+            });
+        }
     }
 
     /**

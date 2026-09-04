@@ -10,7 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Illuminate\Support\Facades\DB::statement("ALTER TABLE barangay_requests MODIFY COLUMN status ENUM('Pending', 'Processing', 'Approved', 'Ready for Pickup', 'Rejected', 'Completed') NOT NULL DEFAULT 'Pending'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            Illuminate\Support\Facades\DB::statement("ALTER TABLE barangay_requests MODIFY COLUMN status ENUM('Pending', 'Processing', 'Approved', 'Ready for Pickup', 'Rejected', 'Completed') NOT NULL DEFAULT 'Pending'");
+        }
     }
 
     /**
@@ -18,6 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Illuminate\Support\Facades\DB::statement("ALTER TABLE barangay_requests MODIFY COLUMN status ENUM('Pending', 'Approved', 'Rejected', 'Completed') NOT NULL DEFAULT 'Pending'");
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            Illuminate\Support\Facades\DB::statement("ALTER TABLE barangay_requests MODIFY COLUMN status ENUM('Pending', 'Approved', 'Rejected', 'Completed') NOT NULL DEFAULT 'Pending'");
+        }
     }
 };

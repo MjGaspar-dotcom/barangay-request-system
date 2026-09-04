@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -21,43 +20,10 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            // Registered user (NULL if guest)
+            // Registered user
             $table->foreignId('user_id')
-                ->nullable()
                 ->constrained('users', 'user_id')
-                ->nullOnDelete();
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Guest Information
-            |--------------------------------------------------------------------------
-            */
-
-            $table->string('guest_first_name')->nullable();
-            $table->string('guest_middle_name')->nullable();
-            $table->string('guest_last_name')->nullable();
-
-            $table->date('guest_birth_date')->nullable();
-
-            $table->enum('guest_gender', [
-                'Male',
-                'Female',
-                'Prefer not to say'
-            ])->nullable();
-
-            $table->string('guest_civil_status')->nullable();
-
-            $table->string('guest_address')->nullable();
-
-            $table->string('guest_contact_number')->nullable();
-
-            $table->string('guest_email')->nullable();
-
-            $table->string('guest_valid_id_type')->nullable();
-
-            $table->string('guest_valid_id_image')->nullable();
-
+                ->cascadeOnDelete();
 
             /*
             |--------------------------------------------------------------------------
@@ -83,6 +49,8 @@ return new class extends Migration
             $table->enum('status', [
                 'Pending',
                 'Approved',
+                'Processing',
+                'Ready for Pickup',
                 'Rejected',
                 'Completed',
             ])->default('Pending');
@@ -121,4 +89,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('barangay_requests');
     }
-};  
+};
