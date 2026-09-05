@@ -789,3 +789,260 @@ button {
         flex-direction: column;
     }
 }
+
+/* =========================================================
+   ADMIN TABLES
+   ========================================================= */
+
+.admin-table-wrapper {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table thead {
+    background-color: #f8faf9;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 14px 16px;
+    color: #14532d;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 14px 16px;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.admin-table code {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, Consolas, monospace;
+}
+
+@media (max-width: 768px) {
+    .admin-table th,
+    .admin-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+/* =========================================================
+   ADMIN FORM CARD
+   ========================================================= */
+
+.admin-form-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.admin-form-card .form-control,
+.admin-form-card .form-select {
+    border-radius: 8px;
+}
+
+.admin-form-card .form-label {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+/* =========================================================
+   DETAIL GRID (Request Details)
+   ========================================================= */
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.detail-label {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    display: block;
+    color: #1f2937;
+    font-size: 15px;
+    word-break: break-word;
+}
+
+@media (max-width: 600px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   TIMELINE (Request Processing)
+   ========================================================= */
+
+.timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background-color: #e5e7eb;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    position: relative;
+}
+
+.timeline-dot {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 1px #e5e7eb;
+    margin-top: 2px;
+    z-index: 1;
+}
+
+.timeline-item.done .timeline-dot {
+    background-color: #16a34a;
+    box-shadow: 0 0 0 1px #16a34a;
+}
+
+.timeline-item.pending strong {
+    color: #9ca3af;
+}
+
+.timeline-item strong {
+    color: #14532d;
+    display: block;
+}
+
+.timeline-date {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* =========================================================
+   RECENT ACTIVITY LIST
+   ========================================================= */
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: box-shadow 0.15s ease;
+}
+
+.activity-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.activity-item-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #dcfce7;
+    color: #14532d;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.activity-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-item-description {
+    margin: 0 0 6px;
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.activity-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.activity-item-table {
+    font-family: ui-monospace, Consolas, monospace;
+}
+
+/* =========================================================
+   ADMIN FILTERS
+   ========================================================= */
+
+.admin-filters {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
