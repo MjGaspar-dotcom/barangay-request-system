@@ -9,14 +9,15 @@ use App\Http\Controllers\Api\GuestRequestController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
-
+use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\AdminStaffController;
+use App\Http\Controllers\Api\AdminController;
 
 Route::get('/test', function () {
     return response()->json([
         'message' => 'API is working'
     ]);
 });
-
 
 // ==========================
 // AUTHENTICATION
@@ -27,7 +28,6 @@ Route::post('/login', [AuthController::class, 'login'])
 
 Route::post('/register', [AuthController::class, 'register'])
     ->name('register');
-
 
 // ==========================
 // GUEST REQUESTS (Public)
@@ -45,7 +45,6 @@ Route::get(
     [GuestRequestController::class, 'track']
 );
 
-
 // ==========================
 // PROTECTED API
 // ==========================
@@ -58,7 +57,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
-
 
     // --------------------------------------------------
     // Barangay Requests (Registered Users)
@@ -89,7 +87,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [BarangayRequestController::class, 'update']
     );
 
-
     // --------------------------------------------------
     // Document Types
     // --------------------------------------------------
@@ -102,7 +99,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // User Profile Update
     Route::patch('/profile', [UserController::class, 'updateProfile']);
 
-
     // --------------------------------------------------
     // Notifications
     // --------------------------------------------------
@@ -112,7 +108,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
-
 
 // ==========================
 // STAFF / ADMIN ONLY
@@ -158,11 +153,42 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
         [BarangayRequestController::class, 'destroy']
     );
 
+    // Admin statistics — only admin users
+    Route::get('/admin/stats', [AdminController::class, 'stats']);
+});
+
+// ==========================
+// ADMIN ONLY
+// ==========================
+
+Route::middleware(['auth:sanctum', 'admin.only'])->group(function () {
 
     // --------------------------------------------------
-    // Audit Logs (Admin only — enforced in controller)
+    // Manage Users
     // --------------------------------------------------
+    Route::get('/admin/users', [AdminUserController::class, 'index']);
+    Route::get('/admin/users/{user}', [AdminUserController::class, 'show']);
+    Route::patch(
+        '/admin/users/{user}/verification',
+        [AdminUserController::class, 'updateVerification']
+    );
+    Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
 
+    // --------------------------------------------------
+    // Manage Staff
+    // --------------------------------------------------
+    Route::get('/admin/staff', [AdminStaffController::class, 'index']);
+    Route::post('/admin/staff', [AdminStaffController::class, 'store']);
+    Route::delete('/admin/staff/{staff}', [AdminStaffController::class, 'destroy']);
+
+    // --------------------------------------------------
+    // Recent Activity (audit logs)
+    // --------------------------------------------------
+    Route::get('/admin/recent-activity', [AdminUserController::class, 'recentActivity']);
+
+    // --------------------------------------------------
+    // Audit Logs (detailed view)
+    // --------------------------------------------------
     Route::get('/audit-logs', [AuditLogController::class, 'index']);
     Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show']);
 });
