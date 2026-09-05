@@ -1,0 +1,21 @@
+username,first_name,middle_name,last_name,birth_date,gender,civil_status,address,contact_number,email,verification_status
+juan.delacruz,Juan,Dela,Cruz,1990-01-15,Male,Single,123 Main St Barangay San Fabian,09171111111,juan.delacruz@barangay.local,verified
+maria.santos,Maria,Cruz,Santos,1992-03-22,Female,Married,456 Oak Ave Barangay San Fabian,09172222222,maria.santos@barangay.local,verified
+pedro.reyes,Pedro,Lopez,Reyes,1985-07-10,Male,Single,789 Pine Rd Barangay San Fabian,09173333333,pedro.reyes@barangay.local,verified
+ana.garcia,Ana,Mercado,Garcia,1995-11-08,Female,Single,321 Elm St Barangay San Fabian,09174444444,ana.garcia@barangay.local,pending
+carlos.mendoza,Carlos,Rivera,Mendoza,1988-05-30,Male,Married,654 Maple Dr Barangay San Fabian,09175555555,carlos.mendoza@barangay.local,verified
+rosa.bautista,Rosa,Aquino,Bautista,1993-09-12,Female,Single,987 Cedar Ln Barangay San Fabian,09176666666,rosa.bautista@barangay.local,verified
+miguel.torres,Miguel,Salazar,Torres,1980-12-05,Male,Married,147 Birch Way Barangay San Fabian,09177777777,miguel.torres@barangay.local,verified
+elena.ramos,Elena,Villanueva,Ramos,1991-04-18,Female,Single,258 Walnut St Barangay San Fabian,09178888888,elena.ramos@barangay.local,verified
+ricardo.diaz,Ricardo,Castillo,Diaz,1987-08-25,Male,Married,369 Spruce Ave Barangay San Fabian,09179999999,ricardo.diaz@barangay.local,verified
+sofia.aguilar,Sofia,Pascual,Aguilar,1994-02-14,Female,Single,741 Ash Blvd Barangay San Fabian,09180000000,sofia.aguilar@barangay.local,pending
+fernando.luna,Fernando,Domingo,Luna,1983-06-07,Male,Married,852 Cherry Ct Barangay San Fabian,09181111111,fernando.luna@barangay.local,verified
+isabel.ortega,Isabel,Morales,Ortega,1996-10-20,Female,Single,963 Poplar Pl Barangay San Fabian,09182222222,isabel.ortega@barangay.local,verified
+andres.villanueva,Andres,Cruz,Villanueva,1979-11-30,Male,Married,159 Willow St Barangay San Fabian,09183333333,andres.villanueva@barangay.local,verified
+carmen.delrosario,Carmen,Reyes,Del Rosario,1989-03-08,Female,Single,357 Sycamore Dr Barangay San Fabian,09184444444,carmen.delrosario@barangay.local,verified
+manuel.beltran,Manuel,Aguilar,Beltran,1986-07-22,Male,Married,468 Redwood Ave Barangay San Fabian,09185555555,manuel.beltran@barangay.local,verified
+patricia.ignacio,Patricia,Santos,Ignacio,1997-12-11,Female,Single,579 Aspen Way Barangay San Fabian,09186666666,patricia.ignacio@barangay.local,verified
+roberto.cabrera,Roberto,Luna,Cabrera,1982-04-04,Male,Married,681 Sequoia Ln Barangay San Fabian,09187777777,roberto.cabrera@barangay.local,verified
+lourdes.manalo,Lourdes,Torres,Manalo,1990-08-17,Female,Single,792 Magnolia St Barangay San Fabian,09188888888,lourdes.manalo@barangay.local,verified
+victor.pangilinan,Victor,Ramos,Pangilinan,1984-01-26,Male,Married,813 Dogwood Ave Barangay San Fabian,09189999999,victor.pangilinan@barangay.local,verified
+esperanza.david,Esperanza,Mendoza,David,1993-05-19,Female,Single,924 Hawthorn Rd Barangay San Fabian,09190000000,esperanza.david@barangay.local,verified

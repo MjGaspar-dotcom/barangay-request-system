@@ -1,0 +1,11 @@
+username,document_type_id,purpose,status
+juan.delacruz,1,Job application,Pending
+maria.santos,2,School enrollment,Approved
+pedro.reyes,3,Banking requirement,Processing
+ana.garcia,1,Travel requirement,Pending
+carlos.mendoza,2,Government ID application,Ready for Pickup
+rosa.bautista,3,Medical assistance,Completed
+miguel.torres,1,Business permit,Pending
+elena.ramos,2,Scholarship application,Approved
+ricardo.diaz,3,Legal proceedings,Rejected
+sofia.aguilar,1,Police clearance,Pending
