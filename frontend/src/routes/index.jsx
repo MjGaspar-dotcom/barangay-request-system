@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import PublicLayout from "../layouts/PublicLayout";
 import Landing from "../pages/public/Landing";
 
 import Login from "../pages/user/Login";
@@ -31,14 +30,7 @@ export default function AppRoutes() {
         <BrowserRouter>
             <Routes>
                 {/* PUBLIC */}
-                <Route
-                    path="/"
-                    element={
-                        <PublicLayout>
-                            <Landing />
-                        </PublicLayout>
-                    }
-                />
+                <Route path="/" element={<Landing />} />
 
                 {/* AUTH */}
                 <Route path="/login" element={<Login />} />

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 function Login() {
     // =====================================================
@@ -58,104 +58,112 @@ function Login() {
     // =====================================================
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
+        <div className="auth-page admin-auth-page">
+            <div className="auth-card admin-auth-card">
                 {/* =================================================
-                    HEADER
-                    ================================================= */}
-                <div className="auth-header">
-                    {/* Temporary logo/icon */}
+                GREEN HEADER
+                ================================================= */}
+                <div className="admin-auth-header">
+                    {/* Temporary logo */}
                     <div className="auth-logo">B</div>
 
-                    <span className="section-label">ADMINISTRATION</span>
+                    <span className="admin-auth-label">
+                        ADMINISTRATOR PORTAL
+                    </span>
 
-                    <h1>Administrator Login</h1>
+                    <h1>Barangay Document System</h1>
 
                     <p>
-                        Sign in to access the barangay document management
-                        system.
+                        Integrated Document Request, Processing, and Analytics
+                        System
                     </p>
                 </div>
 
                 {/* =================================================
+                LOGIN CONTENT
+                ================================================= */}
+                <div className="admin-auth-body">
+                    {/* Welcome message */}
+                    <div className="admin-auth-welcome">
+                        <h2>Welcome Back!</h2>
+
+                        <p>Please login to continue</p>
+                    </div>
+
+                    {/* =================================================
                     ERROR MESSAGE
                     ================================================= */}
-                {error && (
-                    <div className="alert alert-danger" role="alert">
-                        {error}
-                    </div>
-                )}
+                    {error && (
+                        <div className="alert alert-danger" role="alert">
+                            {error}
+                        </div>
+                    )}
 
-                {/* =================================================
+                    {/* =================================================
                     LOGIN FORM
                     ================================================= */}
-                <form onSubmit={handleSubmit}>
-                    {/* Username */}
-                    <div className="mb-3">
-                        <label htmlFor="admin-username" className="form-label">
-                            Username
-                        </label>
+                    <form onSubmit={handleSubmit}>
+                        {/* Username */}
+                        <div className="admin-form-group">
+                            <label htmlFor="admin-username">Username</label>
 
-                        <input
-                            id="admin-username"
-                            type="text"
-                            className="form-control"
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
-                            placeholder="Enter administrator username"
-                            autoComplete="username"
-                            required
-                        />
-                    </div>
+                            <input
+                                id="admin-username"
+                                type="text"
+                                value={username}
+                                onChange={(event) =>
+                                    setUsername(event.target.value)
+                                }
+                                placeholder="Enter administrator username"
+                                autoComplete="username"
+                                required
+                            />
+                        </div>
 
-                    {/* Password */}
-                    <div className="mb-3">
-                        <label htmlFor="admin-password" className="form-label">
-                            Password
-                        </label>
+                        {/* Password */}
+                        <div className="admin-form-group">
+                            <label htmlFor="admin-password">Password</label>
 
-                        <input
-                            id="admin-password"
-                            type="password"
-                            className="form-control"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                            required
-                        />
-                    </div>
+                            <input
+                                id="admin-password"
+                                type="password"
+                                value={password}
+                                onChange={(event) =>
+                                    setPassword(event.target.value)
+                                }
+                                placeholder="Enter your password"
+                                autoComplete="current-password"
+                                required
+                            />
+                        </div>
 
-                    {/* Login button */}
-                    <button
-                        type="submit"
-                        className="btn btn-success w-100"
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <span
-                                    className="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                    aria-hidden="true"
-                                ></span>
-                                Signing in...
-                            </>
-                        ) : (
-                            "Sign In"
-                        )}
-                    </button>
-                </form>
+                        {/* Login button */}
+                        <button
+                            type="submit"
+                            className="admin-login-button"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <span
+                                        className="spinner-border spinner-border-sm me-2"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    Signing in...
+                                </>
+                            ) : (
+                                "SIGN IN TO ADMIN PORTAL"
+                            )}
+                        </button>
+                    </form>
 
-                {/* =================================================
-                    FOOTER
+                    {/* =================================================
+                    FOOTER LINK
                     ================================================= */}
-                <div className="auth-footer">
-                    <Link to="/">← Back to Home</Link>
+                    <div className="auth-footer">
+                        <Link to="/">← Back to Home</Link>
+                    </div>
                 </div>
             </div>
         </div>

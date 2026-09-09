@@ -1,124 +1,160 @@
-import UserRequestForm from "../../components/forms/UserRequestForm";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import api from "../../services/api";
-import { useAuth } from "../../contexts/AuthContext";
+import { Link } from "react-router-dom";
+import PortalLayout from "../../layouts/PortalLayout";
+import { useAuth } from "../../hooks/useAuth";
 
-function UserDashboard() {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
+/*
+|--------------------------------------------------------------------------
+| Resident Landing Page
+|--------------------------------------------------------------------------
+| This is the main landing page for authenticated residents/users.
+|
+| Residents can:
+| - Request a new barangay document
+| - View their existing requests
+| - Track request progress
+| - Access their account
+|--------------------------------------------------------------------------
+*/
 
-    const [documentTypes, setDocumentTypes] = useState([]);
-    const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+function Dashboard() {
+    const { user } = useAuth();
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const [documentTypesResponse, requestsResponse] =
-                    await Promise.all([
-                        api.get("/document-types"),
-                        api.get("/barangay-requests"),
-                    ]);
-
-                setDocumentTypes(documentTypesResponse.data.data);
-                setRequests(requestsResponse.data.data);
-            } catch (error) {
-                console.error(error);
-                setError("Failed to load dashboard data.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, []);
-
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (error) {
-        return <div>{error}</div>;
-    }
+    /*
+     * Use the user's first name when available.
+     * Fall back to "Resident" if the backend does not provide it.
+     */
+    const residentName =
+        user?.first_name || user?.firstName || user?.name || "Resident";
 
     return (
-        <div>
-            <h1>User Dashboard</h1>
+        <PortalLayout portalLabel="RESIDENT SERVICES">
+            <section className="resident-portal">
+                {/* -------------------------------------------------------
+                    Welcome Section
+                ------------------------------------------------------- */}
+                <div className="resident-welcome">
+                    <span className="portal-eyebrow">RESIDENT PORTAL</span>
 
-            <button onClick={logout}>
-                Logout
-            </button>
+                    <h1>
+                        Welcome, <span>{residentName}</span>
+                    </h1>
 
-            <h2>Available Document Types</h2>
+                    <p>
+                        Access your barangay document services, submit requests,
+                        and monitor their progress in one place.
+                    </p>
+                </div>
 
-            {documentTypes.length === 0 ? (
-                <p>No document types available.</p>
-            ) : (
-                <ul>
-                    {documentTypes.map((documentType) => (
-                        <li key={documentType.document_type_id}>
-                            {documentType.document_name}
-                        </li>
-                    ))}
-                </ul>
-            )}
+                {/* -------------------------------------------------------
+                    Main Actions
+                ------------------------------------------------------- */}
+                <div className="resident-actions">
+                    <Link
+                        to="/request"
+                        className="resident-action-card resident-action-primary"
+                    >
+                        <div className="resident-action-icon">+</div>
 
-            <h2>Request a Document</h2>
+                        <div className="resident-action-content">
+                            <span className="resident-action-title">
+                                Request a Document
+                            </span>
 
-            <UserRequestForm />
+                            <span className="resident-action-description">
+                                Submit a new barangay document request.
+                            </span>
+                        </div>
 
-            <h2>My Barangay Requests</h2>
+                        <span className="resident-action-arrow">→</span>
+                    </Link>
 
-            {requests.length === 0 ? (
-                <p>You have no barangay requests yet.</p>
-            ) : (
-                <ul>
-                    {requests.map((request) => (
-                        <li key={request.request_id}>
-                            <strong>
-                                {request.tracking_number}
-                            </strong>
+                    <Link to="/requests" className="resident-action-card">
+                        <div className="resident-action-icon">≡</div>
 
-                            <br />
+                        <div className="resident-action-content">
+                            <span className="resident-action-title">
+                                My Requests
+                            </span>
 
-                            Document:{" "}
-                            {request.document_type?.document_name ||
-                                "Unknown"}
+                            <span className="resident-action-description">
+                                View and monitor your submitted requests.
+                            </span>
+                        </div>
 
-                            <br />
+                        <span className="resident-action-arrow">→</span>
+                    </Link>
+                </div>
 
-                            Status: {request.status}
+                {/* -------------------------------------------------------
+                    Service Information
+                ------------------------------------------------------- */}
+                <div className="resident-service-card">
+                    <div className="resident-service-header">
+                        <div>
+                            <span className="resident-section-label">
+                                DOCUMENT SERVICES
+                            </span>
 
-                            <br />
+                            <h2>Manage your requests</h2>
+                        </div>
 
-                            Purpose: {request.purpose}
+                        <span className="resident-service-status">ONLINE</span>
+                    </div>
 
-                            <br />
+                    <div className="resident-service-steps">
+                        <div className="resident-step">
+                            <span className="resident-step-number">01</span>
 
-                            Submitted:{" "}
-                            {new Date(
-                                request.created_at
-                            ).toLocaleString()}
+                            <div>
+                                <strong>Submit</strong>
+                                <p>
+                                    Choose the document you need and submit your
+                                    request.
+                                </p>
+                            </div>
+                        </div>
 
-                            <br />
+                        <div className="resident-step-line"></div>
 
-                            <button
-                                onClick={() =>
-                                    navigate(
-                                        `/requests/${request.request_id}`
-                                    )
-                                }
-                            >
-                                View Details
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+                        <div className="resident-step">
+                            <span className="resident-step-number">02</span>
+
+                            <div>
+                                <strong>Track</strong>
+                                <p>
+                                    Monitor the processing status of your
+                                    request.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="resident-step-line"></div>
+
+                        <div className="resident-step">
+                            <span className="resident-step-number">03</span>
+
+                            <div>
+                                <strong>Receive</strong>
+                                <p>
+                                    Follow the instructions for receiving your
+                                    document.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* -------------------------------------------------------
+                    Account Link
+                ------------------------------------------------------- */}
+                <div className="resident-account-link">
+                    <span>Need to update your account information?</span>
+
+                    <Link to="/profile">View Profile</Link>
+                </div>
+            </section>
+        </PortalLayout>
     );
 }
 
-export default UserDashboard;
+export default Dashboard;

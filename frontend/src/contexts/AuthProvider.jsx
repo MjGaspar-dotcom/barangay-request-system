@@ -1,8 +1,6 @@
-
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { AuthContext } from "./AuthContext";
 import api from "../services/api";
-
-const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -20,7 +18,6 @@ export function AuthProvider({ children }) {
         const verifyAuthentication = async () => {
             const storedToken = localStorage.getItem("auth_token");
 
-            // No token = not authenticated
             if (!storedToken) {
                 setAuthLoading(false);
                 return;
@@ -75,11 +72,9 @@ export function AuthProvider({ children }) {
             throw new Error("Authentication token was not returned.");
         }
 
-        // Save token
         localStorage.setItem("auth_token", authToken);
         setToken(authToken);
 
-        // Get authenticated user
         const userResponse = await api.get("/user");
 
         const authenticatedUser =
@@ -136,19 +131,3 @@ export function AuthProvider({ children }) {
         </AuthContext.Provider>
     );
 }
-
-// =========================================
-// USE AUTH HOOK
-// =========================================
-export function useAuth() {
-    const context = useContext(AuthContext);
-
-    if (!context) {
-        throw new Error(
-            "useAuth must be used inside an AuthProvider"
-        );
-    }
-
-    return context;
-}
-
