@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Dunn\LaravelOcr\Facades\Ocr;
+use App\Services\OcrParsingService;
 
 class OcrTestController extends Controller
 {
@@ -16,19 +17,18 @@ class OcrTestController extends Controller
 
         $imagePath = $request->file('image')->getRealPath();
 
-        $text = Ocr::image($imagePath)
+        // Run Tesseract OCR engine
+        $rawText = Ocr::image($imagePath)
             ->language('eng')
             ->run();
-        preg_match('/Dob.*?(\d{2}-\d{2}-\d{4})/si', $text, $dateMatches);
 
-        $birthDate = $dateMatches[1] ?? null;
+        // Parse extracted text into structured Philippine ID data
+        $parsedData = OcrParsingService::parse($rawText);
 
         return response()->json([
             'success' => true,
-            'text' => $text,
-            'parsed' => [
-                'birth_date' => $birthDate,
-            ],
+            'data' => $parsedData,
         ]);
     }
 }
+

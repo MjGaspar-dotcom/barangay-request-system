@@ -28,14 +28,16 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
     {
         parent::setUp();
 
-        // Create standard user
+        // Create standard user (verified)
         $this->user = User::factory()->create([
             'email_verified_at' => now(),
+            'verification_status' => 'verified',
         ]);
 
         // Create admin user
         $this->adminUser = User::factory()->create([
             'email_verified_at' => now(),
+            'verification_status' => 'verified',
         ]);
         $this->admin = Admin::create([
             'user_id' => $this->adminUser->user_id,
@@ -44,6 +46,7 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
         // Create staff user
         $this->staffUser = User::factory()->create([
             'email_verified_at' => now(),
+            'verification_status' => 'verified',
         ]);
         $this->staff = Staff::create([
             'user_id' => $this->staffUser->user_id,
@@ -67,7 +70,7 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.status', 'Pending');
+            ->assertJsonPath('data.request.status', 'Pending');
 
         $this->assertDatabaseHas('barangay_requests', [
             'user_id' => $this->user->user_id,
@@ -99,9 +102,9 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.status', 'Pending');
+            ->assertJsonPath('data.request.status', 'Pending');
 
-        $trackingNumber = $response->json('data.tracking_number');
+        $trackingNumber = $response->json('data.request.tracking_number');
         $this->assertStringStartsWith('GR-', $trackingNumber);
 
         // Track guest request
