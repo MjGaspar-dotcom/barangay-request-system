@@ -9,6 +9,7 @@ use App\Models\GuestRequest;
 use App\Services\AuditService;
 use App\Services\RequestStatusService;
 use Illuminate\Support\Str;
+use App\Services\QrCodeService;
 
 class GuestRequestController extends Controller
 {
@@ -56,6 +57,11 @@ class GuestRequestController extends Controller
 
         $guestRequest = GuestRequest::create($validated);
 
+        //generate QR code for the tracking number
+        $qrCode = QrCodeService::generate(
+            $guestRequest->tracking_number
+        );
+
         // Audit: log the creation (no user since this is public).
         AuditService::log(
             'created',
@@ -75,7 +81,10 @@ class GuestRequestController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Guest request submitted successfully.',
-            'data' => $guestRequest,
+            'data' => [
+                'request' => $guestRequest,
+                'qr_code' => $qrCode
+            ]   
         ], 201);
     }
 

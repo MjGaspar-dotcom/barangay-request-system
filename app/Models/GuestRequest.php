@@ -74,4 +74,6 @@ class GuestRequest extends Model
             'staff_id'
         );
     }
+
+
 }

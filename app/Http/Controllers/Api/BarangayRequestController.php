@@ -10,6 +10,8 @@ use App\Services\AuditService;
 use App\Services\RequestStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Models\GuestRequest;
+use App\Services\QrCodeService;
 
 class BarangayRequestController extends Controller
 {
@@ -52,6 +54,17 @@ class BarangayRequestController extends Controller
      */
     public function store(StoreBarangayRequest $request)
     {
+        $user = Auth::user();
+
+        // Only verified residents can submit a barangay request.
+        if ($user->verification_status !== 'verified') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only verified users can submit a barangay request.',
+            ], 403);
+        }
+
+
         $validated = $request->validated();
 
         // Associate the request with the authenticated user.
@@ -65,6 +78,11 @@ class BarangayRequestController extends Controller
         $validated['status'] = 'Pending';
 
         $barangayRequest = BarangayRequest::create($validated);
+
+        //create QR code for the tracking number
+        $qrCode = QrCodeService::generate(
+            $barangayRequest->tracking_number
+        );
 
         // Audit: log the creation.
         AuditService::log(
@@ -84,7 +102,10 @@ class BarangayRequestController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Barangay request created successfully.',
-            'data' => $barangayRequest,
+            'data' => [
+                'request' => $barangayRequest,
+                'qr_code' => $qrCode
+            ]
         ], 201);
     }
 
@@ -198,5 +219,52 @@ class BarangayRequestController extends Controller
             'success' => true,
             'message' => 'Barangay request deleted successfully.',
         ]);
+    }
+    // Track a barangay request by its tracking number.
+    // Track a barangay or guest request by its tracking number.
+    public function track(string $trackingNumber)
+    {
+        // Check registered user's request first.
+        $request = BarangayRequest::with('documentType')
+            ->where('tracking_number', $trackingNumber)
+            ->first();
+
+        if ($request) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'tracking_number' => $request->tracking_number,
+                    'status' => $request->status,
+                    'document_type' => $request->documentType?->document_name,
+                    'purpose' => $request->purpose,
+                    'submitted_at' => $request->created_at,
+                    'remarks' => $request->remarks,
+                ],
+            ]);
+        }
+
+        // Check guest request.
+        $guestRequest = GuestRequest::with('documentType')
+            ->where('tracking_number', $trackingNumber)
+            ->first();
+
+        if ($guestRequest) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'tracking_number' => $guestRequest->tracking_number,
+                    'status' => $guestRequest->status,
+                    'document_type' => $guestRequest->documentType?->document_name,
+                    'purpose' => $guestRequest->purpose,
+                    'submitted_at' => $guestRequest->created_at,
+                    'remarks' => $guestRequest->remarks,
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Request not found.',
+        ], 404);
     }
 }

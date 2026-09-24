@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 
 export default function UserRequestForm() {
+    const { user } = useAuth();
+
     const [documentTypes, setDocumentTypes] = useState([]);
     const [documentTypeId, setDocumentTypeId] = useState("");
     const [purpose, setPurpose] = useState("");
@@ -32,6 +35,21 @@ export default function UserRequestForm() {
 
         setError("");
         setSuccess("");
+        setLoading(true);
+
+        if (verificationStatus === "rejected") {
+            return (
+                <div className="alert alert-danger">
+                    <h5>Account Verification Rejected</h5>
+                    <p className="mb-0">
+                        Your account verification was rejected. Please update your
+                        profile and valid ID information, then wait for another
+                        verification review.
+                    </p>
+                </div>
+            );
+        }
+
         setLoading(true);
 
         try {

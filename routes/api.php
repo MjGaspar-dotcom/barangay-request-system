@@ -13,6 +13,18 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminStaffController;
 use App\Http\Controllers\Api\AdminController;
 
+use App\Http\Controllers\Api\OcrTestController;
+
+use App\Services\QrCodeService;
+
+Route::post('/ocr/test', [OcrTestController::class, 'test']);
+
+Route::get('/test-qr', function () {
+    return response(
+        QrCodeService::generate('BRGY-2026-TEST01')
+    )->header('Content-Type', 'image/svg+xml');
+});
+
 Route::get('/test', function () {
     return response()->json([
         'message' => 'API is working'
@@ -43,6 +55,12 @@ Route::post(
 Route::get(
     '/guest-requests/track/{trackingNumber}',
     [GuestRequestController::class, 'track']
+);
+
+// Track any request by tracking number — no login required.
+Route::get(
+    '/track/{trackingNumber}',
+    [BarangayRequestController::class, 'track']
 );
 
 // ==========================
@@ -91,9 +109,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Document Types
     // --------------------------------------------------
 
-    Route::apiResource(
-        'document-types',
-        DocumentTypeController::class
+    Route::get(
+        '/document-types',
+        [DocumentTypeController::class, 'index']
     );
 
     // User Profile Update
