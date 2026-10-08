@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/providers/request_provider.dart';
 import '../../widgets/app_text_field.dart';
@@ -41,12 +42,43 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
             );
     if (!mounted) return;
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request submitted successfully!'),
-          backgroundColor: Color(0xFF1A6B4A),
+      final requestProvider = context.read<RequestProvider>();
+      final trackingNumber = requestProvider.lastTrackingNumber;
+      final qrPayload = requestProvider.lastQrPayload;
+      if (trackingNumber == null || qrPayload == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request submitted successfully.')),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
+
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Request Submitted'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Tracking number: $trackingNumber'),
+              const SizedBox(height: 12),
+              QrImageView(
+                data: qrPayload,
+                version: QrVersions.auto,
+                size: 200,
+              ),
+              const Text('Scan to track this request'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Done'),
+            ),
+          ],
         ),
       );
+      if (!mounted) return;
       Navigator.of(context).pop();
     } else {
       final msg = context.read<RequestProvider>().errorMessage;
@@ -75,14 +107,14 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A6B4A).withOpacity(0.07),
+                    color: const Color(0xFF1A6B4A).withValues(alpha: 0.07),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(Icons.info_outline, color: Color(0xFF1A6B4A)),
-                      const SizedBox(width: 10),
-                      const Expanded(
+                      Icon(Icons.info_outline, color: Color(0xFF1A6B4A)),
+                      SizedBox(width: 10),
+                      Expanded(
                         child: Text(
                           'Your verified ID on file will be used for this request.',
                           style: TextStyle(
@@ -102,7 +134,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
                   key: const Key('create_req_doc_type'),
-                  value: _selectedDocTypeId,
+                  initialValue: _selectedDocTypeId,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12)),

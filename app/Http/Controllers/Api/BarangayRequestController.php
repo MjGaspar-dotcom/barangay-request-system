@@ -104,7 +104,10 @@ class BarangayRequestController extends Controller
             'message' => 'Barangay request created successfully.',
             'data' => [
                 'request' => $barangayRequest,
-                'qr_code' => $qrCode
+                'qr_code' => $qrCode,
+                'qr_payload' => QrCodeService::payload(
+                    $barangayRequest->tracking_number
+                ),
             ]
         ], 201);
     }

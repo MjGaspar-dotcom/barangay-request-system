@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../landing_screen.dart';
 import 'track_request_screen.dart';
 
 class GuestSuccessScreen extends StatelessWidget {
   final String trackingNumber;
-  const GuestSuccessScreen({super.key, required this.trackingNumber});
+  final String qrPayload;
+
+  const GuestSuccessScreen({
+    super.key,
+    required this.trackingNumber,
+    required this.qrPayload,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +37,7 @@ class GuestSuccessScreen extends StatelessWidget {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.check_circle_outline,
@@ -51,7 +58,7 @@ class GuestSuccessScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.white.withOpacity(0.75),
+                    color: Colors.white.withValues(alpha: 0.75),
                     height: 1.5,
                   ),
                 ),
@@ -81,10 +88,21 @@ class GuestSuccessScreen extends StatelessWidget {
                           letterSpacing: 2,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      QrImageView(
+                        data: qrPayload,
+                        version: QrVersions.auto,
+                        size: 180,
+                      ),
+                      const Text(
+                        'Scan to track this request',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
                       const SizedBox(height: 16),
                       GestureDetector(
                         onTap: () {
-                          Clipboard.setData(ClipboardData(text: trackingNumber));
+                          Clipboard.setData(
+                              ClipboardData(text: trackingNumber));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Tracking number copied!')),
@@ -100,7 +118,8 @@ class GuestSuccessScreen extends StatelessWidget {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.copy, size: 16, color: Color(0xFF1A6B4A)),
+                              Icon(Icons.copy,
+                                  size: 16, color: Color(0xFF1A6B4A)),
                               SizedBox(width: 6),
                               Text(
                                 'Copy to clipboard',
@@ -126,8 +145,8 @@ class GuestSuccessScreen extends StatelessWidget {
                     onPressed: () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => TrackRequestScreen(
-                            initialTracking: trackingNumber),
+                        builder: (_) =>
+                            TrackRequestScreen(initialTracking: trackingNumber),
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -147,7 +166,8 @@ class GuestSuccessScreen extends StatelessWidget {
                   ),
                   child: Text(
                     'Back to Home',
-                    style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                    style:
+                        TextStyle(color: Colors.white.withValues(alpha: 0.8)),
                   ),
                 ),
               ],

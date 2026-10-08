@@ -83,7 +83,10 @@ class GuestRequestController extends Controller
             'message' => 'Guest request submitted successfully.',
             'data' => [
                 'request' => $guestRequest,
-                'qr_code' => $qrCode
+                'qr_code' => $qrCode,
+                'qr_payload' => QrCodeService::payload(
+                    $guestRequest->tracking_number
+                ),
             ]   
         ], 201);
     }

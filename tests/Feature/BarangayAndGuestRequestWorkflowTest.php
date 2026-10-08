@@ -72,11 +72,25 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.request.status', 'Pending');
 
+        $trackingNumber = $response->json('data.request.tracking_number');
+        $response->assertJsonPath(
+            'data.qr_payload',
+            url("/api/track/{$trackingNumber}")
+        );
+
         $this->assertDatabaseHas('barangay_requests', [
             'user_id' => $this->user->user_id,
             'purpose' => 'Employment Application',
             'status' => 'Pending',
         ]);
+    }
+
+    public function test_document_types_are_available_to_guest_mobile_clients(): void
+    {
+        $this->getJson('/api/document-types')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.0.document_type_id', $this->documentType->document_type_id);
     }
 
     public function test_guest_can_submit_request_and_track_it(): void
@@ -106,6 +120,10 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
 
         $trackingNumber = $response->json('data.request.tracking_number');
         $this->assertStringStartsWith('GR-', $trackingNumber);
+        $response->assertJsonPath(
+            'data.qr_payload',
+            url("/api/track/{$trackingNumber}")
+        );
 
         // Track guest request
         $trackResponse = $this->getJson("/api/guest-requests/track/{$trackingNumber}");

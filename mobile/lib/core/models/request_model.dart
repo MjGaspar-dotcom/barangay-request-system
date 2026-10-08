@@ -44,7 +44,7 @@ class BarangayRequest {
 
   factory BarangayRequest.fromJson(Map<String, dynamic> json) {
     return BarangayRequest(
-      id: json['id'] ?? 0,
+      id: json['id'] ?? json['request_id'] ?? 0,
       status: json['status'] ?? 'pending',
       remarks: json['remarks'],
       trackingNumber: json['tracking_number'],
@@ -76,14 +76,45 @@ class TrackResult {
   });
 
   factory TrackResult.fromJson(Map<String, dynamic> json) {
+    final documentType = json['document_type'];
+    final documentTypeName = documentType is Map
+        ? documentType['name'] ?? documentType['document_name']
+        : documentType ?? json['document_type_name'] ?? json['document'];
+
     return TrackResult(
       status: json['status'] ?? 'unknown',
       remarks: json['remarks'],
-      documentTypeName:
-          json['document_type']?['name'] ?? json['document_type_name'],
+      documentTypeName: documentTypeName?.toString(),
       requestType: json['request_type'],
       trackingNumber: json['tracking_number'],
-      createdAt: json['created_at'],
+      createdAt: json['created_at'] ?? json['submitted_at'],
+    );
+  }
+}
+
+class RequestReceipt {
+  final String trackingNumber;
+  final String? qrPayload;
+
+  const RequestReceipt({
+    required this.trackingNumber,
+    this.qrPayload,
+  });
+
+  factory RequestReceipt.fromResponse(Map<String, dynamic> response) {
+    final result = response['data'];
+    final request = result is Map ? result['request'] : null;
+    final trackingNumber = request is Map ? request['tracking_number'] : null;
+
+    if (trackingNumber is! String || trackingNumber.isEmpty) {
+      throw const FormatException(
+          'Tracking number was missing from the response.');
+    }
+
+    final qrPayload = result is Map ? result['qr_payload'] : null;
+    return RequestReceipt(
+      trackingNumber: trackingNumber,
+      qrPayload: qrPayload is String && qrPayload.isNotEmpty ? qrPayload : null,
     );
   }
 }

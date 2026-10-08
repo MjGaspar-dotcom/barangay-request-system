@@ -14,6 +14,7 @@ class RequestProvider extends ChangeNotifier {
   String? _errorMessage;
   String? _successMessage;
   String? _lastTrackingNumber;
+  String? _lastQrPayload;
 
   RequestStatus get status => _status;
   List<BarangayRequest> get requests => _requests;
@@ -22,6 +23,7 @@ class RequestProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
   String? get lastTrackingNumber => _lastTrackingNumber;
+  String? get lastQrPayload => _lastQrPayload;
 
   Future<void> fetchDocumentTypes() async {
     if (_documentTypes.isNotEmpty) return;
@@ -102,12 +104,15 @@ class RequestProvider extends ChangeNotifier {
   }) async {
     _status = RequestStatus.submitting;
     _errorMessage = null;
+    _lastTrackingNumber = null;
+    _lastQrPayload = null;
     notifyListeners();
     try {
-      await ApiService.createRequest({
+      final response = await ApiService.createRequest({
         'document_type_id': documentTypeId,
         'purpose': purpose,
       });
+      _storeRequestReceipt(response.data);
       _status = RequestStatus.success;
       _successMessage = 'Request submitted successfully!';
       notifyListeners();
@@ -118,19 +123,33 @@ class RequestProvider extends ChangeNotifier {
       _status = RequestStatus.error;
       notifyListeners();
       return false;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _status = RequestStatus.error;
+      notifyListeners();
+      return false;
     }
   }
 
   Future<String?> createGuestRequest(FormData formData) async {
     _status = RequestStatus.submitting;
     _errorMessage = null;
+    _lastTrackingNumber = null;
+    _lastQrPayload = null;
     notifyListeners();
     try {
       final response = await ApiService.createGuestRequest(formData);
-      final data = response.data;
-      final tracking =
-          data['tracking_number'] ?? data['data']?['tracking_number'];
-      _lastTrackingNumber = tracking?.toString();
+      final responseData = response.data;
+      if (responseData is! Map) {
+        throw Exception('Invalid guest request response.');
+      }
+
+      final receipt = RequestReceipt.fromResponse(
+        Map<String, dynamic>.from(responseData),
+      );
+      _lastTrackingNumber = receipt.trackingNumber;
+      _lastQrPayload =
+          receipt.qrPayload ?? ApiService.trackingUrl(receipt.trackingNumber);
       _status = RequestStatus.success;
       notifyListeners();
       return _lastTrackingNumber;
@@ -139,7 +158,25 @@ class RequestProvider extends ChangeNotifier {
       _status = RequestStatus.error;
       notifyListeners();
       return null;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _status = RequestStatus.error;
+      notifyListeners();
+      return null;
     }
+  }
+
+  void _storeRequestReceipt(dynamic responseData) {
+    if (responseData is! Map) {
+      throw Exception('Invalid request response.');
+    }
+
+    final receipt = RequestReceipt.fromResponse(
+      Map<String, dynamic>.from(responseData),
+    );
+    _lastTrackingNumber = receipt.trackingNumber;
+    _lastQrPayload =
+        receipt.qrPayload ?? ApiService.trackingUrl(receipt.trackingNumber);
   }
 
   Future<bool> trackRequest(String trackingNumber) async {
@@ -156,6 +193,11 @@ class RequestProvider extends ChangeNotifier {
       return true;
     } on DioException catch (e) {
       _errorMessage = _extractError(e);
+      _status = RequestStatus.error;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
       _status = RequestStatus.error;
       notifyListeners();
       return false;

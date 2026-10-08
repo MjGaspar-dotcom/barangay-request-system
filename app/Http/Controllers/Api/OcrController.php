@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Dunn\LaravelOcr\Facades\Ocr;
 use App\Services\OcrParsingService;
+use Dunn\LaravelOcr\Facades\Ocr;
+use Illuminate\Http\Request;
 
-class OcrTestController extends Controller
+class OcrController extends Controller
 {
-    public function test(Request $request)
+    public function extract(Request $request)
     {
         $request->validate([
             'image' => ['required', 'image', 'max:10240'],
@@ -19,7 +19,7 @@ class OcrTestController extends Controller
 
         // Run Tesseract OCR engine
         $rawText = Ocr::image($imagePath)
-            ->language('eng')
+            ->language((string) config('ocr.default_language', 'eng'))
             ->run();
 
         // Parse extracted text into structured Philippine ID data
@@ -31,4 +31,3 @@ class OcrTestController extends Controller
         ]);
     }
 }
-

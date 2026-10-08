@@ -12,12 +12,14 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AdminStaffController;
 use App\Http\Controllers\Api\AdminController;
-
-use App\Http\Controllers\Api\OcrTestController;
+use App\Http\Controllers\Api\OcrController;
 
 use App\Services\QrCodeService;
 
-Route::post('/ocr/test', [OcrTestController::class, 'test']);
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/ocr/extract', [OcrController::class, 'extract']);
+    Route::post('/ocr/test', [OcrController::class, 'extract']);
+});
 
 Route::get('/test-qr', function () {
     return response(
@@ -44,6 +46,8 @@ Route::post('/register', [AuthController::class, 'register'])
 // ==========================
 // GUEST REQUESTS (Public)
 // ==========================
+
+Route::get('/document-types', [DocumentTypeController::class, 'index']);
 
 // Submit a new guest request — no login required.
 Route::post(
@@ -103,15 +107,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch(
         '/barangay-requests/{barangayRequest}',
         [BarangayRequestController::class, 'update']
-    );
-
-    // --------------------------------------------------
-    // Document Types
-    // --------------------------------------------------
-
-    Route::get(
-        '/document-types',
-        [DocumentTypeController::class, 'index']
     );
 
     // User Profile Update

@@ -3,8 +3,10 @@ import 'package:dio/dio.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.130.162.117:8000/api';
-  // Use http://127.0.0.1:8000/api for iOS or real device pointing to local
+  static const String _baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:8000/api',
+  );
 
   static Dio? _dio;
 
@@ -65,9 +67,6 @@ class ApiService {
   static Future<Response> getUser() async {
     final response = await dio.get('/user');
 
-    print('USER STATUS: ${response.statusCode}');
-    print('USER RESPONSE: ${response.data}');
-
     return response;
   }
 
@@ -95,9 +94,29 @@ class ApiService {
     return dio.post('/guest-requests', data: formData);
   }
 
+  static Future<Response> extractIdText(String imagePath) async {
+    return dio.post(
+      '/ocr/extract',
+      data: FormData.fromMap({
+        'image': await MultipartFile.fromFile(imagePath),
+      }),
+    );
+  }
+
   // --- Track ---
   static Future<Response> trackRequest(String trackingNumber) {
-    return dio.get('/track/$trackingNumber');
+    return dio.get('/track/${Uri.encodeComponent(trackingNumber)}');
+  }
+
+  static String trackingUrl(String trackingNumber) {
+    final baseUri = Uri.parse(_baseUrl);
+    final pathSegments = [
+      ...baseUri.pathSegments.where((segment) => segment.isNotEmpty),
+      'track',
+      trackingNumber,
+    ];
+
+    return baseUri.replace(pathSegments: pathSegments).toString();
   }
 
   // --- Notifications ---

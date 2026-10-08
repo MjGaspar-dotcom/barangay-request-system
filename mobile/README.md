@@ -12,20 +12,34 @@ A production-ready Flutter mobile application for the **Barangay Document Reques
 ### Installation
 
 ```bash
-cd barangay_mobile
+cd mobile
 flutter pub get
 flutter run
 ```
 
 ### API Configuration
 
-Open `lib/core/services/api_service.dart` and update the `_baseUrl`:
+Pass `API_BASE_URL` at build/run time to configure the Laravel API:
 
-| Environment         | URL                         |
-|--------------------|-----------------------------|
-| Android Emulator   | `http://10.0.2.2:8000/api`  |
-| iOS Simulator      | `http://localhost:8000/api`  |
-| Real Device (WiFi) | `http://<your-lan-ip>:8000/api` |
+| Environment         | URL                                  |
+|--------------------|--------------------------------------|
+| Android Emulator   | `http://10.0.2.2:8000/api`           |
+| iOS Simulator      | `http://localhost:8000/api`          |
+| Real Device (WiFi) | `http://<your-lan-ip>:8000/api`      |
+
+For example:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.20:8000/api
+```
+
+The API host and its generated tracking links must be reachable from the
+device. Use HTTPS outside local development; Tesseract runs on the Laravel
+server, not on the phone. OCR sends the selected ID image to
+`POST /api/ocr/extract`; parsed fields are returned under `data`, including
+`data.birth_date`. Install Tesseract with English language data on the Laravel
+host and set `TESSERACT_BIN` in its `.env` to the installed executable path
+(`OCR_LANG` defaults to `eng`).
 
 ---
 
@@ -61,7 +75,8 @@ lib/
     │   ├── guest/
     │   │   ├── guest_request_screen.dart  # Multipart upload
     │   │   ├── guest_success_screen.dart  # Tracking number display
-    │   │   └── track_request_screen.dart  # Status timeline
+    │   │   ├── qr_scanner_screen.dart     # Scan a tracking QR code
+    │   │   └── track_request_screen.dart  # Status timeline + QR scan
     │   ├── notifications/
     │   │   └── notifications_screen.dart
     │   └── profile/
@@ -79,9 +94,11 @@ lib/
 ### Guest Workflow
 - Submit document requests **without an account**
 - Upload valid ID photo via image picker (multipart)
+- Read the birth date from the selected ID using server-side Tesseract OCR
 - Get a **tracking number** immediately on success
+- Display a scannable QR code for request tracking
 - Copy tracking number to clipboard
-- Track status via elegant status timeline card
+- Track status by number or by scanning its QR code
 
 ### Resident Workflow
 - Register with multi-step stepper form

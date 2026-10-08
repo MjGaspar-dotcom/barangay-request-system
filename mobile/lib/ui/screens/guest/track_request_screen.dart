@@ -5,6 +5,7 @@ import '../../../core/providers/request_provider.dart';
 import '../../../core/models/request_model.dart';
 import '../../widgets/loading_button.dart';
 import '../../widgets/status_chip.dart';
+import 'qr_scanner_screen.dart';
 
 class TrackRequestScreen extends StatefulWidget {
   final String? initialTracking;
@@ -41,6 +42,16 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
       return;
     }
     await context.read<RequestProvider>().trackRequest(tracking);
+  }
+
+  Future<void> _scanQrCode() async {
+    final trackingNumber = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const QrScannerScreen()),
+    );
+    if (!mounted || trackingNumber == null) return;
+
+    _trackingCtrl.text = trackingNumber;
+    await _track();
   }
 
   @override
@@ -98,6 +109,16 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
                       isLoading: isLoading,
                       onPressed: _track,
                     ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        key: const Key('btn_scan_tracking_qr'),
+                        onPressed: _scanQrCode,
+                        icon: const Icon(Icons.qr_code_scanner),
+                        label: const Text('Scan QR Code'),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -130,7 +151,7 @@ class _TrackResultCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFEDF0EC)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -159,7 +180,8 @@ class _TrackResultCard extends StatelessWidget {
           if (result.documentTypeName != null)
             _InfoRow(label: 'Document', value: result.documentTypeName!),
           if (result.createdAt != null)
-            _InfoRow(label: 'Date Filed', value: _formatDate(result.createdAt!)),
+            _InfoRow(
+                label: 'Date Filed', value: _formatDate(result.createdAt!)),
           if (result.remarks != null && result.remarks!.isNotEmpty)
             _InfoRow(label: 'Remarks', value: result.remarks!),
           const SizedBox(height: 8),
@@ -259,12 +281,9 @@ class _StatusTimeline extends StatelessWidget {
                         step[0].toUpperCase() + step.substring(1),
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDone
-                              ? const Color(0xFF1A6B4A)
-                              : Colors.grey,
-                          fontWeight: isDone
-                              ? FontWeight.w700
-                              : FontWeight.normal,
+                          color: isDone ? const Color(0xFF1A6B4A) : Colors.grey,
+                          fontWeight:
+                              isDone ? FontWeight.w700 : FontWeight.normal,
                         ),
                       ),
                     ],
