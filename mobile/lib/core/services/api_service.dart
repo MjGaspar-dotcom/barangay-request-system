@@ -1,12 +1,10 @@
 import 'package:dio/dio.dart';
 
+import '../../utils/utils.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  static const String _baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000/api',
-  );
+  static const String _baseUrl = baseUrl;
 
   static Dio? _dio;
 

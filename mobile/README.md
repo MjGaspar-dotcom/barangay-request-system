@@ -19,18 +19,20 @@ flutter run
 
 ### API Configuration
 
-Pass `API_BASE_URL` at build/run time to configure the Laravel API:
+The Laravel server host and API base URL are configured in
+[`lib/utils/utils.dart`](lib/utils/utils.dart):
 
-| Environment         | URL                                  |
-|--------------------|--------------------------------------|
-| Android Emulator   | `http://10.0.2.2:8000/api`           |
-| iOS Simulator      | `http://localhost:8000/api`          |
-| Real Device (WiFi) | `http://<your-lan-ip>:8000/api`      |
+```dart
+const String serverUrl = 'http://172.20.2.180:8000';
+const String baseUrl = '$serverUrl/api';
+```
 
-For example:
+Use a host address reachable from the device. For a USB-connected Android
+device using ADB reverse forwarding, set `serverUrl` to
+`http://127.0.0.1:8000` and run:
 
-```bash
-flutter run --dart-define=API_BASE_URL=http://192.168.1.20:8000/api
+```sh
+adb reverse tcp:8000 tcp:8000
 ```
 
 The API host and its generated tracking links must be reachable from the

@@ -6,7 +6,7 @@ void main() {
   test('builds a tracking link from the configured API base URL', () {
     expect(
       ApiService.trackingUrl('GR-20261008-ABC123'),
-      'http://10.0.2.2:8000/api/track/GR-20261008-ABC123',
+      'http://172.20.2.180:8000/api/track/GR-20261008-ABC123',
     );
   });
 
