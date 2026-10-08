@@ -158,11 +158,8 @@ function Login() {
                         </button>
                     </form>
 
-                    {/* =================================================
-                    FOOTER LINK
-                    ================================================= */}
                     <div className="auth-footer">
-                        <Link to="/">← Back to Home</Link>
+                        <Link to="/staff/login">Staff sign in</Link>
                     </div>
                 </div>
             </div>

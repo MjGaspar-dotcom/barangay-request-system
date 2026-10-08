@@ -138,11 +138,8 @@ function StaffLogin() {
                     </button>
                 </form>
 
-                {/* Return to the public landing page */}
                 <div className="auth-footer">
-                    <Link to="/">
-                        ← Back to Barangay Document System
-                    </Link>
+                    <Link to="/admin/login">Administrator sign in</Link>
                 </div>
             </div>
         </div>

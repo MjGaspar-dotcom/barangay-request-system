@@ -1,11 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Landing from "../pages/public/Landing";
-
-import Login from "../pages/user/Login";
-import Register from "../pages/user/Register";
-import UserDashboard from "../pages/user/Dashboard";
-import RequestDetails from "../pages/user/RequestDetails";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminLogin from "../pages/admin/Login";
@@ -20,48 +13,15 @@ import StaffLogin from "../pages/staff/Login";
 import StaffDashboard from "../pages/staff/Dashboard";
 import StaffRequestDetails from "../pages/staff/RequestDetails";
 
-import GuestRequest from "../pages/guest/Request";
-import TrackRequest from "../pages/guest/TrackRequest";
-
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 export default function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* PUBLIC */}
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Navigate to="/admin/login" replace />} />
+                <Route path="/login" element={<Navigate to="/admin/login" replace />} />
 
-                {/* AUTH */}
-                <Route path="/login" element={<Login />} />
-
-                <Route path="/register" element={<Register />} />
-
-                {/* GUEST */}
-                <Route path="/request" element={<GuestRequest />} />
-
-                <Route path="/track-request" element={<TrackRequest />} />
-
-                {/* RESIDENT / USER */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={["user"]}>
-                            <UserDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/requests/:requestId"
-                    element={
-                        <ProtectedRoute allowedRoles={["user"]}>
-                            <RequestDetails />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* STAFF */}
                 <Route
                     path="/staff/dashboard"
                     element={
@@ -88,7 +48,6 @@ export default function AppRoutes() {
                     }
                 />
 
-                {/* ADMIN */}
                 <Route
                     path="/admin/dashboard"
                     element={
@@ -163,8 +122,9 @@ export default function AppRoutes() {
 
                 {/* ROLE-SPECIFIC LOGIN */}
                 <Route path="/admin/login" element={<AdminLogin />} />
-
                 <Route path="/staff/login" element={<StaffLogin />} />
+
+                <Route path="*" element={<Navigate to="/admin/login" replace />} />
             </Routes>
         </BrowserRouter>
     );
