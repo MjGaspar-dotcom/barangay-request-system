@@ -1,6 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { CircularProgress, TextField } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import FieldValidationError from "../../components/forms/FieldValidationError";
+import { useAuth } from "../../hooks/useAuth";
+import {
+    AdminAuthBody,
+    AdminAuthCard,
+    AdminAuthField,
+    AdminAuthFooter,
+    AdminAuthFooterLink,
+    AdminAuthForm,
+    AdminAuthHeader,
+    AdminAuthLabel,
+    AdminAuthLogo,
+    AdminAuthPage,
+    AdminAuthWelcome,
+    AdminLoginButton,
+} from "./Login.styles";
 
 function Login() {
     // =====================================================
@@ -10,27 +27,34 @@ function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    // Form values
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-
     // UI states
-    const [error, setError] = useState("");
+    const [loginError, setLoginError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            username: "",
+            password: "",
+        },
+        mode: "onSubmit",
+        reValidateMode: "onChange",
+    });
 
     // =====================================================
     // HANDLE LOGIN
     // =====================================================
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        setError("");
+    const submitLogin = async (values) => {
+        setLoginError("");
         setLoading(true);
 
         try {
             // Use the existing authentication function.
-            const response = await login(username, password);
+            const response = await login(values.username, values.password);
 
             // Only administrators should enter the admin dashboard.
             if (response.role === "admin") {
@@ -40,125 +64,152 @@ function Login() {
 
             // If another type of account tries to use
             // the administrator login page, deny access.
-            setError("This account does not have administrator access.");
+            setLoginError("This account does not have administrator access.");
         } catch (error) {
             // Laravel returned an authentication error.
             if (error.response?.status === 401) {
-                setError("Invalid username or password.");
+                setLoginError("Invalid username or password.");
             } else {
-                setError("Login failed. Please try again.");
+                setLoginError("Login failed. Please try again.");
             }
         } finally {
             setLoading(false);
         }
     };
 
+    const usernameField = register("username", {
+        required: "Username is required.",
+    });
+
+    const passwordField = register("password", {
+        required: "Password is required.",
+    });
+
     // =====================================================
     // PAGE UI
     // =====================================================
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                {/* =================================================
-                    HEADER
-                    ================================================= */}
-                <div className="auth-header">
-                    {/* Temporary logo/icon */}
-                    <div className="auth-logo">B</div>
+        <AdminAuthPage>
+            <AdminAuthCard>
+                <AdminAuthHeader>
+                    <AdminAuthLogo>B</AdminAuthLogo>
 
-                    <span className="section-label">ADMINISTRATION</span>
+                    <AdminAuthLabel>ADMINISTRATOR PORTAL</AdminAuthLabel>
 
-                    <h1>Administrator Login</h1>
+                    <h1>Barangay Document System</h1>
 
                     <p>
-                        Sign in to access the barangay document management
-                        system.
+                        Integrated Document Request, Processing, and Analytics
+                        System
                     </p>
-                </div>
+                </AdminAuthHeader>
 
-                {/* =================================================
-                    ERROR MESSAGE
-                    ================================================= */}
-                {error && (
-                    <div className="alert alert-danger" role="alert">
-                        {error}
-                    </div>
-                )}
+                <AdminAuthBody>
+                    <AdminAuthWelcome>
+                        <h2>Welcome Back!</h2>
 
-                {/* =================================================
-                    LOGIN FORM
-                    ================================================= */}
-                <form onSubmit={handleSubmit}>
-                    {/* Username */}
-                    <div className="mb-3">
-                        <label htmlFor="admin-username" className="form-label">
-                            Username
-                        </label>
+                        <p>Please login to continue</p>
+                    </AdminAuthWelcome>
 
-                        <input
-                            id="admin-username"
-                            type="text"
-                            className="form-control"
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
-                            placeholder="Enter administrator username"
-                            autoComplete="username"
-                            required
-                        />
-                    </div>
-
-                    {/* Password */}
-                    <div className="mb-3">
-                        <label htmlFor="admin-password" className="form-label">
-                            Password
-                        </label>
-
-                        <input
-                            id="admin-password"
-                            type="password"
-                            className="form-control"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
-                            autoComplete="current-password"
-                            required
-                        />
-                    </div>
-
-                    {/* Login button */}
-                    <button
-                        type="submit"
-                        className="btn btn-success w-100"
-                        disabled={loading}
+                    <AdminAuthForm
+                        onSubmit={handleSubmit(submitLogin)}
+                        noValidate
                     >
-                        {loading ? (
-                            <>
-                                <span
-                                    className="spinner-border spinner-border-sm me-2"
-                                    role="status"
-                                    aria-hidden="true"
-                                ></span>
-                                Signing in...
-                            </>
-                        ) : (
-                            "Sign In"
-                        )}
-                    </button>
-                </form>
+                        <AdminAuthField>
+                            <TextField
+                                id="admin-username"
+                                name={usernameField.name}
+                                type="text"
+                                fullWidth
+                                required
+                                label="Username"
+                                onChange={usernameField.onChange}
+                                onBlur={usernameField.onBlur}
+                                inputRef={usernameField.ref}
+                                error={Boolean(errors.username)}
+                                placeholder="Enter administrator username"
+                                autoComplete="username"
+                                slotProps={{
+                                    htmlInput: {
+                                        "aria-invalid": Boolean(
+                                            errors.username,
+                                        ),
+                                        "aria-describedby": errors.username
+                                            ? "admin-username-error"
+                                            : undefined,
+                                    },
+                                }}
+                            />
 
-                {/* =================================================
-                    FOOTER
-                    ================================================= */}
-                <div className="auth-footer">
-                    <Link to="/">← Back to Home</Link>
-                </div>
-            </div>
-        </div>
+                            <FieldValidationError
+                                id="admin-username-error"
+                                error={errors.username}
+                            />
+                        </AdminAuthField>
+
+                        <AdminAuthField>
+                            <TextField
+                                id="admin-password"
+                                name={passwordField.name}
+                                type="password"
+                                fullWidth
+                                required
+                                label="Password"
+                                onChange={passwordField.onChange}
+                                onBlur={passwordField.onBlur}
+                                inputRef={passwordField.ref}
+                                error={Boolean(errors.password)}
+                                placeholder="Enter your password"
+                                autoComplete="current-password"
+                                slotProps={{
+                                    htmlInput: {
+                                        "aria-invalid": Boolean(
+                                            errors.password,
+                                        ),
+                                        "aria-describedby": errors.password
+                                            ? "admin-password-error"
+                                            : undefined,
+                                    },
+                                }}
+                            />
+
+                            <FieldValidationError
+                                id="admin-password-error"
+                                error={errors.password}
+                            />
+                        </AdminAuthField>
+
+                        {loginError && (
+                            <FieldValidationError
+                                id="admin-login-error"
+                                error={loginError}
+                            />
+                        )}
+
+                        <AdminLoginButton type="submit" disabled={loading}>
+                            {loading ? (
+                                <>
+                                    <CircularProgress
+                                        size={18}
+                                        color="inherit"
+                                    />
+                                    Signing in...
+                                </>
+                            ) : (
+                                "SIGN IN TO ADMIN PORTAL"
+                            )}
+                        </AdminLoginButton>
+                    </AdminAuthForm>
+
+                    <AdminAuthFooter>
+                        <AdminAuthFooterLink to="/">
+                            ← Back to Home
+                        </AdminAuthFooterLink>
+                    </AdminAuthFooter>
+                </AdminAuthBody>
+            </AdminAuthCard>
+        </AdminAuthPage>
     );
 }
 

@@ -1,14 +1,15 @@
 import Navbar from "../components/navigation/Navbar";
 import Footer from "../components/layout/Footer";
+import { PublicLayoutRoot, PublicMain } from "./PublicLayout.styles";
 
 export default function PublicLayout({ children }) {
     return (
-        <div className="app-layout">
+        <PublicLayoutRoot>
             <Navbar />
 
-            <main className="main-content">{children}</main>
+            <PublicMain>{children}</PublicMain>
 
             <Footer />
-        </div>
+        </PublicLayoutRoot>
     );
 }

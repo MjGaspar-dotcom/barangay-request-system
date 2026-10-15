@@ -1,27 +1,28 @@
-import { Link } from "react-router-dom";
 import NavLinks from "./NavLinks";
+import {
+    MobileLoginLink,
+    MobileMenuActions,
+    MobileMenuRoot,
+    MobileRegisterLink,
+} from "./MobileMenu.styles";
 
 function MobileMenu({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="mobile-menu">
-            <NavLinks onLinkClick={onClose} />
+        <MobileMenuRoot>
+            <NavLinks isMobile onLinkClick={onClose} />
 
-            <div className="mobile-menu-actions">
-                <Link to="/login" onClick={onClose} className="login-link">
+            <MobileMenuActions>
+                <MobileLoginLink to="/login" onClick={onClose}>
                     Login
-                </Link>
+                </MobileLoginLink>
 
-                <Link
-                    to="/register"
-                    onClick={onClose}
-                    className="register-button"
-                >
+                <MobileRegisterLink to="/register" onClick={onClose}>
                     Register
-                </Link>
-            </div>
-        </div>
+                </MobileRegisterLink>
+            </MobileMenuActions>
+        </MobileMenuRoot>
     );
 }
 

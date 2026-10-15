@@ -1,7 +1,22 @@
-
 import { useEffect, useState } from "react";
+import { Button, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
+import StatusBadge from "../../components/ui/StatusBadge";
 import api from "../../services/api";
+import {
+    RequestBackRow,
+    RequestDetailItem,
+    RequestDetailLabel,
+    RequestDetailsCard,
+    RequestDetailsGrid,
+    RequestDetailsHeader,
+    RequestDetailsPage,
+    RequestDetailsSection,
+    RequestDetailsSectionTitle,
+    RequestDetailValue,
+    RequestErrorMessage,
+    RequestPageState,
+} from "../../styles/requestDetails.styles";
 
 function RequestDetails() {
     const { requestId } = useParams();
@@ -15,7 +30,7 @@ function RequestDetails() {
         const fetchRequest = async () => {
             try {
                 const response = await api.get(
-                    `/barangay-requests/${requestId}`
+                    `/barangay-requests/${requestId}`,
                 );
 
                 setRequest(response.data.data);
@@ -38,61 +53,108 @@ function RequestDetails() {
     }, [requestId]);
 
     if (loading) {
-        return <div>Loading request details...</div>;
+        return (
+            <RequestPageState>
+                <CircularProgress color="success" size={32} />
+
+                <span>Loading request details...</span>
+            </RequestPageState>
+        );
     }
 
     if (error) {
         return (
-            <div>
-                <p>{error}</p>
+            <RequestPageState>
+                <RequestErrorMessage>{error}</RequestErrorMessage>
 
-                <button onClick={() => navigate("/dashboard")}>
+                <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={() => navigate("/dashboard")}
+                >
                     Back to Dashboard
-                </button>
-            </div>
+                </Button>
+            </RequestPageState>
         );
     }
 
+    if (!request) return null;
+
     return (
-        <div>
-            <h1>Request Details</h1>
+        <RequestDetailsPage>
+            <RequestDetailsCard>
+                <RequestDetailsHeader>
+                    <div>
+                        <h1>Request Details</h1>
+                    </div>
 
-            <p>
-                <strong>Tracking Number:</strong>{" "}
-                {request.tracking_number}
-            </p>
+                    <StatusBadge status={request.status} />
+                </RequestDetailsHeader>
 
-            <p>
-                <strong>Document:</strong>{" "}
-                {request.document_type?.document_name || "Unknown"}
-            </p>
+                <RequestDetailsSection>
+                    <RequestDetailsSectionTitle>
+                        Request Information
+                    </RequestDetailsSectionTitle>
 
-            <p>
-                <strong>Status:</strong>{" "}
-                {request.status}
-            </p>
+                    <RequestDetailsGrid>
+                        <RequestDetailItem>
+                            <RequestDetailLabel>
+                                Tracking Number
+                            </RequestDetailLabel>
 
-            <p>
-                <strong>Purpose:</strong>{" "}
-                {request.purpose}
-            </p>
+                            <RequestDetailValue>
+                                {request.tracking_number}
+                            </RequestDetailValue>
+                        </RequestDetailItem>
 
-            <p>
-                <strong>Submitted:</strong>{" "}
-                {new Date(request.created_at).toLocaleString()}
-            </p>
+                        <RequestDetailItem>
+                            <RequestDetailLabel>Document</RequestDetailLabel>
 
-            {request.remarks && (
-                <p>
-                    <strong>Remarks:</strong>{" "}
-                    {request.remarks}
-                </p>
-            )}
+                            <RequestDetailValue>
+                                {request.document_type?.document_name ||
+                                    "Unknown"}
+                            </RequestDetailValue>
+                        </RequestDetailItem>
 
-            <button onClick={() => navigate("/dashboard")}>
-                Back to Dashboard
-            </button>
-        </div>
+                        <RequestDetailItem>
+                            <RequestDetailLabel>Purpose</RequestDetailLabel>
+
+                            <RequestDetailValue>
+                                {request.purpose}
+                            </RequestDetailValue>
+                        </RequestDetailItem>
+
+                        <RequestDetailItem>
+                            <RequestDetailLabel>Submitted</RequestDetailLabel>
+
+                            <RequestDetailValue>
+                                {new Date(request.created_at).toLocaleString()}
+                            </RequestDetailValue>
+                        </RequestDetailItem>
+
+                        {request.remarks && (
+                            <RequestDetailItem>
+                                <RequestDetailLabel>Remarks</RequestDetailLabel>
+
+                                <RequestDetailValue>
+                                    {request.remarks}
+                                </RequestDetailValue>
+                            </RequestDetailItem>
+                        )}
+                    </RequestDetailsGrid>
+                </RequestDetailsSection>
+
+                <RequestBackRow>
+                    <Button
+                        type="button"
+                        variant="outlined"
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        Back to Dashboard
+                    </Button>
+                </RequestBackRow>
+            </RequestDetailsCard>
+        </RequestDetailsPage>
     );
 }
 

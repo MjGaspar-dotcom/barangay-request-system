@@ -1,201 +1,171 @@
-function AdminDashboard() {
-    // Temporary dashboard statistics.
-    // These values will eventually come from the Laravel API.
-    const statistics = [
-        {
-            label: "Total Users",
-            value: "0",
-            description: "Registered residents",
-            icon: "👥",
-        },
-        {
-            label: "Pending Requests",
-            value: "0",
-            description: "Requests awaiting processing",
-            icon: "🕐",
-        },
-        {
-            label: "Completed Requests",
-            value: "0",
-            description: "Successfully processed",
-            icon: "✓",
-        },
-        {
-            label: "Document Types",
-            value: "0",
-            description: "Available document services",
-            icon: "📄",
-        },
-    ];
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
+import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
+import PeopleOutlineRoundedIcon from "@mui/icons-material/PeopleOutlineRounded";
+import SummarizeRoundedIcon from "@mui/icons-material/SummarizeRounded";
+import { Chip } from "@mui/material";
+import ActionCard from "../../components/ui/ActionCard";
+import EmptyState from "../../components/ui/EmptyState";
+import PageHeader from "../../components/ui/PageHeader";
+import PortalWorkspace from "../../components/ui/PortalWorkspace";
+import SectionCard from "../../components/ui/SectionCard";
+import StatCard from "../../components/ui/StatCard";
+import { useAuth } from "../../hooks/useAuth";
+import PortalLayout from "../../layouts/PortalLayout";
+import {
+    AdminAnalyticsContent,
+    AdminAnalyticsNote,
+    AdminAnalyticsValue,
+    AdminBottomGrid,
+    AdminManagementGrid,
+    AdminOverviewGrid,
+    AdminPortal,
+} from "./Dashboard.styles";
 
-    // Main administrative functions.
-    // The links will be connected to actual admin pages as we build them.
-    const managementCards = [
-        {
-            title: "Manage Users",
-            description:
-                "View, manage, and monitor registered residents and their accounts.",
-            icon: "👥",
-            action: "Manage Users",
-            path: "/admin/users",
-        },
-        {
-            title: "Assign Staff",
-            description:
-                "Manage staff accounts and assign personnel to document processing tasks.",
-            icon: "🧑‍💼",
-            action: "Manage Staff",
-            path: "/admin/staff",
-        },
-        {
-            title: "Manage Requests",
-            description:
-                "Review document requests and monitor their processing status.",
-            icon: "📋",
-            action: "View Requests",
-            path: "/admin/requests",
-        },
-        {
-            title: "Document Types",
-            description:
-                "Manage the types of barangay documents available for requests.",
-            icon: "📄",
-            action: "Manage Documents",
-            path: "/admin/document-types",
-        },
-    ];
+/*
+|--------------------------------------------------------------------------
+| Administrator Landing Page
+|--------------------------------------------------------------------------
+| This is the main landing page for authenticated administrators.
+|
+| Administrators have a wider view of the system than staff members.
+| They can monitor the overall system and access management areas.
+|
+| The statistics below are placeholders until the dashboard API is connected.
+|--------------------------------------------------------------------------
+*/
+
+function Dashboard() {
+    const { user } = useAuth();
+
+    const adminName =
+        user?.first_name || user?.firstName || user?.name || "Administrator";
 
     return (
-        <div className="admin-dashboard">
-            <div className="container-fluid">
-                {/* =====================================================
-                    DASHBOARD HEADER
-                    ===================================================== */}
-                <div className="dashboard-page-header">
-                    <div>
-                        <span className="section-label">ADMINISTRATION</span>
+        <PortalLayout portalLabel="ADMINISTRATION">
+            <AdminPortal>
+                <PortalWorkspace>
+                    <PageHeader
+                        eyebrow="Administrator Portal"
+                        title={
+                            <>
+                                Welcome, <strong>{adminName}</strong>
+                            </>
+                        }
+                        description="Monitor the document request system and manage its users, staff, requests, and services."
+                        action={
+                            <Chip
+                                label="System Online"
+                                color="success"
+                                size="small"
+                                variant="outlined"
+                            />
+                        }
+                    />
 
-                        <h1>Admin Dashboard</h1>
+                    <AdminOverviewGrid>
+                        <StatCard
+                            label="Document Requests"
+                            value="0"
+                            description="Total requests"
+                            icon={<AssignmentOutlinedIcon />}
+                        />
 
-                        <p>
-                            Welcome back. Manage users, staff, document
-                            requests, and system services from this dashboard.
-                        </p>
-                    </div>
-                </div>
+                        <StatCard
+                            label="Users"
+                            value="0"
+                            description="Registered residents"
+                            icon={<PeopleOutlineRoundedIcon />}
+                        />
 
-                {/* =====================================================
-                    STATISTICS
-                    These are currently placeholder values.
-                    They will be connected to the backend later.
-                    ===================================================== */}
-                <section className="dashboard-section">
-                    <div className="row g-4">
-                        {statistics.map((statistic) => (
-                            <div
-                                className="col-sm-6 col-xl-3"
-                                key={statistic.label}
-                            >
-                                <div className="dashboard-stat-card">
-                                    {/* Statistic icon */}
-                                    <div className="dashboard-stat-icon">
-                                        {statistic.icon}
-                                    </div>
+                        <StatCard
+                            label="Staff"
+                            value="0"
+                            description="Active staff accounts"
+                            icon={<BadgeOutlinedIcon />}
+                        />
 
-                                    {/* Statistic information */}
-                                    <div>
-                                        <span className="dashboard-stat-label">
-                                            {statistic.label}
-                                        </span>
+                        <StatCard
+                            label="Document Types"
+                            value="0"
+                            description="Available services"
+                            icon={<DescriptionOutlinedIcon />}
+                        />
+                    </AdminOverviewGrid>
 
-                                        <strong className="dashboard-stat-value">
-                                            {statistic.value}
-                                        </strong>
+                    <SectionCard
+                        eyebrow="System Management"
+                        title="Administration"
+                    >
+                        <AdminManagementGrid>
+                            <ActionCard
+                                to="/admin/users"
+                                icon={<PeopleOutlineRoundedIcon />}
+                                title="User Management"
+                                description="Manage resident accounts and user information."
+                            />
 
-                                        <span className="dashboard-stat-description">
-                                            {statistic.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                            <ActionCard
+                                to="/admin/staff"
+                                icon={<BadgeOutlinedIcon />}
+                                title="Staff Management"
+                                description="Manage staff accounts and access."
+                            />
 
-                {/* =====================================================
-                    ADMIN MANAGEMENT
-                    ===================================================== */}
-                <section className="dashboard-section">
-                    <div className="section-heading dashboard-section-heading">
-                        <span className="section-label">SYSTEM MANAGEMENT</span>
+                            <ActionCard
+                                to="/admin/requests"
+                                icon={<AssignmentOutlinedIcon />}
+                                title="Document Requests"
+                                description="Review and monitor document requests."
+                            />
 
-                        <h2>Administration</h2>
+                            <ActionCard
+                                to="/admin/document-types"
+                                icon={<DescriptionOutlinedIcon />}
+                                title="Document Types"
+                                description="Manage available barangay document services."
+                            />
+                        </AdminManagementGrid>
+                    </SectionCard>
 
-                        <p>Select an administrative function to continue.</p>
-                    </div>
+                    <AdminBottomGrid>
+                        <SectionCard
+                            eyebrow="System Activity"
+                            title="Recent Activity"
+                        >
+                            <EmptyState
+                                icon={<HistoryRoundedIcon />}
+                                title="No recent activity"
+                                description="System activity will appear here when users and staff begin using the platform."
+                            />
+                        </SectionCard>
 
-                    <div className="row g-4">
-                        {managementCards.map((card) => (
-                            <div className="col-md-6" key={card.title}>
-                                <div className="admin-management-card">
-                                    {/* Card icon */}
-                                    <div className="admin-management-icon">
-                                        {card.icon}
-                                    </div>
+                        <SectionCard
+                            eyebrow="Analytics"
+                            title="System Insights"
+                        >
+                            <AdminAnalyticsContent>
+                                <InsightsRoundedIcon />
 
-                                    {/* Card content */}
-                                    <div className="admin-management-content">
-                                        <h3>{card.title}</h3>
+                                <AdminAnalyticsValue>—</AdminAnalyticsValue>
 
-                                        <p>{card.description}</p>
+                                <p>
+                                    Analytics will be available once sufficient
+                                    request data has been collected.
+                                </p>
 
-                                        {/* Navigation button.
-                                            These routes will be created
-                                            when we build each admin page. */}
-                                        <a
-                                            href={card.path}
-                                            className="btn btn-success"
-                                        >
-                                            {card.action}
-                                            <span className="ms-2">→</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* =====================================================
-                    RECENT ACTIVITY
-                    ===================================================== */}
-                <section className="dashboard-section">
-                    <div className="section-heading dashboard-section-heading">
-                        <span className="section-label">SYSTEM ACTIVITY</span>
-
-                        <h2>Recent Activity</h2>
-
-                        <p>
-                            Recent administrative and document processing
-                            activity will appear here.
-                        </p>
-                    </div>
-
-                    <div className="dashboard-empty-state">
-                        <div className="dashboard-empty-icon">📊</div>
-
-                        <h3>No Recent Activity</h3>
-
-                        <p>
-                            There is currently no activity to display. Activity
-                            will appear here once the system begins receiving
-                            requests and user actions.
-                        </p>
-                    </div>
-                </section>
-            </div>
-        </div>
+                                <AdminAnalyticsNote>
+                                    Data Science Module
+                                </AdminAnalyticsNote>
+                            </AdminAnalyticsContent>
+                        </SectionCard>
+                    </AdminBottomGrid>
+                </PortalWorkspace>
+            </AdminPortal>
+        </PortalLayout>
     );
 }
 
-export default AdminDashboard;
+export default Dashboard;

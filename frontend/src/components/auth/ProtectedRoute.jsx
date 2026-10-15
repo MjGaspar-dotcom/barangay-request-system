@@ -1,5 +1,10 @@
+import CircularProgress from "@mui/material/CircularProgress";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
+import {
+    AuthenticationLoading,
+    AuthenticationLoadingText,
+} from "./ProtectedRoute.styles";
 
 function ProtectedRoute({ children, allowedRoles = [] }) {
     const { user, isAuthenticated, authLoading } = useAuth();
@@ -7,13 +12,17 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
 
     if (authLoading) {
         return (
-            <div className="page-loading">
-                <div className="spinner-border text-success" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
+            <AuthenticationLoading>
+                <CircularProgress
+                    color="success"
+                    size={32}
+                    aria-label="Checking authentication"
+                />
 
-                <p>Checking authentication...</p>
-            </div>
+                <AuthenticationLoadingText>
+                    Checking authentication...
+                </AuthenticationLoadingText>
+            </AuthenticationLoading>
         );
     }
 

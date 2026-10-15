@@ -1,6 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { TextField } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import FieldValidationError from "../../components/forms/FieldValidationError";
+import { useAuth } from "../../hooks/useAuth";
+import {
+    AuthCard,
+    AuthDescription,
+    AuthFooter,
+    AuthFooterLink,
+    AuthForm,
+    AuthFormField,
+    AuthHeader,
+    AuthLabel,
+    AuthLogo,
+    AuthPage,
+    AuthSubmitButton,
+    AuthTitle,
+} from "../../styles/auth.styles";
 
 function StaffLogin() {
     // Get the shared login function from AuthContext.
@@ -10,40 +27,46 @@ function StaffLogin() {
     // Used to redirect the Staff after successful login.
     const navigate = useNavigate();
 
-    // Store the values entered into the login form.
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-
     // Stores an error message when login fails.
-    const [error, setError] = useState("");
+    const [loginError, setLoginError] = useState("");
 
     // Prevents multiple submissions while login is processing.
     const [loading, setLoading] = useState(false);
 
-    // Handles submission of the Staff login form.
-    const handleSubmit = async (event) => {
-        // Prevent the browser from refreshing the page.
-        event.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            username: "",
+            password: "",
+        },
+        mode: "onSubmit",
+        reValidateMode: "onChange",
+    });
 
+    // Handles submission of the Staff login form.
+    const submitLogin = async (values) => {
         // Remove any previous error before attempting login.
-        setError("");
+        setLoginError("");
 
         // Disable the login button while the request is processing.
         setLoading(true);
 
         try {
             // Send the credentials to the shared authentication function.
-            await login(username, password);
+            await login(values.username, values.password);
 
             // Login succeeded, so redirect the Staff to their dashboard.
             navigate("/staff/dashboard");
         } catch (error) {
             // HTTP 401 means the username or password is incorrect.
             if (error.response?.status === 401) {
-                setError("Invalid username or password.");
+                setLoginError("Invalid username or password.");
             } else {
                 // Handles other problems such as server or network errors.
-                setError("Login failed. Please try again.");
+                setLoginError("Login failed. Please try again.");
             }
         } finally {
             // Always stop the loading state after the request finishes.
@@ -51,101 +74,115 @@ function StaffLogin() {
         }
     };
 
+    const usernameField = register("username", {
+        required: "Username is required.",
+    });
+
+    const passwordField = register("password", {
+        required: "Password is required.",
+    });
+
     return (
-        <div className="auth-page">
-            <div className="auth-card">
+        <AuthPage>
+            <AuthCard>
+                <AuthHeader>
+                    <AuthLogo>B</AuthLogo>
 
-                {/* Login page header and Staff portal identification */}
-                <div className="auth-header">
-                    <div className="auth-logo">B</div>
+                    <AuthLabel>STAFF PORTAL</AuthLabel>
 
-                    <span className="section-label">
-                        STAFF PORTAL
-                    </span>
+                    <AuthTitle>Staff Login</AuthTitle>
 
-                    <h1>Staff Login</h1>
+                    <AuthDescription>
+                        Sign in to manage and process barangay document
+                        requests.
+                    </AuthDescription>
+                </AuthHeader>
 
-                    <p>
-                        Sign in to manage and process barangay
-                        document requests.
-                    </p>
-                </div>
-
-                {/* Display an error message when authentication fails */}
-                {error && (
-                    <div className="alert alert-danger" role="alert">
-                        {error}
-                    </div>
-                )}
-
-                {/* Staff authentication form */}
-                <form onSubmit={handleSubmit}>
-                    {/* Username field */}
-                    <div className="mb-3">
-                        <label
-                            htmlFor="staff-username"
-                            className="form-label"
-                        >
-                            Username
-                        </label>
-
-                        <input
+                <AuthForm onSubmit={handleSubmit(submitLogin)} noValidate>
+                    <AuthFormField>
+                        <TextField
                             id="staff-username"
-                            name="username"
+                            name={usernameField.name}
                             type="text"
-                            className="form-control"
+                            fullWidth
+                            required
+                            label="Username"
                             autoComplete="username"
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
+                            onChange={usernameField.onChange}
+                            onBlur={usernameField.onBlur}
+                            inputRef={usernameField.ref}
+                            error={Boolean(errors.username)}
                             placeholder="Enter your username"
-                            required
+                            slotProps={{
+                                htmlInput: {
+                                    "aria-invalid": Boolean(errors.username),
+                                    "aria-describedby": errors.username
+                                        ? "staff-username-error"
+                                        : undefined,
+                                },
+                            }}
                         />
-                    </div>
 
-                    {/* Password field */}
-                    <div className="mb-4">
-                        <label
-                            htmlFor="staff-password"
-                            className="form-label"
-                        >
-                            Password
-                        </label>
+                        <FieldValidationError
+                            id="staff-username-error"
+                            error={errors.username}
+                        />
+                    </AuthFormField>
 
-                        <input
+                    <AuthFormField>
+                        <TextField
                             id="staff-password"
-                            name="password"
+                            name={passwordField.name}
                             type="password"
-                            className="form-control"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
+                            fullWidth
                             required
+                            label="Password"
+                            autoComplete="current-password"
+                            onChange={passwordField.onChange}
+                            onBlur={passwordField.onBlur}
+                            inputRef={passwordField.ref}
+                            error={Boolean(errors.password)}
+                            placeholder="Enter your password"
+                            slotProps={{
+                                htmlInput: {
+                                    "aria-invalid": Boolean(errors.password),
+                                    "aria-describedby": errors.password
+                                        ? "staff-password-error"
+                                        : undefined,
+                                },
+                            }}
                         />
-                    </div>
 
-                    {/* Submit button */}
-                    <button
+                        <FieldValidationError
+                            id="staff-password-error"
+                            error={errors.password}
+                        />
+                    </AuthFormField>
+
+                    {loginError && (
+                        <FieldValidationError
+                            id="staff-login-error"
+                            error={loginError}
+                        />
+                    )}
+
+                    <AuthSubmitButton
                         type="submit"
-                        className="btn btn-success w-100"
+                        variant="contained"
+                        color="success"
                         disabled={loading}
                     >
                         {loading ? "Signing in..." : "Sign In"}
-                    </button>
-                </form>
+                    </AuthSubmitButton>
+                </AuthForm>
 
-                {/* Return to the public landing page */}
-                <div className="auth-footer">
-                    <Link to="/">
-                        ← Back to Barangay Document System
-                    </Link>
-                </div>
-            </div>
-        </div>
+                <AuthFooter>
+                    <AuthFooterLink to="/">
+                        ← Back to Home
+                    </AuthFooterLink>
+                </AuthFooter>
+            </AuthCard>
+        </AuthPage>
     );
 }
 

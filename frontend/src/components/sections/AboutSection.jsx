@@ -1,54 +1,62 @@
+import {
+    SectionContainer,
+    SectionDescription,
+    SectionHeading,
+    SectionLabel,
+    SectionTitle,
+} from "./Section.styles";
+import { AboutGrid, AboutSectionRoot, InfoCard } from "./AboutSection.styles";
+
 function AboutSection() {
     return (
-        <section id="about" className="content-section about-section">
-            <div className="container">
-                <div className="section-heading">
-                    <span className="section-label">ABOUT THE SYSTEM</span>
+        <AboutSectionRoot id="about">
+            <SectionContainer>
+                <SectionHeading>
+                    <SectionLabel>ABOUT THE SYSTEM</SectionLabel>
 
-                    <h2>Integrated Barangay Document Services</h2>
+                    <SectionTitle>
+                        Integrated Barangay Document Services
+                    </SectionTitle>
 
-                    <p>
+                    <SectionDescription>
                         The Integrated Barangay Document Request, Processing,
                         and Analytics System provides a centralized platform for
                         requesting and processing barangay documents.
-                    </p>
-                </div>
+                    </SectionDescription>
+                </SectionHeading>
 
-                <div className="row g-4">
-                    <div className="col-md-4">
-                        <div className="info-card">
-                            <h3>Request Online</h3>
-                            <p>
-                                Residents can submit document requests without
-                                having to manually complete the entire process
-                                at the barangay office.
-                            </p>
-                        </div>
-                    </div>
+                <AboutGrid>
+                    <InfoCard>
+                        <h3>Request Online</h3>
 
-                    <div className="col-md-4">
-                        <div className="info-card">
-                            <h3>Track Requests</h3>
-                            <p>
-                                Each request receives a tracking number so users
-                                can monitor its processing status.
-                            </p>
-                        </div>
-                    </div>
+                        <p>
+                            Residents can submit document requests without
+                            having to manually complete the entire process at
+                            the barangay office.
+                        </p>
+                    </InfoCard>
 
-                    <div className="col-md-4">
-                        <div className="info-card">
-                            <h3>Data Analytics</h3>
-                            <p>
-                                Barangay personnel can use collected request
-                                data to monitor activity and support data-driven
-                                decision-making.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <InfoCard>
+                        <h3>Track Requests</h3>
+
+                        <p>
+                            Each request receives a tracking number so users can
+                            monitor its processing status.
+                        </p>
+                    </InfoCard>
+
+                    <InfoCard>
+                        <h3>Data Analytics</h3>
+
+                        <p>
+                            Barangay personnel can use collected request data to
+                            monitor activity and support data-driven
+                            decision-making.
+                        </p>
+                    </InfoCard>
+                </AboutGrid>
+            </SectionContainer>
+        </AboutSectionRoot>
     );
 }
 

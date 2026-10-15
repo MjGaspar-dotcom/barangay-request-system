@@ -1,183 +1,169 @@
+import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
+import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
+import InboxRoundedIcon from "@mui/icons-material/InboxRounded";
+import SummarizeRoundedIcon from "@mui/icons-material/SummarizeRounded";
+import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
+import { Alert, Chip } from "@mui/material";
+import EmptyState from "../../components/ui/EmptyState";
+import PageHeader from "../../components/ui/PageHeader";
+import PortalWorkspace from "../../components/ui/PortalWorkspace";
+import SectionCard from "../../components/ui/SectionCard";
+import StatCard from "../../components/ui/StatCard";
+import { useAuth } from "../../hooks/useAuth";
+import PortalLayout from "../../layouts/PortalLayout";
+import {
+    StaffPortal,
+    StaffStatGrid,
+    StaffWorkGrid,
+    StaffWorkflow,
+    StaffWorkflowItem,
+    StaffWorkflowLine,
+    StaffWorkflowNumber,
+} from "./Dashboard.styles";
 
-import { useEffect, useState } from "react";
-import api from "../../services/api";
-import { useNavigate } from "react-router-dom";
+function Dashboard() {
+    const { user } = useAuth();
 
-function StaffDashboard() {
-    const navigate = useNavigate();
-    const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
-    useEffect(() => {
-        const fetchRequests = async () => {
-            try {
-                const response = await api.get("/barangay-requests");
-
-                setRequests(response.data.data);
-            } catch (error) {
-                console.error(error);
-                setError("Failed to load barangay requests.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchRequests();
-    }, []);
-
-    if (loading) {
-        return <div>Loading requests...</div>;
-    }
-
-    if (error) {
-        return <div>{error}</div>;
-    }
+    const staffName =
+        user?.first_name || user?.firstName || user?.name || "Staff";
 
     return (
-        <div>
-            <h1>Staff Dashboard</h1>
+        <PortalLayout portalLabel="STAFF SERVICES">
+            <StaffPortal>
+                <PortalWorkspace>
+                    <PageHeader
+                        eyebrow="Staff Portal"
+                        title={
+                            <>
+                                Welcome, <strong>{staffName}</strong>
+                            </>
+                        }
+                        description="Manage barangay document requests and monitor their processing status."
+                        action={
+                            <Chip
+                                label="Staff Account"
+                                color="success"
+                                size="small"
+                                variant="outlined"
+                            />
+                        }
+                    />
 
-            <h2>Barangay Requests</h2>
+                    <StaffStatGrid>
+                        <StatCard
+                            label="Pending"
+                            value="0"
+                            description="Requests waiting for processing"
+                            icon={<HourglassEmptyRoundedIcon />}
+                        />
 
-            {requests.length === 0 ? (
-                <p>No barangay requests found.</p>
-            ) : (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tracking Number</th>
-                            <th>Document</th>
-                            <th>Status</th>
-                            <th>Purpose</th>
-                            <th>Submitted</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                        <StatCard
+                            label="Processing"
+                            value="0"
+                            description="Requests currently being handled"
+                            icon={<AutorenewRoundedIcon />}
+                        />
 
-                    <tbody>
-                        {requests.map((request) => (
-                            <tr key={request.request_id}>
-                                <td>
-                                    {request.tracking_number}
-                                </td>
+                        <StatCard
+                            label="Completed"
+                            value="0"
+                            description="Requests completed by the office"
+                            icon={<TaskAltRoundedIcon />}
+                        />
 
-                                <td>
-                                    {request.document_type?.document_name ||
-                                        "Unknown"}
-                                </td>
+                        <StatCard
+                            label="Total"
+                            value="0"
+                            description="Total requests in the system"
+                            icon={<SummarizeRoundedIcon />}
+                        />
+                    </StaffStatGrid>
 
-                                <td>
-                                    {request.status}
-                                </td>
+                    <StaffWorkGrid>
+                        <SectionCard
+                            eyebrow="Request Management"
+                            title="Request Queue"
+                            action={
+                                <Chip
+                                    label="0"
+                                    color="primary"
+                                    size="small"
+                                />
+                            }
+                        >
+                            <EmptyState
+                                icon={<InboxRoundedIcon />}
+                                title="No requests available"
+                                description="New document requests will appear here when they are submitted."
+                            />
+                        </SectionCard>
 
-                                <td>
-                                    {request.purpose}
-                                </td>
+                        <SectionCard
+                            eyebrow="Workflow"
+                            title="Processing Steps"
+                        >
+                            <StaffWorkflow>
+                                <StaffWorkflowItem>
+                                    <StaffWorkflowNumber>
+                                        01
+                                    </StaffWorkflowNumber>
 
-                                <td>
-                                    {new Date(
-                                        request.created_at
-                                    ).toLocaleString()}
-                                </td>
+                                    <div>
+                                        <strong>Review</strong>
 
-                                <td>
-                                    <button
-                                        onClick={() =>
-                                            navigate(
-                                                `/staff/requests/${request.request_id}`
-                                            )
-                                        }
-                                    >
-                                        View Details
-                                    </button>
+                                        <p>
+                                            Check submitted request
+                                            information.
+                                        </p>
+                                    </div>
+                                </StaffWorkflowItem>
 
+                                <StaffWorkflowLine />
 
-                                    <button
-                                        onClick={async () => {
-                                            const confirmApprove = window.confirm(
-                                                "Are you sure you want to approve this request?"
-                                            );
+                                <StaffWorkflowItem>
+                                    <StaffWorkflowNumber>
+                                        02
+                                    </StaffWorkflowNumber>
 
-                                            if (!confirmApprove) {
-                                                return;
-                                            }
+                                    <div>
+                                        <strong>Process</strong>
 
-                                            try {
-                                                await api.put(
-                                                    `/barangay-requests/${request.request_id}`,
-                                                    {
-                                                        status: "Approved",
-                                                    }
-                                                );
+                                        <p>
+                                            Verify and process the requested
+                                            document.
+                                        </p>
+                                    </div>
+                                </StaffWorkflowItem>
 
-                                                alert("Request approved successfully.");
+                                <StaffWorkflowLine />
 
-                                                const response = await api.get(
-                                                    "/barangay-requests"
-                                                );
+                                <StaffWorkflowItem>
+                                    <StaffWorkflowNumber>
+                                        03
+                                    </StaffWorkflowNumber>
 
-                                                setRequests(response.data.data);
+                                    <div>
+                                        <strong>Complete</strong>
 
-                                            } catch (error) {
-                                                console.error(
-                                                    "Failed to approve request:",
-                                                    error
-                                                );
+                                        <p>
+                                            Update the request once processing
+                                            is finished.
+                                        </p>
+                                    </div>
+                                </StaffWorkflowItem>
+                            </StaffWorkflow>
+                        </SectionCard>
+                    </StaffWorkGrid>
 
-                                                alert("Failed to approve request.");
-                                            }
-                                        }}
-                                    >
-                                        Approve
-                                    </button>
-
-                                    <button
-                                        onClick={async () => {
-                                            const confirmReject = window.confirm(
-                                                "Are you sure you want to reject this request?"
-                                            );
-
-                                            if (!confirmReject) {
-                                                return;
-                                            }
-
-                                            try {
-                                                await api.put(
-                                                    `/barangay-requests/${request.request_id}`,
-                                                    {
-                                                        status: "Rejected",
-                                                    }
-                                                );
-
-                                                alert("Request rejected successfully.");
-
-                                                const response = await api.get(
-                                                    "/barangay-requests"
-                                                );
-
-                                                setRequests(response.data.data);
-
-                                            } catch (error) {
-                                                console.error(
-                                                    "Failed to reject request:",
-                                                    error
-                                                );
-
-                                                alert("Failed to reject request.");
-                                            }
-                                        }}
-                                    >
-                                        Reject
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
-        </div>
+                    <Alert severity="info" variant="outlined">
+                        Request counts and queue information will be populated
+                        from the backend once the staff request API is
+                        connected.
+                    </Alert>
+                </PortalWorkspace>
+            </StaffPortal>
+        </PortalLayout>
     );
 }
 
-export default StaffDashboard;
+export default Dashboard;

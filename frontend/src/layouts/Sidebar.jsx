@@ -1,5 +1,16 @@
-import { NavLink } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
+import {
+    SidebarFooter,
+    SidebarHeader,
+    SidebarHeaderText,
+    SidebarLink,
+    SidebarLinkIcon,
+    SidebarLogo,
+    SidebarLogout,
+    SidebarNavigation,
+    SidebarRoot,
+    SidebarUser,
+} from "./Sidebar.styles";
 
 function Sidebar({ items = [], onNavigate }) {
     const { user, logout } = useAuth();
@@ -9,54 +20,45 @@ function Sidebar({ items = [], onNavigate }) {
     };
 
     return (
-        <aside className="dashboard-sidebar">
-            <div className="sidebar-header">
-                <div className="sidebar-logo">B</div>
+        <SidebarRoot>
+            <SidebarHeader>
+                <SidebarLogo>B</SidebarLogo>
 
-                <div>
+                <SidebarHeaderText>
                     <h2>Barangay</h2>
                     <span>Document System</span>
-                </div>
-            </div>
+                </SidebarHeaderText>
+            </SidebarHeader>
 
-            <div className="sidebar-user">
+            <SidebarUser>
                 <strong>{user?.first_name || user?.username || "User"}</strong>
 
                 <span>{user?.role || "user"}</span>
-            </div>
+            </SidebarUser>
 
-            <nav className="sidebar-navigation">
+            <SidebarNavigation>
                 {items.map((item) => (
-                    <NavLink
+                    <SidebarLink
                         key={item.to}
                         to={item.to}
                         onClick={onNavigate}
-                        className={({ isActive }) =>
-                            `sidebar-link ${isActive ? "active" : ""}`
-                        }
                     >
                         {item.icon && (
-                            <span className="sidebar-link-icon">
-                                {item.icon}
-                            </span>
+                            <SidebarLinkIcon>{item.icon}</SidebarLinkIcon>
                         )}
 
                         <span>{item.label}</span>
-                    </NavLink>
+                    </SidebarLink>
                 ))}
-            </nav>
+            </SidebarNavigation>
 
-            <div className="sidebar-footer">
-                <button
-                    type="button"
-                    className="sidebar-logout"
-                    onClick={handleLogout}
-                >
+            <SidebarFooter>
+                <SidebarLogout type="button" onClick={handleLogout}>
                     <span>↪</span>
                     Logout
-                </button>
-            </div>
-        </aside>
+                </SidebarLogout>
+            </SidebarFooter>
+        </SidebarRoot>
     );
 }
 

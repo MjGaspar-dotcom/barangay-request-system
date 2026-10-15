@@ -1,5 +1,15 @@
 import { useState } from "react";
+import MenuIcon from "@mui/icons-material/Menu";
 import Sidebar from "./Sidebar";
+import {
+    DashboardContent,
+    DashboardLayoutRoot,
+    DashboardMain,
+    DashboardMenuButton,
+    DashboardMobileHeader,
+    SidebarOverlay,
+    SidebarWrapper,
+} from "./DashboardLayout.styles";
 
 function UserLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,44 +33,38 @@ function UserLayout({ children }) {
     ];
 
     return (
-        <div className="dashboard-layout">
-            <div
-                className={`dashboard-sidebar-wrapper ${
-                    sidebarOpen ? "open" : ""
-                }`}
-            >
+        <DashboardLayoutRoot>
+            <SidebarWrapper open={sidebarOpen}>
                 <Sidebar
                     items={navigationItems}
                     onNavigate={() => setSidebarOpen(false)}
                 />
-            </div>
+            </SidebarWrapper>
 
             {sidebarOpen && (
-                <button
+                <SidebarOverlay
                     type="button"
-                    className="sidebar-overlay"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Close navigation"
                 />
             )}
 
-            <div className="dashboard-main">
-                <header className="dashboard-mobile-header">
-                    <button
+            <DashboardMain>
+                <DashboardMobileHeader>
+                    <DashboardMenuButton
                         type="button"
-                        className="dashboard-menu-button"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Open navigation"
                     >
-                        ☰
-                    </button>
+                        <MenuIcon />
+                    </DashboardMenuButton>
 
                     <strong>Barangay Document System</strong>
-                </header>
+                </DashboardMobileHeader>
 
-                <main className="dashboard-content">{children}</main>
-            </div>
-        </div>
+                <DashboardContent>{children}</DashboardContent>
+            </DashboardMain>
+        </DashboardLayoutRoot>
     );
 }
 

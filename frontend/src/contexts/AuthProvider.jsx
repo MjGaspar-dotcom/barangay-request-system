@@ -1,15 +1,19 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { AuthContext } from "./AuthContext";
 import api from "../services/api";
-
-const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+
     const [token, setToken] = useState(() =>
-        localStorage.getItem("auth_token"),
+        localStorage.getItem("auth_token")
     );
+
     const [authLoading, setAuthLoading] = useState(true);
 
+    // =========================================
+    // RESTORE AUTHENTICATION AFTER PAGE REFRESH
+    // =========================================
     useEffect(() => {
         const verifyAuthentication = async () => {
             const storedToken = localStorage.getItem("auth_token");
@@ -22,14 +26,26 @@ export function AuthProvider({ children }) {
             try {
                 const response = await api.get("/user");
 
-                const authenticatedUser = response.data?.data ?? response.data;
+                const authenticatedUser =
+                    response.data?.data ?? response.data;
 
-                setUser(authenticatedUser);
+                const userRole =
+                    response.data?.role ?? authenticatedUser?.role;
+
+                setUser({
+                    ...authenticatedUser,
+                    role: userRole,
+                });
+
                 setToken(storedToken);
             } catch (error) {
-                console.error("Authentication verification failed:", error);
+                console.error(
+                    "Authentication verification failed:",
+                    error
+                );
 
                 localStorage.removeItem("auth_token");
+
                 setToken(null);
                 setUser(null);
             } finally {
@@ -40,6 +56,9 @@ export function AuthProvider({ children }) {
         verifyAuthentication();
     }, []);
 
+    // =========================================
+    // LOGIN
+    // =========================================
     const login = async (username, password) => {
         const response = await api.post("/login", {
             username,
@@ -54,28 +73,31 @@ export function AuthProvider({ children }) {
         }
 
         localStorage.setItem("auth_token", authToken);
-
         setToken(authToken);
 
+        const userResponse = await api.get("/user");
+
         const authenticatedUser =
-            responseData.data ?? responseData.user ?? null;
+            userResponse.data?.data ?? userResponse.data;
 
-        const role = responseData.role ?? authenticatedUser?.role;
+        const userRole =
+            userResponse.data?.role ??
+            responseData.role ??
+            authenticatedUser?.role;
 
-        const completeUser = authenticatedUser
-            ? {
-                  ...authenticatedUser,
-                  role,
-              }
-            : {
-                  role,
-              };
+        const completeUser = {
+            ...authenticatedUser,
+            role: userRole,
+        };
 
         setUser(completeUser);
 
         return responseData;
     };
 
+    // =========================================
+    // LOGOUT
+    // =========================================
     const logout = async () => {
         try {
             if (token) {
@@ -91,6 +113,9 @@ export function AuthProvider({ children }) {
         }
     };
 
+    // =========================================
+    // AUTH CONTEXT VALUE
+    // =========================================
     const value = {
         user,
         token,
@@ -101,16 +126,8 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
     );
-}
-
-export function useAuth() {
-    const context = useContext(AuthContext);
-
-    if (!context) {
-        throw new Error("useAuth must be used inside an AuthProvider");
-    }
-
-    return context;
 }

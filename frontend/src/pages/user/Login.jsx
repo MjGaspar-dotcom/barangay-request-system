@@ -1,6 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { TextField } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import FieldValidationError from "../../components/forms/FieldValidationError";
+import { useAuth } from "../../hooks/useAuth";
+import {
+    AuthCard,
+    AuthDescription,
+    AuthFooter,
+    AuthFooterLink,
+    AuthForm,
+    AuthFormField,
+    AuthHeader,
+    AuthLabel,
+    AuthLogo,
+    AuthPage,
+    AuthSubmitButton,
+    AuthTitle,
+} from "../../styles/auth.styles";
 
 function Login() {
     // Get the shared login function from AuthContext.
@@ -10,25 +27,29 @@ function Login() {
     // Used to redirect the user after successful authentication.
     const navigate = useNavigate();
 
-    // Store the username entered in the login form.
-    const [username, setUsername] = useState("");
-
-    // Store the password entered in the login form.
-    const [password, setPassword] = useState("");
-
-    // Stores an error message when authentication fails.
-    const [error, setError] = useState("");
+    // Stores an authentication error returned by the API.
+    const [loginError, setLoginError] = useState("");
 
     // Prevents the user from submitting the form multiple times.
     const [loading, setLoading] = useState(false);
 
-    // Handles submission of the login form.
-    const handleSubmit = async (event) => {
-        // Prevent the browser from refreshing the page.
-        event.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            username: "",
+            password: "",
+        },
+        mode: "onSubmit",
+        reValidateMode: "onChange",
+    });
 
+    // Handles submission of the login form.
+    const submitLogin = async (values) => {
         // Clear any previous login error.
-        setError("");
+        setLoginError("");
 
         // Disable the button while authentication is processing.
         setLoading(true);
@@ -36,7 +57,7 @@ function Login() {
         try {
             // Send the username and password to AuthContext.
             // The returned user contains the user's role.
-            const user = await login(username, password);
+            const user = await login(values.username, values.password);
 
             // Redirect the authenticated user based on their role.
             if (user.role === "admin") {
@@ -50,10 +71,10 @@ function Login() {
         } catch (error) {
             // HTTP 401 means the username or password is incorrect.
             if (error.response?.status === 401) {
-                setError("Invalid username or password.");
+                setLoginError("Invalid username or password.");
             } else {
                 // Handles server, network, or other API errors.
-                setError("Login failed. Please try again.");
+                setLoginError("Login failed. Please try again.");
             }
         } finally {
             // Always stop the loading state after the request finishes.
@@ -61,106 +82,122 @@ function Login() {
         }
     };
 
+    const usernameField = register("username", {
+        required: "Username is required.",
+    });
+
+    const passwordField = register("password", {
+        required: "Password is required.",
+    });
+
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                {/* Authentication page header */}
-                <div className="auth-header">
-                    {/* Barangay system logo */}
-                    <div className="auth-logo">B</div>
+        <AuthPage>
+            <AuthCard>
+                <AuthHeader>
+                    <AuthLogo>B</AuthLogo>
 
-                    <span className="section-label">
-                        BARANGAY DOCUMENT SYSTEM
-                    </span>
+                    <AuthLabel>BARANGAY DOCUMENT SYSTEM</AuthLabel>
 
-                    <h1>Welcome Back</h1>
+                    <AuthTitle>Welcome Back</AuthTitle>
 
-                    <p>
-                        Sign in to request and track your barangay
-                        documents online.
-                    </p>
-                </div>
+                    <AuthDescription>
+                        Sign in to request and track your barangay documents
+                        online.
+                    </AuthDescription>
+                </AuthHeader>
 
-                {/* Display login error when authentication fails */}
-                {error && (
-                    <div className="alert alert-danger" role="alert">
-                        {error}
-                    </div>
-                )}
-
-                {/* User login form */}
-                <form onSubmit={handleSubmit}>
-                    {/* Username field */}
-                    <div className="mb-3">
-                        <label
-                            htmlFor="username"
-                            className="form-label"
-                        >
-                            Username
-                        </label>
-
-                        <input
+                <AuthForm onSubmit={handleSubmit(submitLogin)} noValidate>
+                    <AuthFormField>
+                        <TextField
                             id="username"
-                            name="username"
+                            name={usernameField.name}
                             type="text"
-                            className="form-control"
+                            fullWidth
+                            required
+                            label="Username"
                             autoComplete="username"
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
+                            onChange={usernameField.onChange}
+                            onBlur={usernameField.onBlur}
+                            inputRef={usernameField.ref}
+                            error={Boolean(errors.username)}
                             placeholder="Enter your username"
-                            required
+                            slotProps={{
+                                htmlInput: {
+                                    "aria-invalid": Boolean(errors.username),
+                                    "aria-describedby": errors.username
+                                        ? "username-error"
+                                        : undefined,
+                                },
+                            }}
                         />
-                    </div>
 
-                    {/* Password field */}
-                    <div className="mb-4">
-                        <label
-                            htmlFor="password"
-                            className="form-label"
-                        >
-                            Password
-                        </label>
+                        <FieldValidationError
+                            id="username-error"
+                            error={errors.username}
+                        />
+                    </AuthFormField>
 
-                        <input
+                    <AuthFormField>
+                        <TextField
                             id="password"
-                            name="password"
+                            name={passwordField.name}
                             type="password"
-                            className="form-control"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
+                            fullWidth
                             required
+                            label="Password"
+                            autoComplete="current-password"
+                            onChange={passwordField.onChange}
+                            onBlur={passwordField.onBlur}
+                            inputRef={passwordField.ref}
+                            error={Boolean(errors.password)}
+                            placeholder="Enter your password"
+                            slotProps={{
+                                htmlInput: {
+                                    "aria-invalid": Boolean(errors.password),
+                                    "aria-describedby": errors.password
+                                        ? "password-error"
+                                        : undefined,
+                                },
+                            }}
                         />
-                    </div>
 
-                    {/* Submit login button */}
-                    <button
+                        <FieldValidationError
+                            id="password-error"
+                            error={errors.password}
+                        />
+                    </AuthFormField>
+
+                    {loginError && (
+                        <FieldValidationError
+                            id="login-error"
+                            error={loginError}
+                        />
+                    )}
+
+                    <AuthSubmitButton
                         type="submit"
-                        className="btn btn-success w-100"
+                        variant="contained"
+                        color="success"
                         disabled={loading}
                     >
                         {loading ? "Signing in..." : "Sign In"}
-                    </button>
-                </form>
+                    </AuthSubmitButton>
+                </AuthForm>
 
-                {/* Registration and landing-page navigation */}
-                <div className="auth-footer">
+                <AuthFooter>
                     <p>
-                        Don't have an account?{" "}
-                        <Link to="/register">Create an account</Link>
+                        Don&apos;t have an account?{" "}
+                        <AuthFooterLink to="/register">
+                            Create an account
+                        </AuthFooterLink>
                     </p>
 
-                    <Link to="/">
-                        ← Back to Barangay Document System
-                    </Link>
-                </div>
-            </div>
-        </div>
+                    <AuthFooterLink to="/">
+                        ← Back to Home
+                    </AuthFooterLink>
+                </AuthFooter>
+            </AuthCard>
+        </AuthPage>
     );
 }
 

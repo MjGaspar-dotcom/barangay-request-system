@@ -1,50 +1,60 @@
+import {
+    SectionContainer,
+    SectionDescription,
+    SectionHeading,
+    SectionLabel,
+    SectionTitle,
+} from "./Section.styles";
+import {
+    ContactCard,
+    ContactGrid,
+    ContactSectionRoot,
+} from "./ContactSection.styles";
+
 function ContactSection() {
     return (
-        <section id="contact" className="content-section contact-section">
-            <div className="container">
-                <div className="section-heading">
-                    <span className="section-label">CONTACT</span>
+        <ContactSectionRoot id="contact">
+            <SectionContainer>
+                <SectionHeading>
+                    <SectionLabel>CONTACT</SectionLabel>
 
-                    <h2>Barangay Office</h2>
+                    <SectionTitle>Barangay Office</SectionTitle>
 
-                    <p>
+                    <SectionDescription>
                         For concerns regarding document requests, processing, or
                         other barangay services, contact the barangay office.
-                    </p>
-                </div>
+                    </SectionDescription>
+                </SectionHeading>
 
-                <div className="row g-4">
-                    <div className="col-md-4">
-                        <div className="contact-card">
-                            <h3>Address</h3>
-                            <p>
-                                Barangay Hall
-                                <br />
-                                San Juan, Ilocos Sur
-                            </p>
-                        </div>
-                    </div>
+                <ContactGrid>
+                    <ContactCard>
+                        <h3>Address</h3>
 
-                    <div className="col-md-4">
-                        <div className="contact-card">
-                            <h3>Contact Number</h3>
-                            <p>Contact the barangay office for assistance.</p>
-                        </div>
-                    </div>
+                        <p>
+                            Barangay Hall
+                            <br />
+                            San Juan, Ilocos Sur
+                        </p>
+                    </ContactCard>
 
-                    <div className="col-md-4">
-                        <div className="contact-card">
-                            <h3>Office Hours</h3>
-                            <p>
-                                Monday–Friday
-                                <br />
-                                8:00 AM–5:00 PM
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <ContactCard>
+                        <h3>Contact Number</h3>
+
+                        <p>Contact the barangay office for assistance.</p>
+                    </ContactCard>
+
+                    <ContactCard>
+                        <h3>Office Hours</h3>
+
+                        <p>
+                            Monday–Friday
+                            <br />
+                            8:00 AM–5:00 PM
+                        </p>
+                    </ContactCard>
+                </ContactGrid>
+            </SectionContainer>
+        </ContactSectionRoot>
     );
 }
 

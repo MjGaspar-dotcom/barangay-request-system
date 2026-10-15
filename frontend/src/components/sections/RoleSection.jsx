@@ -1,53 +1,55 @@
 import { useNavigate } from "react-router-dom";
 import RoleCard from "../navigation/RoleCard";
+import {
+    SectionContainer,
+    SectionDescription,
+    SectionHeading,
+    SectionLabel,
+    SectionTitle,
+} from "./Section.styles";
+import { RoleGrid, RoleSectionRoot } from "./RoleSection.styles";
 
 function RoleSection() {
     const navigate = useNavigate();
 
     return (
-        <section className="content-section role-section">
-            <div className="container">
-                <div className="section-heading">
-                    <span className="section-label">SYSTEM ACCESS</span>
+        <RoleSectionRoot>
+            <SectionContainer>
+                <SectionHeading>
+                    <SectionLabel>SYSTEM ACCESS</SectionLabel>
 
-                    <h2>Choose Your Role</h2>
+                    <SectionTitle>Choose Your Role</SectionTitle>
 
-                    <p>
+                    <SectionDescription>
                         Select the appropriate portal based on how you use the
                         barangay document system.
-                    </p>
-                </div>
+                    </SectionDescription>
+                </SectionHeading>
 
-                <div className="row g-4 justify-content-center">
-                    <div className="col-md-4">
-                        <RoleCard
-                            icon="👤"
-                            title="Resident"
-                            description="Request and track your barangay documents online."
-                            onClick={() => navigate("/login")}
-                        />
-                    </div>
+                <RoleGrid>
+                    <RoleCard
+                        icon="👤"
+                        title="Resident"
+                        description="Request and track your barangay documents online."
+                        onClick={() => navigate("/login")}
+                    />
 
-                    <div className="col-md-4">
-                        <RoleCard
-                            icon="🧑‍💼"
-                            title="Barangay Staff"
-                            description="Process, review, and manage submitted document requests."
-                            onClick={() => navigate("/staff/login")}
-                        />
-                    </div>
+                    <RoleCard
+                        icon="🧑‍💼"
+                        title="Barangay Staff"
+                        description="Process, review, and manage submitted document requests."
+                        onClick={() => navigate("/staff/login")}
+                    />
 
-                    <div className="col-md-4">
-                        <RoleCard
-                            icon="⚙️"
-                            title="Administrator"
-                            description="Manage users, staff, documents, and system operations."
-                            onClick={() => navigate("/admin/login")}
-                        />
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <RoleCard
+                        icon="⚙️"
+                        title="Administrator"
+                        description="Manage users, staff, documents, and system operations."
+                        onClick={() => navigate("/admin/login")}
+                    />
+                </RoleGrid>
+            </SectionContainer>
+        </RoleSectionRoot>
     );
 }
 
