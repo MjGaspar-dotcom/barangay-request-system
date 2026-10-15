@@ -31,7 +31,9 @@ function PortalLayout({
         <div
             className={`portal-page ${
                 hasSidebar ? "portal-dashboard-page" : ""
-            }`}
+            } ${portalLabel === "STAFF & ADMINISTRATION" ? "portal-staff-admin-page" : ""} ${
+                portalLabel === "STAFF SERVICES" ? "portal-staff-workspace" : ""
+            } ${portalLabel === "ADMINISTRATION" ? "portal-admin-workspace" : ""}`}
         >
             {/* 
                 Background photograph.
@@ -76,39 +78,39 @@ function PortalLayout({
                         hasSidebar ? "portal-dashboard-main" : ""
                     }`}
                 >
-                    <header className="portal-header">
-                        {hasSidebar && (
-                            <button
-                                type="button"
-                                className="portal-menu-button"
-                                onClick={() => setSidebarOpen(true)}
-                                aria-label="Open navigation"
-                                aria-expanded={sidebarOpen}
-                            >
-                                <i
-                                    className="bi bi-list"
-                                    aria-hidden="true"
-                                />
-                            </button>
-                        )}
-                        <Link to="/" className="portal-brand">
-                            <div className="portal-logo">B</div>
+                    {!hasSidebar && (
+                        <header className="portal-header">
+                            <Link to="/" className="portal-brand">
+                                <div className="portal-logo">B</div>
 
-                            <div className="portal-brand-text">
-                                <span className="portal-brand-name">
-                                    Barangay System
-                                </span>
+                                <div className="portal-brand-text">
+                                    <span className="portal-brand-name">
+                                        Barangay System
+                                    </span>
 
-                                <span className="portal-brand-subtitle">
-                                    Document Services
-                                </span>
+                                    <span className="portal-brand-subtitle">
+                                        Document Services
+                                    </span>
+                                </div>
+                            </Link>
+
+                            <div className="portal-header-label">
+                                {portalLabel}
                             </div>
-                        </Link>
+                        </header>
+                    )}
 
-                        <div className="portal-header-label">
-                            {portalLabel}
-                        </div>
-                    </header>
+                    {hasSidebar && (
+                        <button
+                            type="button"
+                            className="portal-menu-button"
+                            onClick={() => setSidebarOpen(true)}
+                            aria-label="Open navigation"
+                            aria-expanded={sidebarOpen}
+                        >
+                            <i className="bi bi-list" aria-hidden="true" />
+                        </button>
+                    )}
 
                     <main className="portal-main">{children}</main>
 

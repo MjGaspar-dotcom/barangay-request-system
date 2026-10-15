@@ -38,7 +38,7 @@ function AdminLayout({ children }) {
     ];
 
     return (
-        <div className="dashboard-layout">
+        <div className="dashboard-layout admin-management-layout">
             <div
                 className={`dashboard-sidebar-wrapper ${
                     sidebarOpen ? "open" : ""

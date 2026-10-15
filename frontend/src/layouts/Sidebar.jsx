@@ -11,8 +11,11 @@ function Sidebar({ items = [], onNavigate }) {
         await logout();
     };
 
+    const isAdmin = user?.role === "admin";
+    const isStaff = user?.role === "staff";
+
     return (
-        <aside className="dashboard-sidebar">
+        <aside className={`dashboard-sidebar ${isAdmin ? "sidebar-admin" : ""} ${isStaff ? "sidebar-staff" : ""}`}>
             <div className="sidebar-header">
                 <div className="sidebar-logo">B</div>
 
