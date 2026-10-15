@@ -327,6 +327,7 @@ button {
 }
 
 .auth-card {
+    position: relative;
     width: 100%;
     max-width: 520px;
     padding: 40px;
@@ -334,6 +335,36 @@ button {
     border: 1px solid #e5e7eb;
     border-radius: 16px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+.auth-back-arrow {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 1;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #166534;
+    font-size: 28px;
+    line-height: 1;
+    text-decoration: none;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.auth-back-arrow:hover {
+    background-color: rgba(22, 101, 52, 0.1);
+    color: #14532d;
+}
+
+.auth-back-arrow:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
 }
 
 .auth-card-wide {
@@ -1051,9 +1082,12 @@ button {
    ADMIN LOGIN
    ========================================================= */
 
-/* Full administrator login screen */
-.admin-auth-page {
+/* Shared staff and administrator login */
+.portal-auth-page {
     min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 40px 20px;
     background:
         radial-gradient(
@@ -1070,7 +1104,9 @@ button {
 }
 
 /* Main login card */
-.admin-auth-card {
+.portal-auth-card {
+    position: relative;
+    width: 100%;
     max-width: 460px;
     padding: 0;
     overflow: hidden;
@@ -1080,11 +1116,20 @@ button {
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
 }
 
+.portal-auth-card .auth-back-arrow {
+    color: #ffffff;
+}
+
+.portal-auth-card .auth-back-arrow:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
 /* =========================================================
    ADMIN LOGIN HEADER
    ========================================================= */
 
-.admin-auth-header {
+.portal-auth-header {
     position: relative;
     padding: 42px 32px 36px;
     overflow: hidden;
@@ -1094,7 +1139,7 @@ button {
 }
 
 /* Decorative circle - upper right */
-.admin-auth-header::before {
+.portal-auth-header::before {
     content: "";
     position: absolute;
     width: 120px;
@@ -1106,7 +1151,7 @@ button {
 }
 
 /* Decorative circle - lower left */
-.admin-auth-header::after {
+.portal-auth-header::after {
     content: "";
     position: absolute;
     width: 100px;
@@ -1118,13 +1163,13 @@ button {
 }
 
 /* Keep header content above decorative circles */
-.admin-auth-header > * {
+.portal-auth-header > * {
     position: relative;
     z-index: 1;
 }
 
 /* Temporary B logo */
-.admin-auth-header .auth-logo {
+.portal-auth-header .auth-logo {
     width: 58px;
     height: 58px;
     margin: 0 auto 18px;
@@ -1137,17 +1182,17 @@ button {
 }
 
 /* Administrator label */
-.admin-auth-label {
+.portal-auth-label {
     display: block;
     margin-bottom: 8px;
     color: #dcfce7;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
 }
 
 /* Main system title */
-.admin-auth-header h1 {
+.portal-auth-header h1 {
     margin-bottom: 8px;
     color: #ffffff;
     font-size: 25px;
@@ -1155,11 +1200,11 @@ button {
 }
 
 /* System description */
-.admin-auth-header p {
+.portal-auth-header p {
     max-width: 330px;
     margin: 0 auto;
     color: #d1fae5;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -1167,66 +1212,66 @@ button {
    ADMIN LOGIN BODY
    ========================================================= */
 
-.admin-auth-body {
+.portal-auth-body {
     padding: 34px 34px 28px;
 }
 
 /* Welcome text */
-.admin-auth-welcome {
+.portal-auth-welcome {
     margin-bottom: 26px;
     text-align: center;
 }
 
-.admin-auth-welcome h2 {
+.portal-auth-welcome h2 {
     margin-bottom: 4px;
     color: #14532d;
     font-size: 22px;
     font-weight: 700;
 }
 
-.admin-auth-welcome p {
+.portal-auth-welcome p {
     margin: 0;
     color: #9ca3af;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 /* =========================================================
    ADMIN LOGIN FORM
    ========================================================= */
 
-.admin-form-group {
+.portal-form-group {
     margin-bottom: 16px;
 }
 
-.admin-form-group label {
+.portal-form-group label {
     display: block;
     margin-bottom: 7px;
     color: #374151;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
 }
 
-.admin-form-group input {
+.portal-form-group input {
     width: 100%;
-    height: 48px;
+    height: 52px;
     padding: 0 16px;
     border: 1px solid #d1d5db;
     border-radius: 12px;
     outline: none;
     background-color: #f9fafb;
     color: #1f2937;
-    font-size: 14px;
+    font-size: 16px;
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease,
         background-color 0.2s ease;
 }
 
-.admin-form-group input::placeholder {
+.portal-form-group input::placeholder {
     color: #9ca3af;
 }
 
-.admin-form-group input:focus {
+.portal-form-group input:focus {
     border-color: #16a34a;
     background-color: #ffffff;
     box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
@@ -1236,15 +1281,15 @@ button {
    ADMIN LOGIN BUTTON
    ========================================================= */
 
-.admin-login-button {
+.portal-login-button {
     width: 100%;
-    height: 48px;
+    min-height: 52px;
     margin-top: 8px;
     border: 0;
     border-radius: 12px;
     background: linear-gradient(135deg, #166534 0%, #16a34a 100%);
     color: #ffffff;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: 0.3px;
     box-shadow: 0 8px 18px rgba(22, 101, 52, 0.2);
@@ -1253,12 +1298,12 @@ button {
         box-shadow 0.2s ease;
 }
 
-.admin-login-button:hover:not(:disabled) {
+.portal-login-button:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 10px 22px rgba(22, 101, 52, 0.28);
 }
 
-.admin-login-button:disabled {
+.portal-login-button:disabled {
     cursor: not-allowed;
     opacity: 0.7;
 }
@@ -1267,14 +1312,14 @@ button {
    ADMIN LOGIN FOOTER
    ========================================================= */
 
-.admin-auth-body .auth-footer {
+.portal-auth-body .auth-footer {
     margin-top: 22px;
     padding-top: 18px;
     border-top: 1px solid #f3f4f6;
-    font-size: 12px;
+    font-size: 14px;
 }
 
-.admin-auth-body .auth-footer a {
+.portal-auth-body .auth-footer a {
     color: #166534;
 }
 
@@ -1283,19 +1328,19 @@ button {
    ========================================================= */
 
 @media (max-width: 480px) {
-    .admin-auth-page {
+    .portal-auth-page {
         padding: 20px 14px;
     }
 
-    .admin-auth-header {
+    .portal-auth-header {
         padding: 34px 24px 30px;
     }
 
-    .admin-auth-body {
+    .portal-auth-body {
         padding: 28px 22px 24px;
     }
 
-    .admin-auth-header h1 {
+    .portal-auth-header h1 {
         font-size: 22px;
     }
 }
@@ -1539,6 +1584,132 @@ button {
         margin-top: 20px;
 
         font-size: 8px;
+    }
+}
+
+/* Staff and administrator entry page */
+.staff-admin-landing {
+    max-width: 960px;
+}
+
+.staff-admin-landing .portal-eyebrow {
+    font-size: 14px;
+}
+
+.staff-admin-landing h1 {
+    font-size: clamp(42px, 5.5vw, 68px);
+}
+
+.staff-admin-description {
+    max-width: 740px !important;
+    font-size: 19px !important;
+}
+
+.staff-admin-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 42px;
+    text-align: left;
+}
+
+.staff-admin-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    min-height: 190px;
+    padding: 28px;
+    border: 1px solid rgba(22, 101, 52, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 32px rgba(6, 78, 59, 0.1);
+    color: #17201b;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.staff-admin-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 38px rgba(6, 78, 59, 0.16);
+}
+
+.staff-admin-option:focus-visible {
+    outline: 3px solid #166534;
+    outline-offset: 3px;
+}
+
+.staff-admin-option-icon {
+    display: grid;
+    flex: 0 0 54px;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border-radius: 15px;
+    background: #e9f4ed;
+    color: #166534;
+    font-size: 27px;
+}
+
+.staff-admin-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.staff-admin-option-title {
+    color: #14532d;
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.staff-admin-option-description {
+    color: #4b5563;
+    font-size: 17px;
+    line-height: 1.55;
+}
+
+.staff-admin-option-action {
+    margin-top: 8px;
+    color: #166534;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    .staff-admin-description {
+        font-size: 18px !important;
+    }
+
+    .staff-admin-options {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+        margin: 34px auto 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .staff-admin-landing h1 {
+        font-size: 40px;
+    }
+
+    .staff-admin-option {
+        gap: 15px;
+        min-height: auto;
+        padding: 22px 18px;
+    }
+
+    .staff-admin-option-title {
+        font-size: 22px;
+    }
+
+    .staff-admin-option-description {
+        font-size: 16px;
+    }
+
+    .staff-admin-option-action {
+        font-size: 15px;
     }
 }
 
@@ -2206,6 +2377,135 @@ button {
     line-height: 1.5;
 }
 
+/* Dashboard sidebar layout */
+.portal-dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.portal-dashboard-sidebar {
+    z-index: 3;
+    flex: 0 0 260px;
+    width: 260px;
+}
+
+.portal-dashboard-sidebar .dashboard-sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+}
+
+.portal-dashboard-sidebar .sidebar-header h2 {
+    color: #ffffff;
+}
+
+.portal-dashboard-sidebar .sidebar-link {
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.portal-dashboard-sidebar .sidebar-link-icon {
+    flex: 0 0 24px;
+    font-size: 17px;
+}
+
+.portal-dashboard-sidebar .sidebar-logout {
+    min-height: 48px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.portal-dashboard-sidebar .sidebar-logout:focus-visible {
+    outline: 2px solid #dcfce7;
+    outline-offset: 2px;
+}
+
+.portal-dashboard-main {
+    flex: 1;
+    min-width: 0;
+    min-height: 100vh;
+}
+
+.portal-dashboard-main .portal-main {
+    align-items: stretch;
+}
+
+.portal-dashboard-main .portal-header {
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+.portal-dashboard-main .portal-header-label {
+    margin-left: auto;
+}
+
+.portal-menu-button {
+    display: none;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(22, 101, 52, 0.18);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #14532d;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.portal-menu-button:focus-visible {
+    outline: 3px solid #166534;
+    outline-offset: 2px;
+}
+
+.portal-sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .portal-dashboard-sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 260px;
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+    }
+
+    .portal-dashboard-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .portal-dashboard-sidebar .dashboard-sidebar {
+        height: 100%;
+        overflow-y: auto;
+    }
+
+    .portal-menu-button {
+        display: inline-flex;
+    }
+
+    .portal-sidebar-overlay {
+        position: fixed;
+        z-index: 2;
+        inset: 0;
+        display: block;
+        border: 0;
+        background: rgba(0, 0, 0, 0.42);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .portal-dashboard-sidebar {
+        transition: none;
+    }
+}
+
 /* =========================================================
    RESPONSIVE PORTAL DESIGN
    ========================================================= */
@@ -2828,7 +3128,7 @@ button {
 
     color: #6b7280;
 
-    font-size: 11px;
+    font-size: 16px;
     line-height: 1.6;
 }
 
@@ -2855,7 +3155,7 @@ button {
 
     color: #166534;
 
-    font-size: 7px;
+    font-size: 12px;
     font-weight: 800;
 
     letter-spacing: 0.8px;
@@ -2914,7 +3214,7 @@ button {
 .staff-stat-label {
     color: #166534;
 
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 800;
 
     letter-spacing: 0.9px;
@@ -2932,9 +3232,9 @@ button {
 .staff-stat-card p {
     margin: 9px 0 0;
 
-    color: #9ca3af;
+    color: #4b5563;
 
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.4;
 }
 
@@ -2995,7 +3295,7 @@ button {
 .staff-section-label {
     color: #166534;
 
-    font-size: 7px;
+    font-size: 12px;
     font-weight: 800;
 
     letter-spacing: 1.1px;
@@ -3006,7 +3306,7 @@ button {
 
     color: #17201b;
 
-    font-size: 15px;
+    font-size: 20px;
     font-weight: 800;
 }
 
@@ -3026,7 +3326,7 @@ button {
 
     color: #166534;
 
-    font-size: 9px;
+    font-size: 14px;
     font-weight: 800;
 }
 
@@ -3071,7 +3371,7 @@ button {
 
     color: #374151;
 
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 800;
 }
 
@@ -3080,10 +3380,73 @@ button {
 
     margin: 7px 0 0;
 
-    color: #9ca3af;
+    color: #4b5563;
 
-    font-size: 8px;
+    font-size: 14px;
     line-height: 1.5;
+}
+
+.staff-queue-message {
+    margin: 20px 0 0;
+    color: #4b5563;
+    text-align: center;
+}
+
+.staff-request-list {
+    display: flex;
+    flex-direction: column;
+    padding-top: 8px;
+}
+
+.staff-request-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 2px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+    color: #17201b;
+    text-decoration: none;
+}
+
+.staff-request-row:last-child {
+    border-bottom: 0;
+}
+
+.staff-request-row:hover {
+    color: #14532d;
+}
+
+.staff-request-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.staff-request-details strong {
+    overflow: hidden;
+    color: #14532d;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.staff-request-details span {
+    overflow: hidden;
+    color: #6b7280;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.staff-request-status {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 /*
@@ -3108,7 +3471,7 @@ button {
 
     color: #166534;
 
-    font-size: 8px;
+    font-size: 14px;
     font-weight: 800;
 }
 
@@ -3119,7 +3482,7 @@ button {
 
     color: #14532d;
 
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .staff-workflow-item p {
@@ -3127,7 +3490,7 @@ button {
 
     color: #6b7280;
 
-    font-size: 8px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -3187,15 +3550,15 @@ button {
 .staff-notice strong {
     color: #14532d;
 
-    font-size: 9px;
+    font-size: 14px;
 }
 
 .staff-notice p {
     margin: 3px 0 0;
 
-    color: #6b7280;
+    color: #4b5563;
 
-    font-size: 8px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -3240,7 +3603,7 @@ button {
     }
 
     .staff-stat-card p {
-        font-size: 6.5px;
+        font-size: 13px;
     }
 
     .staff-work-card {
@@ -3252,7 +3615,7 @@ button {
     }
 
     .staff-welcome p {
-        font-size: 10px;
+        font-size: 14px;
     }
 
     .staff-notice {
@@ -3272,7 +3635,7 @@ button {
 
 .admin-portal {
     width: 100%;
-    max-width: 1050px;
+    max-width: 1200px;
 
     margin: 0 auto;
 }
@@ -3316,7 +3679,7 @@ button {
 
     color: #6b7280;
 
-    font-size: 10px;
+    font-size: 16px;
     line-height: 1.6;
 }
 
@@ -3343,7 +3706,7 @@ button {
 
     color: #166534;
 
-    font-size: 7px;
+    font-size: 12px;
     font-weight: 800;
 
     letter-spacing: 0.7px;
@@ -3361,6 +3724,10 @@ button {
     background-color: #22c55e;
 }
 
+.admin-system-dot.error {
+    background-color: #dc2626;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Overview Statistics
@@ -3372,13 +3739,13 @@ button {
 
     grid-template-columns: repeat(4, minmax(0, 1fr));
 
-    gap: 9px;
+    gap: 16px;
 
-    margin-bottom: 11px;
+    margin-bottom: 20px;
 }
 
 .admin-overview-card {
-    padding: 15px;
+    padding: 20px;
 
     border: 1px solid rgba(22, 101, 52, 0.1);
     border-radius: 12px;
@@ -3396,7 +3763,7 @@ button {
 
     color: #166534;
 
-    font-size: 7px;
+    font-size: 13px;
     font-weight: 800;
 
     letter-spacing: 0.8px;
@@ -3418,9 +3785,9 @@ button {
 .admin-overview-card p {
     margin: 7px 0 0;
 
-    color: #9ca3af;
+    color: #4b5563;
 
-    font-size: 7px;
+    font-size: 14px;
 }
 
 /*
@@ -3444,9 +3811,9 @@ button {
 }
 
 .admin-management-panel {
-    padding: 20px;
+    padding: 24px;
 
-    margin-bottom: 11px;
+    margin-bottom: 20px;
 }
 
 /*
@@ -3468,7 +3835,7 @@ button {
 .admin-section-label {
     color: #166534;
 
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 800;
 
     letter-spacing: 1.1px;
@@ -3479,7 +3846,7 @@ button {
 
     color: #17201b;
 
-    font-size: 15px;
+    font-size: 20px;
     font-weight: 800;
 }
 
@@ -3583,14 +3950,14 @@ button {
 .admin-management-content strong {
     color: #14532d;
 
-    font-size: 9px;
+    font-size: 16px;
     font-weight: 800;
 }
 
 .admin-management-content span {
-    color: #9ca3af;
+    color: #4b5563;
 
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.4;
 }
 
@@ -3618,9 +3985,9 @@ button {
 .admin-bottom-grid {
     display: grid;
 
-    grid-template-columns: 1.25fr 0.75fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
-    gap: 11px;
+    gap: 20px;
 }
 
 /*
@@ -3631,9 +3998,54 @@ button {
 
 .admin-activity-card,
 .admin-analytics-card {
-    min-height: 220px;
+    min-height: 260px;
 
-    padding: 19px;
+    padding: 24px;
+}
+
+.admin-activity-link {
+    color: #166534;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-activity-link:hover {
+    color: #14532d;
+    text-decoration: underline;
+}
+
+.admin-activity-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-activity-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.admin-activity-item:last-child {
+    border-bottom: 0;
+}
+
+.admin-activity-item strong {
+    color: #374151;
+    font-size: 14px;
+}
+
+.admin-activity-item span,
+.admin-activity-message {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.admin-activity-message {
+    margin: 20px 0 0;
+    text-align: center;
 }
 
 /*
@@ -3677,7 +4089,7 @@ button {
 
     color: #374151;
 
-    font-size: 10px;
+    font-size: 16px;
     font-weight: 800;
 }
 
@@ -3686,9 +4098,9 @@ button {
 
     margin: 6px 0 0;
 
-    color: #9ca3af;
+    color: #4b5563;
 
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -3719,13 +4131,13 @@ button {
 }
 
 .admin-analytics-content p {
-    max-width: 230px;
+    max-width: 360px;
 
     margin: 9px 0 12px;
 
-    color: #9ca3af;
+    color: #4b5563;
 
-    font-size: 7px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -3787,7 +4199,7 @@ button {
     }
 
     .admin-overview-card p {
-        font-size: 6px;
+        font-size: 13px;
     }
 
     .admin-portal-welcome h1 {
@@ -3795,7 +4207,7 @@ button {
     }
 
     .admin-portal-welcome p {
-        font-size: 9px;
+        font-size: 14px;
     }
 
     .admin-management-panel,

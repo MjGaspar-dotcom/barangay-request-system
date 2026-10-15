@@ -1,5 +1,8 @@
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import PortalLayout from "../../layouts/PortalLayout";
+import api from "../../services/api";
 
 /*
 |--------------------------------------------------------------------------
@@ -13,14 +16,22 @@ import PortalLayout from "../../layouts/PortalLayout";
 | - Completed requests
 | - Overall request workload
 |
-| The actual request data will eventually come from the Laravel API.
-| For now, the values below are placeholders until the backend
-| endpoints are connected.
 |--------------------------------------------------------------------------
 */
 
 function Dashboard() {
     const { user } = useAuth();
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const navigationItems = [
+        { label: "Dashboard", to: "/staff/dashboard", icon: "▦" },
+        {
+            label: "Request Queue",
+            to: "/staff/dashboard#request-queue",
+            icon: "📋",
+        },
+    ];
 
     /*
      * Display the staff member's name when available.
@@ -32,9 +43,79 @@ function Dashboard() {
         user?.name ||
         "Staff";
 
+    const fetchRequests = useCallback(async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+            const response = await api.get("/staff/requests");
+            const requestData = response.data?.data;
+
+            if (!Array.isArray(requestData)) {
+                throw new Error("Unexpected staff requests response.");
+            }
+
+            setRequests(requestData);
+        } catch (fetchError) {
+            console.error(
+                "Failed to load staff dashboard requests:",
+                fetchError
+            );
+            setError("Failed to load requests. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchRequests();
+    }, [fetchRequests]);
+
+    const counts = requests.reduce(
+        (result, request) => {
+            result.total += 1;
+            const status = (request.status || "").toLowerCase();
+
+            if (status === "pending") result.pending += 1;
+            if (status === "processing") result.processing += 1;
+            if (status === "completed") result.completed += 1;
+
+            return result;
+        },
+        { total: 0, pending: 0, processing: 0, completed: 0 }
+    );
+
+    const requesterName = (request) => {
+        const requester =
+            request.request_type === "guest"
+                ? request.guest || request
+                : request.user;
+        return (
+            [requester?.first_name, requester?.last_name]
+                .filter(Boolean)
+                .join(" ") || "Unknown requester"
+        );
+    };
+
     return (
-        <PortalLayout portalLabel="STAFF SERVICES">
+        <PortalLayout
+            portalLabel="STAFF SERVICES"
+            sidebarItems={navigationItems}
+        >
             <section className="staff-portal">
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}{" "}
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger ms-2"
+                            onClick={fetchRequests}
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
                 {/* -------------------------------------------------------
                     Welcome Header
                 ------------------------------------------------------- */}
@@ -71,7 +152,7 @@ function Dashboard() {
                             </span>
 
                             <span className="staff-stat-number">
-                                0
+                                {loading || error ? "—" : counts.pending}
                             </span>
                         </div>
 
@@ -87,7 +168,7 @@ function Dashboard() {
                             </span>
 
                             <span className="staff-stat-number">
-                                0
+                                {loading || error ? "—" : counts.processing}
                             </span>
                         </div>
 
@@ -103,7 +184,7 @@ function Dashboard() {
                             </span>
 
                             <span className="staff-stat-number">
-                                0
+                                {loading || error ? "—" : counts.completed}
                             </span>
                         </div>
 
@@ -119,7 +200,7 @@ function Dashboard() {
                             </span>
 
                             <span className="staff-stat-number">
-                                0
+                                {loading || error ? "—" : counts.total}
                             </span>
                         </div>
 
@@ -134,7 +215,7 @@ function Dashboard() {
                 ------------------------------------------------------- */}
                 <div className="staff-work-grid">
                     {/* Request Queue */}
-                    <div className="staff-work-card">
+                    <div className="staff-work-card" id="request-queue">
                         <div className="staff-work-header">
                             <div>
                                 <span className="staff-section-label">
@@ -147,24 +228,53 @@ function Dashboard() {
                             </div>
 
                             <span className="staff-work-count">
-                                0
+                                {loading || error ? "—" : requests.length}
                             </span>
                         </div>
 
-                        <div className="staff-empty-state">
-                            <div className="staff-empty-icon">
-                                ≡
-                            </div>
-
-                            <h3>
-                                No requests available
-                            </h3>
-
-                            <p>
-                                New document requests will appear
-                                here when they are submitted.
+                        {error ? (
+                            <p className="staff-queue-message">
+                                Request queue is unavailable.
                             </p>
-                        </div>
+                        ) : loading ? (
+                            <p className="staff-queue-message">
+                                Loading requests...
+                            </p>
+                        ) : requests.length ? (
+                            <div className="staff-request-list">
+                                {requests.slice(0, 6).map((request) => (
+                                    <Link
+                                        className="staff-request-row"
+                                        key={`${request.request_type}-${request.request_id}`}
+                                        to={`/staff/requests/${request.request_type}/${request.request_id}`}
+                                    >
+                                        <span className="staff-request-details">
+                                            <strong>
+                                                {request.tracking_number}
+                                            </strong>
+                                            <span>
+                                                {requesterName(request)} ·{" "}
+                                                {request.document_type
+                                                    ?.document_name ||
+                                                    "Document request"}
+                                            </span>
+                                        </span>
+                                        <span className="staff-request-status">
+                                            {request.status || "Unknown"}
+                                        </span>
+                                    </Link>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="staff-empty-state">
+                                <div className="staff-empty-icon">≡</div>
+                                <h3>No requests available</h3>
+                                <p>
+                                    New document requests will appear here
+                                    when they are submitted.
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Processing Guide */}
@@ -240,26 +350,6 @@ function Dashboard() {
                     </div>
                 </div>
 
-                {/* -------------------------------------------------------
-                    System Notice
-                ------------------------------------------------------- */}
-                <div className="staff-notice">
-                    <div className="staff-notice-icon">
-                        i
-                    </div>
-
-                    <div>
-                        <strong>
-                            Staff workspace
-                        </strong>
-
-                        <p>
-                            Request counts and queue information will
-                            be populated from the Laravel backend once
-                            the staff request API is connected.
-                        </p>
-                    </div>
-                </div>
             </section>
         </PortalLayout>
     );

@@ -1,16 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Landing from "../pages/public/Landing";
 
-import Login from "../pages/user/Login";
-import Register from "../pages/user/Register";
-import UserDashboard from "../pages/user/Dashboard";
-import RequestDetails from "../pages/user/RequestDetails";
-
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminLogin from "../pages/admin/Login";
-import ManageStaff from "../pages/admin/ManageStaff";
 import ManageUsers from "../pages/admin/ManageUsers";
+import ManageStaff from "../pages/admin/ManageStaff";
 import ManageRequests from "../pages/admin/ManageRequests";
 import ManageDocumentTypes from "../pages/admin/ManageDocumentTypes";
 import AdminRequestDetails from "../pages/admin/AdminRequestDetails";
@@ -20,9 +15,6 @@ import StaffLogin from "../pages/staff/Login";
 import StaffDashboard from "../pages/staff/Dashboard";
 import StaffRequestDetails from "../pages/staff/RequestDetails";
 
-import GuestRequest from "../pages/guest/Request";
-import TrackRequest from "../pages/guest/TrackRequest";
-
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 export default function AppRoutes() {
@@ -31,35 +23,6 @@ export default function AppRoutes() {
             <Routes>
                 {/* PUBLIC */}
                 <Route path="/" element={<Landing />} />
-
-                {/* AUTH */}
-                <Route path="/login" element={<Login />} />
-
-                <Route path="/register" element={<Register />} />
-
-                {/* GUEST */}
-                <Route path="/request" element={<GuestRequest />} />
-
-                <Route path="/track-request" element={<TrackRequest />} />
-
-                {/* RESIDENT / USER */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={["user"]}>
-                            <UserDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/requests/:requestId"
-                    element={
-                        <ProtectedRoute allowedRoles={["user"]}>
-                            <RequestDetails />
-                        </ProtectedRoute>
-                    }
-                />
 
                 {/* STAFF */}
                 <Route
@@ -165,6 +128,8 @@ export default function AppRoutes() {
                 <Route path="/admin/login" element={<AdminLogin />} />
 
                 <Route path="/staff/login" element={<StaffLogin />} />
+
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
     );

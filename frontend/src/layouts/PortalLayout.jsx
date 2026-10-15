@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import Sidebar from "./Sidebar";
 
 /*
 |--------------------------------------------------------------------------
@@ -17,9 +19,20 @@ import { Link } from "react-router-dom";
 |--------------------------------------------------------------------------
 */
 
-function PortalLayout({ children, portalLabel = "BARANGAY ONLINE SERVICES" }) {
+function PortalLayout({
+    children,
+    portalLabel = "BARANGAY ONLINE SERVICES",
+    sidebarItems,
+}) {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const hasSidebar = Boolean(sidebarItems?.length);
+
     return (
-        <div className="portal-page">
+        <div
+            className={`portal-page ${
+                hasSidebar ? "portal-dashboard-page" : ""
+            }`}
+        >
             {/* 
                 Background photograph.
                 Its opacity is controlled entirely through CSS.
@@ -30,35 +43,84 @@ function PortalLayout({ children, portalLabel = "BARANGAY ONLINE SERVICES" }) {
                 Main portal content.
                 This stays fully visible above the background image.
             */}
-            <div className="portal-content">
-                <header className="portal-header">
-                    <Link to="/" className="portal-brand">
-                        <div className="portal-logo">B</div>
-
-                        <div className="portal-brand-text">
-                            <span className="portal-brand-name">
-                                Barangay System
-                            </span>
-
-                            <span className="portal-brand-subtitle">
-                                Document Services
-                            </span>
+            <div
+                className={
+                    hasSidebar ? "portal-dashboard-layout" : "portal-content"
+                }
+            >
+                {hasSidebar && (
+                    <>
+                        <div
+                            className={`portal-dashboard-sidebar ${
+                                sidebarOpen ? "open" : ""
+                            }`}
+                        >
+                            <Sidebar
+                                items={sidebarItems}
+                                onNavigate={() => setSidebarOpen(false)}
+                            />
                         </div>
-                    </Link>
+                        {sidebarOpen && (
+                            <button
+                                type="button"
+                                className="portal-sidebar-overlay"
+                                onClick={() => setSidebarOpen(false)}
+                                aria-label="Close navigation"
+                            />
+                        )}
+                    </>
+                )}
 
-                    <div className="portal-header-label">{portalLabel}</div>
-                </header>
+                <div
+                    className={`portal-content ${
+                        hasSidebar ? "portal-dashboard-main" : ""
+                    }`}
+                >
+                    <header className="portal-header">
+                        {hasSidebar && (
+                            <button
+                                type="button"
+                                className="portal-menu-button"
+                                onClick={() => setSidebarOpen(true)}
+                                aria-label="Open navigation"
+                                aria-expanded={sidebarOpen}
+                            >
+                                <i
+                                    className="bi bi-list"
+                                    aria-hidden="true"
+                                />
+                            </button>
+                        )}
+                        <Link to="/" className="portal-brand">
+                            <div className="portal-logo">B</div>
 
-                <main className="portal-main">{children}</main>
+                            <div className="portal-brand-text">
+                                <span className="portal-brand-name">
+                                    Barangay System
+                                </span>
 
-                <footer className="portal-footer">
-                    <span>
-                        Integrated Barangay Document Request, Processing, and
-                        Analytics System
-                    </span>
+                                <span className="portal-brand-subtitle">
+                                    Document Services
+                                </span>
+                            </div>
+                        </Link>
 
-                    <span>© 2026</span>
-                </footer>
+                        <div className="portal-header-label">
+                            {portalLabel}
+                        </div>
+                    </header>
+
+                    <main className="portal-main">{children}</main>
+
+                    <footer className="portal-footer">
+                        <span>
+                            Integrated Barangay Document Request,
+                            Processing, and Analytics System
+                        </span>
+
+                        <span>© 2026</span>
+                    </footer>
+                </div>
             </div>
         </div>
     );

@@ -1,10 +1,13 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 function Sidebar({ items = [], onNavigate }) {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     const handleLogout = async () => {
+        onNavigate?.();
+        navigate("/", { replace: true });
         await logout();
     };
 

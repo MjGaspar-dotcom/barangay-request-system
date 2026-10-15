@@ -58,16 +58,25 @@ function Login() {
     // =====================================================
 
     return (
-        <div className="auth-page admin-auth-page">
-            <div className="auth-card admin-auth-card">
+        <div className="portal-auth-page">
+            <div className="portal-auth-card">
+                <Link
+                    to="/"
+                    className="auth-back-arrow"
+                    aria-label="Back to Barangay Document System"
+                    title="Back to Barangay Document System"
+                >
+                    ←
+                </Link>
+
                 {/* =================================================
                 GREEN HEADER
                 ================================================= */}
-                <div className="admin-auth-header">
+                <div className="portal-auth-header">
                     {/* Temporary logo */}
                     <div className="auth-logo">B</div>
 
-                    <span className="admin-auth-label">
+                    <span className="portal-auth-label">
                         ADMINISTRATOR PORTAL
                     </span>
 
@@ -82,9 +91,9 @@ function Login() {
                 {/* =================================================
                 LOGIN CONTENT
                 ================================================= */}
-                <div className="admin-auth-body">
+                <div className="portal-auth-body">
                     {/* Welcome message */}
-                    <div className="admin-auth-welcome">
+                    <div className="portal-auth-welcome">
                         <h2>Welcome Back!</h2>
 
                         <p>Please login to continue</p>
@@ -104,7 +113,7 @@ function Login() {
                     ================================================= */}
                     <form onSubmit={handleSubmit}>
                         {/* Username */}
-                        <div className="admin-form-group">
+                        <div className="portal-form-group">
                             <label htmlFor="admin-username">Username</label>
 
                             <input
@@ -121,7 +130,7 @@ function Login() {
                         </div>
 
                         {/* Password */}
-                        <div className="admin-form-group">
+                        <div className="portal-form-group">
                             <label htmlFor="admin-password">Password</label>
 
                             <input
@@ -140,7 +149,7 @@ function Login() {
                         {/* Login button */}
                         <button
                             type="submit"
-                            className="admin-login-button"
+                            className="portal-login-button"
                             disabled={loading}
                         >
                             {loading ? (
@@ -161,9 +170,6 @@ function Login() {
                     {/* =================================================
                     FOOTER LINK
                     ================================================= */}
-                    <div className="auth-footer">
-                        <Link to="/">← Back to Home</Link>
-                    </div>
                 </div>
             </div>
         </div>

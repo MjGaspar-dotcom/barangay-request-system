@@ -1,128 +1,68 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import PortalLayout from "../../layouts/PortalLayout";
 
-/*
-|--------------------------------------------------------------------------
-| Guest Landing Page
-|--------------------------------------------------------------------------
-| This is the public entry point of the system.
-|
-| Guests can:
-| - Request a barangay document
-| - Track an existing request
-| - Sign in to an existing account
-| - Register for an account
-|--------------------------------------------------------------------------
-*/
-
 function Landing() {
-    return (
-        <PortalLayout portalLabel="GUEST SERVICES">
-            <section className="portal-hero guest-portal-hero">
-                {/* Small section identifier */}
-                <span className="portal-eyebrow">
-                    BARANGAY ONLINE SERVICES
-                </span>
+    const navigate = useNavigate();
 
-                {/* Main page heading */}
+    return (
+        <PortalLayout portalLabel="STAFF & ADMINISTRATION">
+            <section className="portal-hero staff-admin-landing">
+                <span className="portal-eyebrow">BARANGAY SYSTEM ACCESS</span>
+
                 <h1>
-                    Barangay Document
-                    <span> Services</span>
+                    Staff &amp; Admin
+                    <span> Portal</span>
                 </h1>
 
-                {/* Short description */}
-                <p className="guest-hero-description">
-                    Request and track your barangay documents through a
-                    simple and accessible online service.
+                <p className="staff-admin-description">
+                    Sign in to process document requests, manage barangay
+                    services, and oversee system operations.
                 </p>
 
-                {/* Main actions */}
-                <div className="portal-actions">
-                    <Link
-                        to="/request"
-                        className="portal-button-primary"
+                <div className="staff-admin-options">
+                    <button
+                        type="button"
+                        className="staff-admin-option"
+                        onClick={() => navigate("/staff/login")}
                     >
-                        Request a Document
-                    </Link>
+                        <span className="staff-admin-option-icon" aria-hidden="true">
+                            <i className="bi bi-person-badge" />
+                        </span>
+                        <span className="staff-admin-option-content">
+                            <span className="staff-admin-option-title">
+                                Barangay Staff
+                            </span>
+                            <span className="staff-admin-option-description">
+                                Review and process document requests.
+                            </span>
+                            <span className="staff-admin-option-action">
+                                Continue to Staff Login
+                                <span aria-hidden="true"> →</span>
+                            </span>
+                        </span>
+                    </button>
 
-                    <Link
-                        to="/track-request"
-                        className="portal-button-secondary"
+                    <button
+                        type="button"
+                        className="staff-admin-option"
+                        onClick={() => navigate("/admin/login")}
                     >
-                        Track My Request
-                    </Link>
-                </div>
-
-                {/* Quick service information */}
-                <div className="guest-quick-info">
-                    <div className="guest-info-item">
-                        <span className="guest-info-number">
-                            01
+                        <span className="staff-admin-option-icon" aria-hidden="true">
+                            <i className="bi bi-shield-lock" />
                         </span>
-
-                        <div>
-                            <span className="guest-info-title">
-                                Request
+                        <span className="staff-admin-option-content">
+                            <span className="staff-admin-option-title">
+                                Administrator
                             </span>
-
-                            <span className="guest-info-text">
-                                Submit a document request
+                            <span className="staff-admin-option-description">
+                                Manage staff, requests, and system settings.
                             </span>
-                        </div>
-                    </div>
-
-                    <div className="guest-info-divider"></div>
-
-                    <div className="guest-info-item">
-                        <span className="guest-info-number">
-                            02
+                            <span className="staff-admin-option-action">
+                                Continue to Admin Login
+                                <span aria-hidden="true"> →</span>
+                            </span>
                         </span>
-
-                        <div>
-                            <span className="guest-info-title">
-                                Track
-                            </span>
-
-                            <span className="guest-info-text">
-                                Check your request status
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="guest-info-divider"></div>
-
-                    <div className="guest-info-item">
-                        <span className="guest-info-number">
-                            03
-                        </span>
-
-                        <div>
-                            <span className="guest-info-title">
-                                Receive
-                            </span>
-
-                            <span className="guest-info-text">
-                                Follow your document progress
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Account option */}
-                <div className="guest-account-action">
-                    <span>Already have an account?</span>
-
-                    <Link to="/login">
-                        Sign in
-                    </Link>
-
-                    <span className="guest-account-separator">
-                        or
-                    </span>
-
-                    <Link to="/register">
-                        Register
-                    </Link>
+                    </button>
                 </div>
             </section>
         </PortalLayout>

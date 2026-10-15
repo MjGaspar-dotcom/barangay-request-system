@@ -64,6 +64,15 @@ function Login() {
     return (
         <div className="auth-page">
             <div className="auth-card">
+                <Link
+                    to="/"
+                    className="auth-back-arrow"
+                    aria-label="Back to Barangay Document System"
+                    title="Back to Barangay Document System"
+                >
+                    ←
+                </Link>
+
                 {/* Authentication page header */}
                 <div className="auth-header">
                     {/* Barangay system logo */}
@@ -155,9 +164,6 @@ function Login() {
                         <Link to="/register">Create an account</Link>
                     </p>
 
-                    <Link to="/">
-                        ← Back to Barangay Document System
-                    </Link>
                 </div>
             </div>
         </div>

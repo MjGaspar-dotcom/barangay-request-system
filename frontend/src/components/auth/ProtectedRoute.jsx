@@ -18,8 +18,16 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
     }
 
     if (!isAuthenticated) {
+        const loginPath = location.pathname.startsWith("/admin")
+            ? "/admin/login"
+            : "/staff/login";
+
         return (
-            <Navigate to="/login" replace state={{ from: location.pathname }} />
+            <Navigate
+                to={loginPath}
+                replace
+                state={{ from: location.pathname }}
+            />
         );
     }
 
@@ -35,7 +43,7 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
             return <Navigate to="/staff/dashboard" replace />;
         }
 
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to="/" replace />;
     }
 
     return children;

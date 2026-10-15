@@ -5,7 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 function StaffLogin() {
     // Get the shared login function from AuthContext.
     // This sends the username and password to the Laravel API.
-    const { login } = useAuth();
+    const { login, logout } = useAuth();
 
     // Used to redirect the Staff after successful login.
     const navigate = useNavigate();
@@ -33,7 +33,13 @@ function StaffLogin() {
 
         try {
             // Send the credentials to the shared authentication function.
-            await login(username, password);
+            const response = await login(username, password);
+
+            if (response.role !== "staff") {
+                await logout();
+                setError("This account does not have staff access.");
+                return;
+            }
 
             // Login succeeded, so redirect the Staff to their dashboard.
             navigate("/staff/dashboard");
@@ -52,97 +58,86 @@ function StaffLogin() {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
+        <div className="portal-auth-page">
+            <div className="portal-auth-card">
+                <Link
+                    to="/"
+                    className="auth-back-arrow"
+                    aria-label="Back to Barangay Document System"
+                    title="Back to Barangay Document System"
+                >
+                    ←
+                </Link>
 
-                {/* Login page header and Staff portal identification */}
-                <div className="auth-header">
+                <div className="portal-auth-header">
                     <div className="auth-logo">B</div>
 
-                    <span className="section-label">
+                    <span className="portal-auth-label">
                         STAFF PORTAL
                     </span>
 
-                    <h1>Staff Login</h1>
+                    <h1>Barangay Document System</h1>
 
                     <p>
-                        Sign in to manage and process barangay
-                        document requests.
+                        Integrated Document Request, Processing, and Analytics
+                        System
                     </p>
                 </div>
 
-                {/* Display an error message when authentication fails */}
-                {error && (
-                    <div className="alert alert-danger" role="alert">
-                        {error}
+                <div className="portal-auth-body">
+                    <div className="portal-auth-welcome">
+                        <h2>Welcome Back!</h2>
+                        <p>Please sign in to continue</p>
                     </div>
-                )}
 
-                {/* Staff authentication form */}
-                <form onSubmit={handleSubmit}>
-                    {/* Username field */}
-                    <div className="mb-3">
-                        <label
-                            htmlFor="staff-username"
-                            className="form-label"
+                    {error && (
+                        <div className="alert alert-danger" role="alert">
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit}>
+                        <div className="portal-form-group">
+                            <label htmlFor="staff-username">Username</label>
+                            <input
+                                id="staff-username"
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                value={username}
+                                onChange={(event) =>
+                                    setUsername(event.target.value)
+                                }
+                                placeholder="Enter staff username"
+                                required
+                            />
+                        </div>
+
+                        <div className="portal-form-group">
+                            <label htmlFor="staff-password">Password</label>
+                            <input
+                                id="staff-password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                value={password}
+                                onChange={(event) =>
+                                    setPassword(event.target.value)
+                                }
+                                placeholder="Enter your password"
+                                required
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="portal-login-button"
+                            disabled={loading}
                         >
-                            Username
-                        </label>
+                            {loading ? "Signing in..." : "SIGN IN TO STAFF PORTAL"}
+                        </button>
+                    </form>
 
-                        <input
-                            id="staff-username"
-                            name="username"
-                            type="text"
-                            className="form-control"
-                            autoComplete="username"
-                            value={username}
-                            onChange={(event) =>
-                                setUsername(event.target.value)
-                            }
-                            placeholder="Enter your username"
-                            required
-                        />
-                    </div>
-
-                    {/* Password field */}
-                    <div className="mb-4">
-                        <label
-                            htmlFor="staff-password"
-                            className="form-label"
-                        >
-                            Password
-                        </label>
-
-                        <input
-                            id="staff-password"
-                            name="password"
-                            type="password"
-                            className="form-control"
-                            autoComplete="current-password"
-                            value={password}
-                            onChange={(event) =>
-                                setPassword(event.target.value)
-                            }
-                            placeholder="Enter your password"
-                            required
-                        />
-                    </div>
-
-                    {/* Submit button */}
-                    <button
-                        type="submit"
-                        className="btn btn-success w-100"
-                        disabled={loading}
-                    >
-                        {loading ? "Signing in..." : "Sign In"}
-                    </button>
-                </form>
-
-                {/* Return to the public landing page */}
-                <div className="auth-footer">
-                    <Link to="/">
-                        ← Back to Barangay Document System
-                    </Link>
                 </div>
             </div>
         </div>
