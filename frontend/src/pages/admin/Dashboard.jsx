@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import PortalLayout from "../../layouts/PortalLayout";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
@@ -34,43 +35,69 @@ function Dashboard() {
     const [activity, setActivity] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const fetchDashboard = useCallback(async () => {
-        setLoading(true);
-        setError("");
+        const [statsResponse, activityResponse] = await Promise.all([
+            api.get("/admin/stats"),
+            api.get("/admin/recent-activity", {
+                params: { per_page: 5 },
+            }),
+        ]);
+        const activityPage = activityResponse.data?.data;
 
-        try {
-            const [statsResponse, activityResponse] = await Promise.all([
-                api.get("/admin/stats"),
-                api.get("/admin/recent-activity", {
-                    params: { per_page: 5 },
-                }),
-            ]);
-            const activityPage = activityResponse.data?.data;
-
-            if (
-                !statsResponse.data?.data ||
-                !Array.isArray(activityPage?.data)
-            ) {
-                throw new Error("Unexpected dashboard response.");
-            }
-
-            setStats(statsResponse.data.data);
-            setActivity(activityPage.data);
-        } catch (fetchError) {
-            console.error(
-                "Failed to load administrator dashboard:",
-                fetchError
-            );
-            setError("Failed to load dashboard data. Please try again.");
-        } finally {
-            setLoading(false);
+        if (
+            !statsResponse.data?.data ||
+            !Array.isArray(activityPage?.data)
+        ) {
+            throw new Error("Unexpected dashboard response.");
         }
+
+        return {
+            stats: statsResponse.data.data,
+            activity: activityPage.data,
+        };
     }, []);
 
     useEffect(() => {
-        fetchDashboard();
-    }, [fetchDashboard]);
+        let active = true;
+
+        const loadDashboard = async () => {
+            try {
+                const data = await fetchDashboard();
+                if (active) {
+                    setStats(data.stats);
+                    setActivity(data.activity);
+                }
+            } catch (fetchError) {
+                console.error(
+                    "Failed to load administrator dashboard:",
+                    fetchError
+                );
+                if (active) {
+                    setError(
+                        "Failed to load dashboard data. Please try again."
+                    );
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadDashboard();
+
+        return () => {
+            active = false;
+        };
+    }, [fetchDashboard, refreshKey]);
+
+    const handleRetry = () => {
+        setLoading(true);
+        setError("");
+        setRefreshKey((current) => current + 1);
+    };
 
     /*
      * Display the administrator's name when available.
@@ -90,7 +117,7 @@ function Dashboard() {
                         <button
                             type="button"
                             className="btn btn-sm btn-outline-danger ms-2"
-                            onClick={fetchDashboard}
+                            onClick={handleRetry}
                         >
                             Retry
                         </button>
@@ -187,6 +214,20 @@ function Dashboard() {
                         </strong>
 
                         <p>Available services</p>
+                    </div>
+
+                    <div className="admin-overview-card">
+                        <span className="admin-overview-label">
+                            AUDIT LOGS
+                        </span>
+
+                        <strong>
+                            {loading || error || !stats
+                                ? "—"
+                                : count(stats.total_audit_logs)}
+                        </strong>
+
+                        <p>Recorded system actions</p>
                     </div>
                 </div>
 
@@ -378,6 +419,8 @@ function Dashboard() {
                         </div>
                     </div>
                 </div>
+
+                <NotificationCenter />
             </section>
         </PortalLayout>
     );

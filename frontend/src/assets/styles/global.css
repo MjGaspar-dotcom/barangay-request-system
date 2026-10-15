@@ -3449,6 +3449,123 @@ button {
     font-weight: 700;
 }
 
+.dashboard-notifications {
+    width: 100%;
+    margin-top: 20px;
+    padding: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 6px 24px rgba(20, 83, 45, 0.06);
+}
+
+.dashboard-notifications-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.dashboard-notifications-label {
+    color: #166534;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.dashboard-notifications-header h2 {
+    margin: 5px 0 0;
+    color: #17201b;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.dashboard-notification-count {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-notification-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-notification {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 2px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.08);
+}
+
+.dashboard-notification:last-child {
+    border-bottom: 0;
+}
+
+.dashboard-notification.unread {
+    border-left: 3px solid #16a34a;
+    padding-left: 11px;
+}
+
+.dashboard-notification-copy {
+    min-width: 0;
+}
+
+.dashboard-notification-copy strong {
+    color: #14532d;
+    font-size: 14px;
+}
+
+.dashboard-notification-copy p {
+    margin: 4px 0;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+.dashboard-notification-copy time {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.dashboard-notification-read,
+.dashboard-notification-error button {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border: 1px solid rgba(22, 101, 52, 0.25);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #166534;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-notification-read:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.dashboard-notification-message,
+.dashboard-notification-error {
+    margin: 16px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.dashboard-notification-error {
+    color: #b91c1c;
+}
+
 /*
 |--------------------------------------------------------------------------
 | Workflow

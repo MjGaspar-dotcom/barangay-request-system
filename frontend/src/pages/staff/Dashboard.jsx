@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import { useAuth } from "../../hooks/useAuth";
 import PortalLayout from "../../layouts/PortalLayout";
 import api from "../../services/api";
@@ -24,6 +25,7 @@ function Dashboard() {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
     const navigationItems = [
         { label: "Dashboard", to: "/staff/dashboard", icon: "▦" },
         {
@@ -44,32 +46,52 @@ function Dashboard() {
         "Staff";
 
     const fetchRequests = useCallback(async () => {
-        setLoading(true);
-        setError("");
+        const response = await api.get("/staff/requests");
+        const requestData = response.data?.data;
 
-        try {
-            const response = await api.get("/staff/requests");
-            const requestData = response.data?.data;
-
-            if (!Array.isArray(requestData)) {
-                throw new Error("Unexpected staff requests response.");
-            }
-
-            setRequests(requestData);
-        } catch (fetchError) {
-            console.error(
-                "Failed to load staff dashboard requests:",
-                fetchError
-            );
-            setError("Failed to load requests. Please try again.");
-        } finally {
-            setLoading(false);
+        if (!Array.isArray(requestData)) {
+            throw new Error("Unexpected staff requests response.");
         }
+
+        return requestData;
     }, []);
 
     useEffect(() => {
-        fetchRequests();
-    }, [fetchRequests]);
+        let active = true;
+
+        const loadRequests = async () => {
+            try {
+                const requestData = await fetchRequests();
+                if (active) {
+                    setRequests(requestData);
+                }
+            } catch (fetchError) {
+                console.error(
+                    "Failed to load staff dashboard requests:",
+                    fetchError
+                );
+                if (active) {
+                    setError("Failed to load requests. Please try again.");
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadRequests();
+
+        return () => {
+            active = false;
+        };
+    }, [fetchRequests, refreshKey]);
+
+    const handleRetry = () => {
+        setLoading(true);
+        setError("");
+        setRefreshKey((current) => current + 1);
+    };
 
     const counts = requests.reduce(
         (result, request) => {
@@ -109,7 +131,7 @@ function Dashboard() {
                         <button
                             type="button"
                             className="btn btn-sm btn-outline-danger ms-2"
-                            onClick={fetchRequests}
+                            onClick={handleRetry}
                         >
                             Retry
                         </button>
@@ -350,6 +372,7 @@ function Dashboard() {
                     </div>
                 </div>
 
+                <NotificationCenter />
             </section>
         </PortalLayout>
     );

@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             StaffSeeder::class,
             UserSeeder::class,
             DocumentTypeSeeder::class,
+            AuditLogSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }
