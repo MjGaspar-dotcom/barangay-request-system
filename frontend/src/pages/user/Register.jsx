@@ -26,6 +26,7 @@ import {
     TwoColumnFormGrid,
 } from "../../styles/auth.styles";
 
+<<<<<<< Updated upstream
 const DEFAULT_FORM_VALUES = {
     username: "",
     password: "",
@@ -42,6 +43,9 @@ const DEFAULT_FORM_VALUES = {
     email: "",
 };
 
+=======
+>>>>>>> Stashed changes
+import { validateForm } from "../../utils/validateForm";
 function Register() {
     const navigate = useNavigate();
 
@@ -104,7 +108,15 @@ function Register() {
             ...registrationValues
         } = values;
 
+<<<<<<< Updated upstream
         setRequestError("");
+=======
+        if (!validateForm(event.currentTarget)) return;
+
+        if (!validateForm(event.currentTarget)) return;
+
+        setError("");
+>>>>>>> Stashed changes
         setSuccess("");
 
         if (
@@ -184,12 +196,21 @@ function Register() {
                     <AuthMessage severity="success">{success}</AuthMessage>
                 )}
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 <AuthForm
                     onSubmit={handleSubmit(submitRegistration)}
                     noValidate
                 >
                     <FormSection>
                         <FormSectionTitle>Account Information</FormSectionTitle>
+=======
+=======
+>>>>>>> Stashed changes
+                <form noValidate onSubmit={handleSubmit}>
+                    <div className="form-section">
+                        <h2>Account Information</h2>
+>>>>>>> Stashed changes
 
                         <TwoColumnFormGrid>
                             <AuthFormField>

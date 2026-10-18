@@ -13,6 +13,7 @@ import PortalWorkspace from "../../components/ui/PortalWorkspace";
 import SectionCard from "../../components/ui/SectionCard";
 import StatCard from "../../components/ui/StatCard";
 import { useAuth } from "../../hooks/useAuth";
+<<<<<<< Updated upstream
 import PortalLayout from "../../layouts/PortalLayout";
 import {
     AdminAnalyticsContent,
@@ -23,6 +24,21 @@ import {
     AdminOverviewGrid,
     AdminPortal,
 } from "./Dashboard.styles";
+=======
+import api from "../../services/api";
+
+const navigationItems = [
+    { label: "Dashboard", to: "/admin/dashboard", icon: "bi-speedometer2" },
+    { label: "Manage Users", to: "/admin/users", icon: "bi-people" },
+    { label: "Manage Staff", to: "/admin/staff", icon: "bi-person-badge" },
+    { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
+    { label: "Document Types", to: "/admin/document-types", icon: "bi-file-earmark-text" },
+    { label: "Recent Activity", to: "/admin/recent-activity", icon: "bi-activity" },
+];
+
+const count = (value) =>
+    Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
+>>>>>>> Stashed changes
 
 /*
 |--------------------------------------------------------------------------

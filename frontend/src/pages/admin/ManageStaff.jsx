@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Controller, useForm } from "react-hook-form";
 import {
     Alert,
@@ -43,7 +45,22 @@ import {
     StaffPageHeaderRow,
     StaffThirdField,
 } from "./ManageStaff.styles";
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+import api from "../../services/api";
+import AdminLayout from "../../layouts/AdminLayout";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+>>>>>>> Stashed changes
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+import api from "../../services/api";
+import AdminLayout from "../../layouts/AdminLayout";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+>>>>>>> Stashed changes
 
+import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
     username: "",
     password: "",
@@ -68,6 +85,9 @@ export default function ManageStaff() {
     const [busyStaffId, setBusyStaffId] = useState(null);
     const [search, setSearch] = useState("");
     const [showForm, setShowForm] = useState(false);
+    const [actionError, setActionError] = useState("");
+    const [confirmDialog, setConfirmDialog] = useState(null);
+<<<<<<< Updated upstream
 
     const {
         control,
@@ -81,6 +101,8 @@ export default function ManageStaff() {
         mode: "onSubmit",
         reValidateMode: "onChange",
     });
+=======
+>>>>>>> Stashed changes
 
     const fetchStaff = async () => {
         try {
@@ -121,14 +143,32 @@ export default function ManageStaff() {
         return hasMappedError;
     };
 
+<<<<<<< Updated upstream
     const submitStaff = async (values) => {
+=======
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        if (!validateForm(event.currentTarget)) return;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         setFormError("");
         setFormSuccess("");
 
         try {
             setSubmitting(true);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
             await api.post("/admin/staff", values);
+=======
+            await api.post("/admin/staff", form);
+>>>>>>> Stashed changes
+=======
+            await api.post("/admin/staff", form);
+>>>>>>> Stashed changes
 
             setFormSuccess(
                 `Staff account for ${values.first_name} ${values.last_name} created successfully.`,
@@ -163,12 +203,36 @@ export default function ManageStaff() {
     };
 
     const handleDelete = async (member) => {
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
         const confirmDelete = window.confirm(
             `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
         );
 
         if (!confirmDelete) return;
+=======
+        setConfirmDialog({
+            title: "Remove staff account",
+            message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
+            confirmLabel: "Remove staff account",
+            variant: "danger",
+            onConfirm: () => runDelete(member),
+        });
+    };
+>>>>>>> Stashed changes
 
+=======
+        setConfirmDialog({
+            title: "Remove staff account",
+            message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
+            confirmLabel: "Remove staff account",
+            variant: "danger",
+            onConfirm: () => runDelete(member),
+        });
+    };
+
+>>>>>>> Stashed changes
+    const runDelete = async (member) => {
         try {
             setBusyStaffId(member.staff_id);
 
@@ -177,8 +241,16 @@ export default function ManageStaff() {
             await fetchStaff();
         } catch (err) {
             console.error(err);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
             alert(
+=======
+            setActionError(
+>>>>>>> Stashed changes
+=======
+            setActionError(
+>>>>>>> Stashed changes
                 err.response?.data?.message ||
                     "Failed to remove staff account.",
             );
@@ -229,15 +301,23 @@ export default function ManageStaff() {
     if (error) {
         return (
             <AdminLayout>
+<<<<<<< Updated upstream
                 <AdminPageState>
                     <Alert severity="error">{error}</Alert>
                 </AdminPageState>
+=======
+                <div className="page-loading">
+                    <div className="alert alert-danger" role="alert">{error}</div>
+                </div>
+>>>>>>> Stashed changes
             </AdminLayout>
         );
     }
 
     return (
         <AdminLayout>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <AdminPage>
                 <AdminPageHeader>
                     <StaffPageHeaderRow>
@@ -275,6 +355,18 @@ export default function ManageStaff() {
                         </Button>
                     </StaffPageHeaderRow>
                 </AdminPageHeader>
+=======
+=======
+>>>>>>> Stashed changes
+            <div className="admin-dashboard manage-staff-page">
+                <div className="container-fluid">
+                    <div className="dashboard-page-header">
+                        <div className="header-row-between-lg manage-staff-header-row">
+                            <div>
+                                <span className="section-label">
+                                    STAFF MANAGEMENT
+                                </span>
+>>>>>>> Stashed changes
 
                 {formSuccess && (
                     <AdminMessages>
@@ -286,6 +378,8 @@ export default function ManageStaff() {
                     <AdminSection>
                         <StaffFormTitle>New Staff Account</StaffFormTitle>
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                         <form onSubmit={handleSubmit(submitStaff)} noValidate>
                             <StaffFormGrid>
                                 <StaffHalfField>
@@ -322,6 +416,23 @@ export default function ManageStaff() {
                                             />
                                         )}
                                     />
+=======
+=======
+>>>>>>> Stashed changes
+                            <Button
+                                type="button"
+                                className="btn btn-success staff-create-button"
+                                onClick={() => {
+                                    setShowForm((current) => !current);
+                                    setFormError("");
+                                    setFormSuccess("");
+                                }}
+                            >
+                                {showForm ? "Close Form" : "＋ Create Staff"}
+                            </Button>
+                        </div>
+                    </div>
+>>>>>>> Stashed changes
 
                                     <FieldValidationError
                                         id="staff-create-username-error"
@@ -370,6 +481,7 @@ export default function ManageStaff() {
                                         )}
                                     />
 
+<<<<<<< Updated upstream
                                     <FieldValidationError
                                         id="staff-create-password-error"
                                         error={errors.password}
@@ -817,6 +929,28 @@ export default function ManageStaff() {
                                         setFormError("");
                                         setShowForm(false);
                                     }}
+=======
+                    {actionError && (
+                        <div className="alert alert-danger" role="alert">
+                            {actionError}
+                        </div>
+                    )}
+
+                    {actionError && (
+                        <div className="alert alert-danger" role="alert">
+                            {actionError}
+                        </div>
+                    )}
+
+                    {showForm && (
+                        <section className="dashboard-section">
+                            <div className="admin-form-card">
+                                <h3 className="section-title-spaced"
+                                    
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
                                 >
                                     Cancel
                                 </Button>
@@ -825,6 +959,8 @@ export default function ManageStaff() {
                     </AdminSection>
                 )}
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 <AdminSection>
                     <AdminFilterBar>
                         <AdminSearchField
@@ -835,6 +971,25 @@ export default function ManageStaff() {
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                         />
+=======
+=======
+>>>>>>> Stashed changes
+                                <form noValidate onSubmit={handleSubmit}>
+                                    <div className="row g-3">
+                                        <div className="col-md-6">
+                                            <label className="form-label">
+                                                Username *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="username"
+                                                className="form-control"
+                                                value={form.username}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
+>>>>>>> Stashed changes
 
                         <AdminResultsCount>
                             Showing {filtered.length} of {staff.length} staff
@@ -890,6 +1045,8 @@ export default function ManageStaff() {
                                     </AdminTableRow>
                                 </TableHead>
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                                 <TableBody>
                                     {filtered.map((member) => (
                                         <AdminTableRow key={member.staff_id}>
@@ -927,6 +1084,145 @@ export default function ManageStaff() {
 
                                             <AdminTableDataCell>
                                                 <AdminRowActions>
+=======
+=======
+>>>>>>> Stashed changes
+                                    <div className="form-actions"
+                                        
+                                    >
+                                        <Button
+                                            type="submit"
+                                            className="btn btn-success"
+                                            disabled={submitting}
+                                        >
+                                            {submitting
+                                                ? "Creating..."
+                                                : "Create Staff Account"}
+                                        </Button>
+
+                                        <Button
+                                            type="button"
+                                            className="btn btn-outline-secondary"
+                                            onClick={() => {
+                                                setForm(EMPTY_FORM);
+                                                setFormError("");
+                                                setShowForm(false);
+                                            }}
+                                            disabled={submitting}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </section>
+                    )}
+
+                    <section className="dashboard-section">
+                        <div
+                            className="admin-filters filter-bar filter-row"
+                            
+                        >
+                            <input
+                                type="search"
+                                className="form-control filter-search-360"
+                                placeholder="Search by name, username, email..."
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                
+                            />
+
+                            <div className="filter-count"
+                                
+                            >
+                                Showing {filtered.length} of {staff.length}{" "}
+                                staff
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="dashboard-section">
+                        {filtered.length === 0 ? (
+                            <div className="dashboard-empty-state">
+                                <div className="dashboard-empty-icon" aria-hidden="true">
+                                    <i className="bi bi-person-workspace" />
+                                </div>
+                                <h3>No Staff Found</h3>
+                                <p>
+                                    No staff accounts match the current
+                                    filters. Use the "Create Staff" button to
+                                    add a new staff member.
+                                </p>
+                            </div>
+                        ) : (
+                            <div
+                                className="table-scroll admin-table-wrapper u-scroll-x"
+                                
+                            >
+                                <Table className="admin-table data-table manage-staff-table">
+                                    <colgroup>
+                                        <col className="staff-name-column" />
+                                        <col className="staff-username-column" />
+                                        <col className="staff-email-column" />
+                                        <col className="staff-contact-column" />
+                                        <col className="staff-assigned-column" />
+                                        <col className="staff-created-column" />
+                                        <col className="staff-actions-column" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Contact</th>
+                                            <th>Assigned By</th>
+                                            <th>Created</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {filtered.map((member) => (
+                                            <tr key={member.staff_id}>
+                                                <td>
+                                                    <strong>
+                                                        {fullName(
+                                                            member.user
+                                                        )}
+                                                    </strong>
+                                                    <div className="text-muted-sm"
+                                                        
+                                                    >
+                                                        {member.user?.address ||
+                                                            "—"}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {member.user?.username}
+                                                </td>
+                                                <td>
+                                                    {member.user?.email}
+                                                </td>
+                                                <td>
+                                                    {member.user
+                                                        ?.contact_number || "—"}
+                                                </td>
+                                                <td>
+                                                    {member.assigned_by_name ||
+                                                        "—"}
+                                                </td>
+                                                <td>
+                                                    {formatDate(
+                                                        member.created_at
+                                                    )}
+                                                </td>
+                                                <td>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
                                                     <Button
                                                         type="button"
                                                         variant="outlined"
@@ -942,6 +1238,8 @@ export default function ManageStaff() {
                                                     >
                                                         Remove
                                                     </Button>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                                                 </AdminRowActions>
                                             </AdminTableDataCell>
                                         </AdminTableRow>
@@ -952,6 +1250,37 @@ export default function ManageStaff() {
                     )}
                 </AdminSection>
             </AdminPage>
+=======
+=======
+>>>>>>> Stashed changes
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        )}
+                    </section>
+                </div>
+            </div>
+            <ConfirmDialog
+                isOpen={Boolean(confirmDialog)}
+                onClose={() => setConfirmDialog(null)}
+                onConfirm={() => {
+                    const action = confirmDialog?.onConfirm;
+                    setConfirmDialog(null);
+                    action?.();
+                }}
+                title={confirmDialog?.title}
+                confirmLabel={confirmDialog?.confirmLabel}
+                variant={confirmDialog?.variant}
+            >
+                {confirmDialog?.message}
+            </ConfirmDialog>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         </AdminLayout>
     );
 }

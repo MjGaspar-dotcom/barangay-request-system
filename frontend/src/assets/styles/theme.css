@@ -1,0 +1,83 @@
+/* Bootstrap theme bridge: design tokens remain the source of truth. */
+:root {
+  --bs-primary: var(--brand-800);
+  --bs-primary-rgb: 22, 101, 52;
+  --bs-body-font-family: var(--font-sans);
+  --bs-body-bg: var(--surface);
+  --bs-body-color: var(--gray-800);
+  --bs-border-radius: var(--radius-md);
+  --bs-border-color: var(--gray-200);
+  --bs-link-color: var(--brand-800);
+  --bs-link-color-rgb: 22, 101, 52;
+  --bs-link-hover-color: var(--brand-900);
+  --bs-link-hover-color-rgb: 20, 83, 45;
+}
+.btn-primary {
+  --bs-btn-color: var(--white);
+  --bs-btn-bg: var(--role-accent, var(--brand-800));
+  --bs-btn-border-color: var(--role-accent, var(--brand-800));
+  --bs-btn-hover-color: var(--white);
+  --bs-btn-hover-bg: var(--role-accent-dark, var(--brand-900));
+  --bs-btn-hover-border-color: var(--role-accent-dark, var(--brand-900));
+  --bs-btn-active-bg: var(--role-accent-dark, var(--brand-900));
+  --bs-btn-active-border-color: var(--role-accent-dark, var(--brand-900));
+  --bs-btn-disabled-bg: var(--gray-400);
+  --bs-btn-disabled-border-color: var(--gray-400);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--role-accent, var(--brand-800));
+  --bs-btn-border-color: var(--role-accent, var(--brand-800));
+  --bs-btn-hover-color: var(--white);
+  --bs-btn-hover-bg: var(--role-accent, var(--brand-800));
+  --bs-btn-hover-border-color: var(--role-accent, var(--brand-800));
+  --bs-btn-active-bg: var(--role-accent-dark, var(--brand-900));
+  --bs-btn-active-border-color: var(--role-accent-dark, var(--brand-900));
+}
+.btn-outline-danger {
+  --bs-btn-color: var(--danger);
+  --bs-btn-border-color: var(--danger);
+  --bs-btn-hover-color: var(--white);
+  --bs-btn-hover-bg: var(--danger);
+  --bs-btn-hover-border-color: var(--danger);
+  --bs-btn-active-bg: var(--danger-text);
+  --bs-btn-active-border-color: var(--danger-text);
+}
+.form-control:focus, .form-select:focus {
+  --bs-focus-ring-color: rgba(22, 101, 52, .22);
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 .25rem var(--bs-focus-ring-color);
+}
+.portal-staff-workspace {
+  --bs-primary: #0f766e;
+  --bs-primary-rgb: 15, 118, 110;
+  --bs-link-color: #0f766e;
+  --bs-link-color-rgb: 15, 118, 110;
+  --bs-link-hover-color: #115e59;
+  --bs-link-hover-color-rgb: 17, 94, 89;
+  --role-accent: #0f766e;
+  --role-accent-dark: #115e59;
+}
+.portal-staff-workspace .btn-primary,
+.portal-staff-workspace .btn-outline-primary {
+  --bs-btn-bg: #0f766e;
+  --bs-btn-border-color: #0f766e;
+  --bs-btn-color: var(--white);
+  --bs-btn-hover-bg: #115e59;
+  --bs-btn-hover-border-color: #115e59;
+  --bs-btn-hover-color: var(--white);
+}
+.portal-staff-workspace .btn-outline-primary {
+  --bs-btn-bg: transparent;
+  --bs-btn-color: #0f766e;
+}
+.portal-admin-workspace {
+  --bs-primary: var(--brand-800);
+  --bs-primary-rgb: 22, 101, 52;
+  --bs-link-color: var(--brand-800);
+  --bs-link-color-rgb: 22, 101, 52;
+  --bs-link-hover-color: var(--brand-900);
+  --bs-link-hover-color-rgb: 20, 83, 45;
+  --role-accent: var(--brand-800);
+  --role-accent-dark: var(--brand-900);
+  --role-highlight: #e5c77c;
+}

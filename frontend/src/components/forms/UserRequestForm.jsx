@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Button, CircularProgress, MenuItem, TextField } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 import api from "../../services/api";
 import FieldValidationError from "./FieldValidationError";
 import {
@@ -10,11 +16,15 @@ import {
     RequestSuccessMessage,
 } from "./RequestForm.styles";
 
+<<<<<<< Updated upstream
 const DEFAULT_FORM_VALUES = {
     document_type_id: "",
     purpose: "",
 };
 
+=======
+>>>>>>> Stashed changes
+import { validateForm } from "../../utils/validateForm";
 export default function UserRequestForm() {
     const [documentTypes, setDocumentTypes] = useState([]);
     const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
@@ -57,6 +67,7 @@ export default function UserRequestForm() {
     const applyServerValidationErrors = (validationErrors) => {
         let hasMappedError = false;
 
+<<<<<<< Updated upstream
         Object.entries(validationErrors).forEach(([fieldName, messages]) => {
             if (
                 !Object.prototype.hasOwnProperty.call(
@@ -82,6 +93,13 @@ export default function UserRequestForm() {
 
     const submitRequest = async (values) => {
         setRequestError("");
+=======
+        if (!validateForm(event.currentTarget)) return;
+
+        if (!validateForm(event.currentTarget)) return;
+
+        setError("");
+>>>>>>> Stashed changes
         setSuccess("");
         setLoading(true);
 
@@ -132,9 +150,26 @@ export default function UserRequestForm() {
     }
 
     return (
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <RequestFormRoot onSubmit={handleSubmit(submitRequest)} noValidate>
             <FormField>
                 <Controller
+=======
+=======
+>>>>>>> Stashed changes
+        <form noValidate onSubmit={handleSubmit}>
+            <div className="mb-3">
+                <label
+                    htmlFor="document_type_id"
+                    className="form-label"
+                >
+                    Document Type
+                </label>
+
+                <select
+                    id="document_type_id"
+>>>>>>> Stashed changes
                     name="document_type_id"
                     control={control}
                     rules={{

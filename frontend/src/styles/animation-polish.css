@@ -1,0 +1,122 @@
+/* Motion polish: restrained, fast, and safe for reduced-motion preferences. */
+:root {
+  --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --motion-fast: 120ms;
+  --motion-standard: 180ms;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Keep common interactions consistent without animating layout dimensions. */
+a,
+button,
+.btn,
+[role="button"],
+input,
+select,
+textarea,
+.form-control,
+.form-select,
+.sidebar-link,
+.nav-links a,
+.desktop-navigation a {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+:where(button, .btn, [role="button"]):active {
+  transform: translateY(1px);
+}
+
+:where(input, select, textarea, .form-control, .form-select):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-700, #166534) 65%, transparent);
+  outline-offset: 2px;
+}
+
+/* Hover motion only for devices that actually have a precise pointer. */
+@media (hover: hover) and (pointer: fine) {
+  :where(.info-card, .document-card, .contact-card, .role-card,
+    .hero-service-card, .resident-service-card, .resident-action-card,
+    .staff-service-card, .dashboard-stat-card, .staff-stat-card,
+    .admin-overview-card, .admin-analytics-card, .admin-management-card,
+    .portal-card, .detail-card, .staff-work-card, .requirement-card) {
+    transition: transform var(--motion-standard) var(--motion-ease-out),
+      border-color var(--motion-fast) ease;
+  }
+
+  :where(.info-card, .document-card, .contact-card, .role-card,
+    .hero-service-card, .resident-service-card, .resident-action-card,
+    .staff-service-card, .dashboard-stat-card, .staff-stat-card,
+    .admin-overview-card, .admin-analytics-card, .admin-management-card,
+    .portal-card, .detail-card, .staff-work-card, .requirement-card):hover {
+    transform: translateY(-2px);
+  }
+
+  :where(a:not(.btn), .sidebar-link, .nav-links a):hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* Enter the viewport with a short opacity/transform reveal; no layout shifts. */
+.motion-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 280ms var(--motion-ease-out),
+    transform 360ms var(--motion-ease-out);
+}
+
+.motion-reveal.motion-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Avoid smooth-scroll and reveal motion when a user requests less movement. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .motion-reveal,
+  .motion-reveal.motion-revealed {
+    opacity: 1;
+    transform: none;
+    }
+}
+
+/* Keep controls crisp: form fields transition only visual properties, while
+   links and buttons may also use transform for tactile feedback. */
+:where(input, select, textarea, .form-control, .form-select) {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--motion-ease-out);
+}
+
+:where(a, button, .btn, [role="button"], .sidebar-link, .nav-links a) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--role-accent, var(--brand-700)) 68%, transparent);
+  outline-offset: 3px;
+}

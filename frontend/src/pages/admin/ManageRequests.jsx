@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Alert, Button, CircularProgress, MenuItem } from "@mui/material";
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+>>>>>>> Stashed changes
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+>>>>>>> Stashed changes
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -66,9 +76,6 @@ export default function ManageRequests() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
-    const [busyId, setBusyId] = useState(null);
-    const [actionMessage, setActionMessage] = useState("");
-    const [actionError, setActionError] = useState("");
 
     const fetchRequests = async () => {
         try {
@@ -90,6 +97,8 @@ export default function ManageRequests() {
         fetchRequests();
     }, []);
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const flash = (message, isError = false) => {
         if (isError) {
             setActionError(message);
@@ -105,6 +114,10 @@ export default function ManageRequests() {
         }, 4000);
     };
 
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     const getRequesterName = (request) => {
         if (request.request_type === "registered" && request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
@@ -121,6 +134,8 @@ export default function ManageRequests() {
         return "Unknown";
     };
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     const handleStatusUpdate = async (request, newStatus) => {
         const confirmAction = window.confirm(
             `Change status of ${request.tracking_number} to "${newStatus}"?`,
@@ -189,6 +204,10 @@ export default function ManageRequests() {
         }
     };
 
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
@@ -258,6 +277,8 @@ export default function ManageRequests() {
     }, [requests]);
 
     const statCards = [
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
         {
             label: "Total",
             value: counts.total,
@@ -293,6 +314,20 @@ export default function ManageRequests() {
             value: counts.rejected,
             type: "rejected",
         },
+=======
+=======
+>>>>>>> Stashed changes
+        { label: "Total", value: counts.total, tone: "total" },
+        { label: "Pending", value: counts.pending, tone: "pending" },
+        { label: "Approved", value: counts.approved, tone: "approved" },
+        { label: "Processing", value: counts.processing, tone: "processing" },
+        { label: "Ready", value: counts.ready, tone: "ready" },
+        { label: "Completed", value: counts.completed, tone: "completed" },
+        { label: "Rejected", value: counts.rejected, tone: "rejected" },
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     ];
 
     const getValidIdImageUrl = (path) => {
@@ -323,18 +358,37 @@ export default function ManageRequests() {
     if (error) {
         return (
             <AdminLayout>
+<<<<<<< Updated upstream
                 <AdminPageState>
                     <Alert severity="error">{error}</Alert>
                 </AdminPageState>
+=======
+                <div className="page-loading">
+                    <div className="alert alert-danger" role="alert">{error}</div>
+                </div>
+>>>>>>> Stashed changes
             </AdminLayout>
         );
     }
 
     return (
         <AdminLayout>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <AdminPage>
                 <AdminPageHeader>
                     <AdminPageLabel>REQUEST MANAGEMENT</AdminPageLabel>
+=======
+=======
+>>>>>>> Stashed changes
+            <div className="admin-dashboard manage-requests-page">
+                <div className="container-fluid">
+                    <div className="dashboard-page-header">
+                        <div>
+                            <span className="section-label">
+                                REQUEST MANAGEMENT
+                            </span>
+>>>>>>> Stashed changes
 
                     <h1>Manage Requests</h1>
 
@@ -444,8 +498,18 @@ export default function ManageRequests() {
                             <h3>No Requests Found</h3>
 
                             <p>
+<<<<<<< Updated upstream
                                 No document requests match your current filters.
                                 Try clearing the filters to see all requests.
+=======
+                                Review every document request submitted by
+                                registered residents and walk-in guests. Open
+                                a request to review its details and manage its
+                                status.
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
                             </p>
                         </AdminEmptyState>
                     ) : (
@@ -455,6 +519,7 @@ export default function ManageRequests() {
                                     request.request_id ||
                                     request.guest_request_id;
 
+<<<<<<< Updated upstream
                                 const reqType =
                                     request.request_type || "registered";
 
@@ -663,6 +728,174 @@ export default function ManageRequests() {
                     )}
                 </AdminSection>
             </AdminPage>
+=======
+                    <section className="dashboard-section">
+                        <div className="row g-3">
+                            {statCards.map((stat) => (
+                                <div
+                                    className="col-sm-6 col-md-4 col-xl"
+                                    key={stat.label}
+                                >
+                                    <div className="dashboard-stat-card">
+                                        <div className={`dashboard-stat-icon dashboard-stat-icon-${stat.tone}`}>
+
+                                            {stat.label[0]}
+                                        </div>
+                                        <div>
+                                            <span className="dashboard-stat-label">
+                                                {stat.label}
+                                            </span>
+                                            <strong className="dashboard-stat-value">
+                                                {stat.value}
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="dashboard-section">
+                        <div
+                            className="admin-filters filter-bar filter-row"
+                            
+                        >
+                            <input
+                                type="search"
+                                className="form-control filter-search-380"
+                                placeholder="Search by tracking number, name, document, purpose..."
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                
+                            />
+
+                            <select
+                                className="form-select filter-select-180"
+                                value={statusFilter}
+                                onChange={(event) =>
+                                    setStatusFilter(event.target.value)
+                                }
+                                
+                            >
+                                {STATUS_FILTERS.map((filter) => (
+                                    <option
+                                        key={filter.value}
+                                        value={filter.value}
+                                    >
+                                        Status: {filter.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <select
+                                className="form-select filter-select-180"
+                                value={typeFilter}
+                                onChange={(event) =>
+                                    setTypeFilter(event.target.value)
+                                }
+                                
+                            >
+                                {TYPE_FILTERS.map((filter) => (
+                                    <option
+                                        key={filter.value}
+                                        value={filter.value}
+                                    >
+                                        Type: {filter.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="filter-count"
+                                
+                            >
+                                Showing {filtered.length} of {requests.length}{" "}
+                                request{requests.length === 1 ? "" : "s"}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="dashboard-section">
+                        {filtered.length === 0 ? (
+                            <div className="dashboard-empty-state">
+                                <div className="dashboard-empty-icon" aria-hidden="true">
+                                    <i className="bi bi-inbox" />
+                                </div>
+                                <h3>No Requests Found</h3>
+                                <p>
+                                    No document requests match your current
+                                    filters. Try clearing the filters to see
+                                    all requests.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="table-scroll">
+                                <Table className="data-table manage-requests-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Requester</th>
+                                            <th>Request details</th>
+                                            <th>Status</th>
+                                            <th>Purpose and notes</th>
+                                            <th>Submitted</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filtered.map((request) => {
+                                            const reqId = request.request_id || request.guest_request_id;
+                                            const reqType = request.request_type || "registered";
+                                            const idImage = request.guest?.valid_id_image;
+
+                                            return (
+                                                <tr key={`${reqType}-${reqId}`}>
+                                                    <td>
+                                                        <strong>{getRequesterName(request)}</strong>
+                                                        <div className="data-table-subtext">{request.tracking_number}</div>
+                                                        <div className="data-table-subtext text-capitalize">{reqType}</div>
+                                                    </td>
+                                                    <td>
+                                                        <strong>{request.document_type?.document_name || "Unknown"}</strong>
+                                                        {idImage && (
+                                                            <div className="data-table-subtext">
+                                                                <strong>Valid ID:</strong>{" "}
+                                                                <a className="data-table-link" href={getValidIdImageUrl(idImage)} target="_blank" rel="noreferrer">View uploaded ID</a>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td><StatusBadge status={request.status} /></td>
+                                                    <td>
+                                                        <div><strong>Purpose:</strong> {request.purpose || "—"}</div>
+                                                        {request.remarks && <div className="data-table-subtext"><strong>Remarks:</strong> {request.remarks}</div>}
+                                                    </td>
+                                                    <td>{formatDate(request.created_at)}</td>
+                                                    <td>
+                                                        <div className="data-table-actions">
+                                                            <Button
+                                                                type="button"
+                                                                className="btn btn-outline-success btn-sm"
+                                                                onClick={() =>
+                                                                    navigate(
+                                                                        `/admin/requests/${reqType}/${reqId}`,
+                                                                    )
+                                                                }
+                                                            >
+                                                                View Details
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        )}
+                    </section>
+                </div>
+            </div>
+>>>>>>> Stashed changes
         </AdminLayout>
     );
 }

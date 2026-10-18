@@ -1,0 +1,89 @@
+/* ==========================================================
+   Staff landing (older styles, partly superseded by role-workspaces.css)
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+/*
+   STAFF LANDING PAGE
+   ========================================================= */
+
+.staff-service-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.28);
+    transform: translateY(-2px);
+    color: var(--white);
+}
+
+.staff-service-card h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.staff-service-card p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.56);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.staff-account-action a {
+    color: var(--brand-200);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.staff-account-action a:hover {
+    color: var(--white);
+}
+
+/* ---------------------------------------------------------
+   Responsive layout
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .staff-service-grid {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+        margin-top: 34px;
+    }
+
+    .staff-service-card {
+        min-height: auto;
+    }
+
+    .staff-account-action {
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .staff-service-card {
+        padding: 16px;
+    }
+
+    .staff-service-icon {
+        flex-basis: 36px;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .staff-service-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .staff-service-card h3 {
+        font-size: 13px;
+    }
+
+    .staff-service-card p {
+        font-size: 10px;
+    }
+
+    .staff-account-action {
+        flex-direction: column;
+        gap: 4px;
+    }
+}

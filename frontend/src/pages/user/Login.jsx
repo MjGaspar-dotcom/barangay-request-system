@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import FieldValidationError from "../../components/forms/FieldValidationError";
 import { useAuth } from "../../hooks/useAuth";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import {
     AuthCard,
     AuthDescription,
@@ -18,7 +20,14 @@ import {
     AuthSubmitButton,
     AuthTitle,
 } from "../../styles/auth.styles";
+=======
+import BrandMark from "../../components/ui/BrandMark";
+>>>>>>> Stashed changes
+=======
+import BrandMark from "../../components/ui/BrandMark";
+>>>>>>> Stashed changes
 
+import { validateForm } from "../../utils/validateForm";
 function Login() {
     // Get the shared login function from AuthContext.
     // This sends the username and password to the Laravel API.
@@ -46,8 +55,18 @@ function Login() {
         reValidateMode: "onChange",
     });
 
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // Handles submission of the login form.
     const submitLogin = async (values) => {
+=======
+        if (!validateForm(event.currentTarget)) return;
+
+>>>>>>> Stashed changes
+=======
+        if (!validateForm(event.currentTarget)) return;
+
+>>>>>>> Stashed changes
         // Clear any previous login error.
         setLoginError("");
 
@@ -96,7 +115,17 @@ function Login() {
                 <AuthHeader>
                     <AuthLogo>B</AuthLogo>
 
+<<<<<<< Updated upstream
                     <AuthLabel>BARANGAY DOCUMENT SYSTEM</AuthLabel>
+=======
+                {/* Authentication page header */}
+                <div className="auth-header">
+                    {/* Barangay system logo */}
+                    <BrandMark className="auth-logo" />
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
                     <AuthTitle>Welcome Back</AuthTitle>
 
@@ -106,9 +135,37 @@ function Login() {
                     </AuthDescription>
                 </AuthHeader>
 
+<<<<<<< Updated upstream
                 <AuthForm onSubmit={handleSubmit(submitLogin)} noValidate>
                     <AuthFormField>
                         <TextField
+=======
+                    <p>
+                        Sign in to request and track your barangay
+                        documents online.
+                    </p>
+                </div>
+
+                {/* Display login error when authentication fails */}
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}
+                    </div>
+                )}
+
+                {/* User login form */}
+                <form noValidate onSubmit={handleSubmit}>
+                    {/* Username field */}
+                    <div className="mb-3">
+                        <label
+                            htmlFor="username"
+                            className="form-label"
+                        >
+                            Username
+                        </label>
+
+                        <input
+>>>>>>> Stashed changes
                             id="username"
                             name={usernameField.name}
                             type="text"

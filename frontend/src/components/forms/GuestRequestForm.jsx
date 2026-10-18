@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import {
     Button,
@@ -33,6 +34,14 @@ import {
     ValidIdPreviewImage,
     ValidIdPreviewLabel,
 } from "./RequestForm.styles";
+=======
+    import { useEffect, useState } from "react";
+    import api from "../../services/api";
+    import { validateForm } from "../../utils/validateForm";
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
 const ID_VERIFY_ENDPOINT = "/id-verification";
 const MAX_VALID_ID_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -161,8 +170,19 @@ export default function GuestRequestForm({
             });
         };
 
+<<<<<<< Updated upstream
         reader.readAsDataURL(file);
     }, [capturedIdResult, clearErrors, setError, setValue]);
+=======
+        if (!validateForm(e.currentTarget)) return;
+
+        if (!validateForm(e.currentTarget)) return;
+
+            setError("");
+            setSuccess("");
+            setTrackingNumber("");
+            setLoading(true);
+>>>>>>> Stashed changes
 
     // Load document types from the API on mount.
     useEffect(() => {
@@ -420,8 +440,16 @@ export default function GuestRequestForm({
 
     if (loadingDocumentTypes) {
         return (
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <RequestFormLoading>
                 <CircularProgress color="success" size={24} />
+=======
+            <form noValidate onSubmit={handleSubmit}>
+>>>>>>> Stashed changes
+=======
+            <form noValidate onSubmit={handleSubmit}>
+>>>>>>> Stashed changes
 
                 <span>Loading document types...</span>
             </RequestFormLoading>

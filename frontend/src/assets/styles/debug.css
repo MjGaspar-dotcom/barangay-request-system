@@ -1,0 +1,25 @@
+/* DEV ONLY. Loaded by src/devtools.js, never in production builds.
+   Toggle with Ctrl+Shift+D. */
+body.debug-layout * {
+    outline: 1px solid rgba(255, 0, 0, 0.35) !important; /* debug overlay must beat every page rule */
+}
+
+body.debug-layout *:hover {
+    outline: 2px solid #2563eb !important; /* same reason: debug overlay only */
+}
+
+#debug-layout-label {
+    position: fixed;
+    left: 8px;
+    bottom: 8px;
+    z-index: 99999;
+    max-width: calc(100vw - 16px);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #111827;
+    color: #fff;
+    font: 12px/1.4 ui-monospace, Consolas, monospace;
+    pointer-events: none;
+    white-space: pre-wrap;
+    word-break: break-all;
+}

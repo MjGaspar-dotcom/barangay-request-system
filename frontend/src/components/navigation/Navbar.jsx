@@ -30,10 +30,36 @@ function Navbar() {
     };
 
     return (
+<<<<<<< Updated upstream
         <NavbarRoot>
             <MobileNavbarContainer>
                 <NavbarBrand to="/" onClick={closeMobileMenu}>
                     <NavbarLogo>B</NavbarLogo>
+=======
+        <header className="navbar">
+            <div className="navbar-container">
+                <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
+                    <img
+                        className="navbar-logo"
+                        src="/assets/images/barangay-aurora-logo.png"
+                        alt="Barangay Aurora, Alicia, Isabela seal"
+                        decoding="async"
+                    />
+                    <div className="navbar-title">
+                        <span className="barangay-name">Barangay Aurora</span>
+                        <span className="system-name">
+                            Document Request System
+                        </span>
+                    </div>
+                </Link>
+                <div className="desktop-navigation">
+                    <NavLinks />
+                </div>
+                <div className="navbar-actions">
+                    <Link to="/login" className="login-link">
+                        Login
+                    </Link>
+>>>>>>> Stashed changes
 
                     <NavbarTitle>
                         <BarangayName>Barangay System</BarangayName>
@@ -57,6 +83,7 @@ function Navbar() {
                     onClick={toggleMobileMenu}
                     aria-label="Toggle navigation menu"
                     aria-expanded={isMobileMenuOpen}
+                    aria-controls="mobile-navigation-menu"
                 >
                     {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
                 </MobileMenuButton>

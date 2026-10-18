@@ -1,0 +1,450 @@
+/* ==========================================================
+   Resident portal dashboard
+   NOT ROUTED: pages/user is not in routes/index.jsx yet.
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+/*
+   RESIDENT PORTAL
+   ========================================================= */
+
+/*
+|--------------------------------------------------------------------------
+| Resident Portal Container
+|--------------------------------------------------------------------------
+*/
+
+.resident-portal {
+    width: 100%;
+    max-width: 920px;
+
+    margin: 0 auto;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Welcome Section
+|--------------------------------------------------------------------------
+*/
+
+.resident-welcome {
+    text-align: center;
+
+    margin-bottom: 28px;
+}
+
+.resident-welcome .portal-eyebrow {
+    margin-bottom: 10px;
+}
+
+.resident-welcome h1 {
+    margin: 0;
+
+    color: #17201b;
+
+    font-size: clamp(30px, 4vw, 48px);
+    font-weight: 800;
+
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+}
+
+.resident-welcome h1 span {
+    color: var(--brand-800);
+}
+
+.resident-welcome p {
+    max-width: 610px;
+
+    margin: 14px auto 0;
+
+    color: var(--gray-500);
+
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Main Resident Actions
+|--------------------------------------------------------------------------
+*/
+
+.resident-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 14px;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Action Card
+|--------------------------------------------------------------------------
+*/
+
+.resident-action-card {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    min-height: 105px;
+
+    padding: 20px;
+
+    border: 1px solid rgba(22, 101, 52, 0.12);
+    border-radius: 14px;
+
+    background-color: rgba(255, 255, 255, 0.82);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    color: #17201b;
+    text-decoration: none;
+
+    box-shadow: 0 5px 20px rgba(20, 83, 45, 0.06);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.resident-action-card:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(22, 101, 52, 0.24);
+
+    color: #17201b;
+
+    box-shadow: 0 8px 24px rgba(20, 83, 45, 0.1);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Primary Action
+|--------------------------------------------------------------------------
+*/
+
+.resident-action-primary {
+    background-color: rgba(255, 255, 255, 0.92);
+
+    border-color: rgba(22, 101, 52, 0.2);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Action Icon
+|--------------------------------------------------------------------------
+*/
+
+.resident-action-icon {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 10px;
+
+    background-color: var(--brand-100);
+
+    color: var(--brand-800);
+
+    font-size: 20px;
+    font-weight: 500;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Action Content
+|--------------------------------------------------------------------------
+*/
+
+.resident-action-content {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    min-width: 0;
+}
+
+.resident-action-title {
+    color: var(--brand-900);
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.resident-action-description {
+    color: var(--gray-500);
+
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Arrow
+|--------------------------------------------------------------------------
+*/
+
+.resident-action-arrow {
+    margin-left: auto;
+
+    color: var(--brand-800);
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Document Service Card
+|--------------------------------------------------------------------------
+*/
+
+.resident-service-card {
+    padding: 24px;
+
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 15px;
+
+    background-color: rgba(255, 255, 255, 0.76);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    box-shadow: 0 6px 24px rgba(20, 83, 45, 0.06);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Service Header
+|--------------------------------------------------------------------------
+*/
+
+.resident-service-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding-bottom: 18px;
+
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.resident-section-label {
+    color: var(--brand-800);
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 1.2px;
+}
+
+.resident-service-header h2 {
+    margin: 5px 0 0;
+
+    color: #17201b;
+
+    font-size: 17px;
+    font-weight: 800;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Online Status
+|--------------------------------------------------------------------------
+*/
+
+.resident-service-status {
+    flex: 0 0 auto;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    background-color: var(--brand-100);
+
+    color: var(--brand-800);
+
+    font-size: 7px;
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Service Steps
+|--------------------------------------------------------------------------
+*/
+
+.resident-service-steps {
+    display: flex;
+    align-items: center;
+
+    padding-top: 20px;
+}
+
+.resident-step {
+    flex: 1;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+}
+
+.resident-step-number {
+    flex: 0 0 auto;
+
+    color: var(--brand-800);
+
+    font-size: 8px;
+    font-weight: 800;
+}
+
+.resident-step strong {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--brand-900);
+
+    font-size: 10px;
+}
+
+.resident-step p {
+    margin: 0;
+
+    color: var(--gray-500);
+
+    font-size: 8px;
+    line-height: 1.5;
+}
+
+.resident-step-line {
+    flex: 0 0 28px;
+
+    height: 1px;
+
+    margin: 0 10px;
+
+    background-color: rgba(22, 101, 52, 0.15);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Profile Link
+|--------------------------------------------------------------------------
+*/
+
+.resident-account-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    margin-top: 18px;
+
+    color: var(--gray-400);
+
+    font-size: 8px;
+}
+
+.resident-account-link a {
+    color: var(--brand-800);
+
+    font-weight: 700;
+
+    text-decoration: none;
+}
+
+.resident-account-link a:hover {
+    color: var(--brand-900);
+
+    text-decoration: underline;
+}
+
+/*
+   RESIDENT RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .resident-welcome {
+        margin-bottom: 22px;
+    }
+
+    .resident-welcome h1 {
+        font-size: 34px;
+    }
+
+    .resident-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .resident-service-steps {
+        align-items: stretch;
+        flex-direction: column;
+
+        gap: 16px;
+    }
+
+    .resident-step-line {
+        width: 100%;
+        height: 1px;
+
+        flex: 0 0 1px;
+
+        margin: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .resident-welcome h1 {
+        font-size: 29px;
+    }
+
+    .resident-welcome p {
+        font-size: 11px;
+    }
+
+    .resident-action-card {
+        min-height: 92px;
+
+        padding: 16px;
+    }
+
+    .resident-action-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .resident-service-card {
+        padding: 18px;
+    }
+
+    .resident-service-header h2 {
+        font-size: 15px;
+    }
+
+    .resident-account-link {
+        flex-wrap: wrap;
+
+        font-size: 8px;
+    }
+}

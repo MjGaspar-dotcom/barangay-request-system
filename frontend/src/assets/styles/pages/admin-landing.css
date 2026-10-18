@@ -1,0 +1,83 @@
+/* ==========================================================
+   Admin landing (older styles, partly superseded by role-workspaces.css)
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+/*
+   ADMIN LANDING PAGE
+   ========================================================= */
+
+.admin-overview-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.28);
+    transform: translateY(-2px);
+    color: var(--white);
+}
+
+.admin-overview-content h3 {
+    margin: 0 0 7px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.admin-overview-content p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.56);
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+
+.admin-account-action a {
+    color: var(--brand-200);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-account-action a:hover {
+    color: var(--white);
+}
+
+/* ---------------------------------------------------------
+   Responsive layout
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .admin-overview-grid {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+        margin-top: 34px;
+    }
+
+    .admin-overview-card {
+        min-height: auto;
+    }
+
+    .admin-account-action {
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-overview-card {
+        padding: 16px;
+    }
+
+    .admin-overview-icon {
+        flex-basis: 36px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .admin-overview-content h3 {
+        font-size: 13px;
+    }
+
+    .admin-overview-content p {
+        font-size: 10px;
+    }
+
+    .admin-account-action {
+        flex-direction: column;
+        gap: 4px;
+    }
+}

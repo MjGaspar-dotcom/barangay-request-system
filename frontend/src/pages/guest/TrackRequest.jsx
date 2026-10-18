@@ -29,6 +29,7 @@ import {
     TrackValueCell,
 } from "./TrackRequest.styles";
 
+import { validateForm } from "../../utils/validateForm";
 export default function TrackRequest() {
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -47,6 +48,7 @@ export default function TrackRequest() {
         reValidateMode: "onChange",
     });
 
+<<<<<<< Updated upstream
     const trackingNumberField = register("tracking_number", {
         validate: (value) =>
             value.trim() !== "" || "Tracking number is required.",
@@ -54,6 +56,13 @@ export default function TrackRequest() {
 
     const handleTrack = async (values) => {
         setRequestError("");
+=======
+        if (!validateForm(e.currentTarget)) return;
+
+        if (!validateForm(e.currentTarget)) return;
+
+        setError("");
+>>>>>>> Stashed changes
         setResult(null);
         setLoading(true);
 
@@ -140,6 +149,7 @@ export default function TrackRequest() {
                             />
                         )}
 
+<<<<<<< Updated upstream
                         <Button
                             type="submit"
                             variant="contained"
@@ -155,6 +165,44 @@ export default function TrackRequest() {
                                 </>
                             ) : (
                                 "Track Request"
+=======
+                        <div className="card-body">
+
+                            <form noValidate onSubmit={handleTrack}>
+
+                                <label
+                                    htmlFor="tracking_number"
+                                    className="form-label"
+                                >
+                                    Enter Tracking Number
+                                </label>
+
+                                <input
+                                    id="tracking_number"
+                                    type="text"
+                                    className="form-control mb-3"
+                                    placeholder="Example: GR-20260902-ABCDEF"
+                                    value={trackingNumber}
+                                    onChange={(e) =>
+                                        setTrackingNumber(e.target.value)
+                                    }
+                                    required
+                                />
+
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary w-100"
+                                    disabled={loading}
+                                >
+                                    {loading ? "Searching..." : "Track Request"}
+                                </button>
+
+                            </form>
+
+                            {/* Error */}
+                            {error && (
+                                <p className="text-danger mt-3">{error}</p>
+>>>>>>> Stashed changes
                             )}
                         </Button>
                     </TrackRequestForm>

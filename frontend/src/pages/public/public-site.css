@@ -1,0 +1,243 @@
+/* ==========================================================
+   Public marketing sections: About, Documents, Roles, Contact, Hero, Requirements
+   NOT ROUTED: used by components/sections/* (the resident site is not in routes/index.jsx yet).
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+
+.about-section {
+    background-color: var(--white);
+}
+
+.info-card {
+    height: 100%;
+    padding: 28px;
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+}
+
+.info-card h3 {
+    margin-bottom: 12px;
+    color: var(--brand-900);
+    font-size: 20px;
+}
+
+.info-card p {
+    margin: 0;
+    color: var(--gray-500);
+}
+
+/* Documents */
+
+.document-section {
+    background-color: var(--surface);
+}
+
+.document-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.document-card h3 {
+    margin-bottom: 12px;
+    color: var(--brand-900);
+    font-size: 20px;
+}
+
+.document-card p {
+    flex: 1;
+    margin-bottom: 24px;
+    color: var(--gray-500);
+}
+
+.document-card .btn {
+    width: 100%;
+}
+
+/* Roles */
+
+.role-section {
+    background-color: var(--white);
+}
+
+.role-section .role-card {
+    height: 100%;
+}
+
+/* Contact */
+
+.contact-section {
+    background-color: var(--surface);
+}
+
+.contact-card {
+    height: 100%;
+    padding: 28px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+}
+
+.contact-card h3 {
+    margin-bottom: 12px;
+    color: var(--brand-900);
+    font-size: 20px;
+}
+
+.contact-card p {
+    margin: 0;
+    color: var(--gray-500);
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .content-section {
+        padding: 56px 0;
+    }
+
+    .section-heading {
+        margin-bottom: 32px;
+    }
+
+    .section-heading h2 {
+        font-size: 30px;
+    }
+
+    .section-heading p {
+        font-size: 16px;
+    }
+}
+
+/* Hero */
+
+.hero-section {
+    padding: 96px 0;
+    background: linear-gradient(135deg, #f0fdf4 0%, var(--white) 100%);
+}
+
+.hero-label {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--brand-800);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.hero-section h1 {
+    max-width: 700px;
+    margin-bottom: 20px;
+    color: var(--brand-900);
+    font-size: clamp(40px, 5vw, 64px);
+    line-height: 1.1;
+    font-weight: 700;
+}
+
+.hero-section h1 span {
+    color: var(--brand-800);
+}
+
+.hero-description {
+    max-width: 650px;
+    margin-bottom: 30px;
+    color: var(--gray-500);
+    font-size: 19px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.hero-service-card {
+    padding: 36px;
+    background-color: var(--white);
+    border: 1px solid var(--brand-100);
+    border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(20, 83, 45, 0.08);
+}
+
+.hero-service-icon {
+    display: flex;
+    width: 58px;
+    height: 58px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    background-color: var(--brand-100);
+    border-radius: 12px;
+    font-size: 28px;
+}
+
+.hero-service-card h2 {
+    margin-bottom: 12px;
+    color: var(--brand-900);
+    font-size: 24px;
+}
+
+.hero-service-card p {
+    margin-bottom: 24px;
+    color: var(--gray-500);
+}
+
+.hero-service-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.hero-service-list div {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--gray-700);
+}
+
+.hero-service-list span {
+    color: var(--brand-600);
+    font-weight: 700;
+}
+
+/* Requirements */
+
+.requirement-section {
+    background-color: var(--white);
+}
+
+.requirement-card {
+    height: 100%;
+    display: flex;
+    gap: 20px;
+    padding: 28px;
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+}
+
+.requirement-number {
+    flex-shrink: 0;
+    color: var(--brand-800);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.requirement-card h3 {
+    margin-bottom: 8px;
+    color: var(--brand-900);
+    font-size: 19px;
+}
+
+.requirement-card p {
+    margin: 0;
+    color: var(--gray-500);
+}
+
+/* Authentication */

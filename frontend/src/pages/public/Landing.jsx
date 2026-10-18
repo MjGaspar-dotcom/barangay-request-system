@@ -50,6 +50,7 @@ function Landing() {
                     Barangay Document <span>Services</span>
                 </GuestTitle>
 
+<<<<<<< Updated upstream
                 <GuestDescription>
                     Select from our online services.
                 </GuestDescription>
@@ -158,6 +159,54 @@ function Landing() {
                     </AdminPortalCard>
                 </GuestServices>
             </GuestPortalHero>
+=======
+                <div className="staff-admin-options">
+                    <button
+                        type="button"
+                        className="staff-admin-option"
+                        onClick={() => navigate("/staff/login")}
+                    >
+                        <span className="staff-admin-option-icon" aria-hidden="true">
+                            <i className="bi bi-person-badge" />
+                        </span>
+                        <span className="staff-admin-option-content">
+                            <span className="staff-admin-option-title">
+                                Barangay Staff
+                            </span>
+                            <span className="staff-admin-option-description">
+                                Review and process document requests.
+                            </span>
+                            <span className="staff-admin-option-action">
+                                Continue to Staff Login
+                                <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
+                            </span>
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        className="staff-admin-option"
+                        onClick={() => navigate("/admin/login")}
+                    >
+                        <span className="staff-admin-option-icon" aria-hidden="true">
+                            <i className="bi bi-shield-lock" />
+                        </span>
+                        <span className="staff-admin-option-content">
+                            <span className="staff-admin-option-title">
+                                Administrator
+                            </span>
+                            <span className="staff-admin-option-description">
+                                Manage staff, requests, and system settings.
+                            </span>
+                            <span className="staff-admin-option-action">
+                                Continue to Admin Login
+                                <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
+                            </span>
+                        </span>
+                    </button>
+                </div>
+            </section>
+>>>>>>> Stashed changes
         </PortalLayout>
     );
 }

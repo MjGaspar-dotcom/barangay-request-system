@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import {
     Alert,
     Button,
@@ -7,6 +9,14 @@ import {
     TableBody,
     TableHead,
 } from "@mui/material";
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+>>>>>>> Stashed changes
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+>>>>>>> Stashed changes
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import {
@@ -175,9 +185,22 @@ export default function RecentActivity() {
 
     return (
         <AdminLayout>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <AdminPage>
                 <AdminPageHeader>
                     <AdminPageLabel>SYSTEM ACTIVITY</AdminPageLabel>
+=======
+=======
+>>>>>>> Stashed changes
+            <div className="admin-dashboard recent-activity-page">
+                <div className="container-fluid">
+                    <div className="dashboard-page-header">
+                        <div>
+                            <span className="section-label">
+                                SYSTEM ACTIVITY
+                            </span>
+>>>>>>> Stashed changes
 
                     <h1>Recent Activity</h1>
 
@@ -260,6 +283,7 @@ export default function RecentActivity() {
                                             Type
                                         </ActivityTypeHeaderCell>
 
+<<<<<<< Updated upstream
                                         <AdminTableHeaderCell>
                                             Description
                                         </AdminTableHeaderCell>
@@ -275,6 +299,98 @@ export default function RecentActivity() {
                                         <AdminTableHeaderCell>
                                             IP Address
                                         </AdminTableHeaderCell>
+=======
+                    <section className="dashboard-section">
+                        <div className="admin-filters filter-bar">
+                            <input
+                                type="search"
+                                placeholder="Search descriptions, actors, table names..."
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                className="form-control filter-search"
+                            />
+
+                            <select
+                                value={actionFilter}
+                                onChange={(event) =>
+                                    setActionFilter(event.target.value)
+                                }
+                                className="form-select filter-select"
+                            >
+                                {ACTION_FILTERS.map((filter) => (
+                                    <option
+                                        key={filter.value}
+                                        value={filter.value}
+                                    >
+                                        {filter.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {meta && (
+                                <div className="filter-summary">
+                                    Page {meta.current_page} of{" "}
+                                    {meta.last_page} • Total{" "}
+                                    {meta.total} entries
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    <section className="dashboard-section">
+                        {loading ? (
+                            <div className="page-loading" role="status">
+                                <div
+                                    className="spinner-border text-success"
+                                    role="status"
+                                >
+                                    <span className="visually-hidden">
+                                        Loading...
+                                    </span>
+                                </div>
+                                <p>Loading activity...</p>
+                            </div>
+                        ) : error ? (
+                            <div className="alert alert-danger" role="alert">
+                                <p>{error}</p>
+                                <Button type="button" className="btn btn-outline-danger btn-sm" onClick={() => fetchActivity(page)}>Retry</Button>
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="dashboard-empty-state">
+                                <div className="dashboard-empty-icon"><i className="bi bi-activity" aria-hidden="true" /></div>
+                                <h3>No Activity Found</h3>
+                                <p>
+                                    No activity matches your current filters.
+                                    Try a different action type or clear the
+                                    search.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="admin-table-wrapper table-scroll">
+                                <Table className="admin-table data-table recent-activity-table">
+                                    <colgroup>
+                                        <col className="activity-type-column" />
+                                        <col className="activity-description-column" />
+                                        <col className="activity-actor-column" />
+                                        <col className="activity-target-column" />
+                                        <col className="activity-ip-column" />
+                                        <col className="activity-when-column" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th className="activity-type-heading">
+                                                Type
+                                            </th>
+                                            <th>Description</th>
+                                            <th>Actor</th>
+                                            <th>Target</th>
+                                            <th>IP Address</th>
+                                            <th>When</th>
+                                        </tr>
+                                    </thead>
+>>>>>>> Stashed changes
 
                                         <AdminTableHeaderCell>
                                             When
@@ -282,6 +398,7 @@ export default function RecentActivity() {
                                     </AdminTableRow>
                                 </TableHead>
 
+<<<<<<< Updated upstream
                                 <TableBody>
                                     {filtered.map((entry) => (
                                         <AdminTableRow key={entry.audit_log_id}>
@@ -336,6 +453,97 @@ export default function RecentActivity() {
                                 </TableBody>
                             </AdminDataTable>
                         </AdminTableWrapper>
+=======
+                                            return (
+                                                <tr key={entry.audit_log_id}>
+                                                    <td>
+                                                        <span
+                                                            className="activity-type-icon"
+                                                            style={{ "--activity-bg": color.bg, "--activity-color": color.color }}
+                                                            title={entry.action}
+                                                        >
+                                                            {actionIcon(
+                                                                entry.action
+                                                            )}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <strong>
+                                                            {entry.description ||
+                                                                "—"}
+                                                        </strong>
+                                                        <div className="table-meta-text">
+                                                            Action:{" "}
+                                                            <code>
+                                                                {entry.action}
+                                                            </code>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <strong>
+                                                            {actorName(entry)}
+                                                        </strong>
+                                                        <div className="table-meta-text">
+                                                            {actorRole(entry)}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <code>
+                                                            {entry.table_name}
+                                                        </code>{" "}
+                                                        #{entry.record_id}
+                                                    </td>
+                                                    <td>
+                                                        {entry.ip_address ||
+                                                            "—"}
+                                                    </td>
+                                                    <td>
+                                                        {formatDate(
+                                                            entry.created_at
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        )}
+                    </section>
+
+                    {meta && meta.last_page > 1 && (
+                        <nav aria-label="Activity pagination">
+                            <ul className="pagination activity-pagination">
+                                <li>
+                                    <Button
+                                        type="button"
+                                        className="btn btn-outline-secondary btn-sm"
+                                        disabled={page <= 1}
+                                        onClick={() => goToPage(page - 1)}
+                                    >
+                                        ← Previous
+                                    </Button>
+                                </li>
+
+                                <li>
+                                    <span className="pagination-label">
+                                        Page {page} of {meta.last_page}
+                                    </span>
+                                </li>
+
+                                <li>
+                                    <Button
+                                        type="button"
+                                        className="btn btn-outline-secondary btn-sm"
+                                        disabled={page >= meta.last_page}
+                                        onClick={() => goToPage(page + 1)}
+                                    >
+                                        Next →
+                                    </Button>
+                                </li>
+                            </ul>
+                        </nav>
+>>>>>>> Stashed changes
                     )}
                 </AdminSection>
 

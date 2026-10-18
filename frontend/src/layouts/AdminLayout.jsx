@@ -18,32 +18,32 @@ function AdminLayout({ children }) {
         {
             label: "Dashboard",
             to: "/admin/dashboard",
-            icon: "▦",
+            icon: "bi-speedometer2",
         },
         {
             label: "Manage Users",
             to: "/admin/users",
-            icon: "👥",
+            icon: "bi-people",
         },
         {
             label: "Manage Staff",
             to: "/admin/staff",
-            icon: "🧑‍💼",
+            icon: "bi-person-badge",
         },
         {
             label: "Manage Requests",
             to: "/admin/requests",
-            icon: "📋",
+            icon: "bi-clipboard-check",
         },
         {
             label: "Document Types",
             to: "/admin/document-types",
-            icon: "📄",
+            icon: "bi-file-earmark-text",
         },
         {
             label: "Recent Activity",
             to: "/admin/recent-activity",
-            icon: "📊",
+            icon: "bi-activity",
         },
     ];
 
@@ -71,8 +71,16 @@ function AdminLayout({ children }) {
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Open navigation"
                     >
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                         <MenuIcon />
                     </DashboardMenuButton>
+=======
+=======
+>>>>>>> Stashed changes
+                        <i className="bi bi-list" aria-hidden="true" />
+                    </button>
+>>>>>>> Stashed changes
 
                     <strong>Admin Panel</strong>
                 </DashboardMobileHeader>
