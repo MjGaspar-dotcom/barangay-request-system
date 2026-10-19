@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AdminApiController;
+use App\Http\Controllers\Api\NotificationController;
 
 
 Route::get('/test', function () {
@@ -39,6 +41,10 @@ Route::post(
     '/barangay-requests',
     [BarangayRequestController::class, 'store']
 );
+Route::get(
+    '/barangay-requests/track/{trackingNumber}',
+    [BarangayRequestController::class, 'track']
+);
 
 // ==========================
 // PROTECTED API
@@ -47,6 +53,20 @@ Route::post(
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/staff', [StaffController::class, 'index']);
+    Route::get('/staff/requests', [BarangayRequestController::class, 'staffIndex']);
+
+    Route::get('/admin/stats', [AdminApiController::class, 'stats']);
+    Route::get('/admin/users', [AdminApiController::class, 'users']);
+    Route::patch('/admin/users/{user}/verification', [AdminApiController::class, 'updateVerification']);
+    Route::delete('/admin/users/{user}', [AdminApiController::class, 'deleteUser']);
+    Route::get('/admin/staff', [StaffController::class, 'index']);
+    Route::post('/admin/staff', [AdminApiController::class, 'createStaff']);
+    Route::delete('/admin/staff/{staff}', [AdminApiController::class, 'deleteStaff']);
+    Route::get('/admin/recent-activity', [AdminApiController::class, 'recentActivity']);
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
 
     // Current authenticated user
     Route::get('/user', function (Request $request) {

@@ -20,10 +20,17 @@ class StaffController extends Controller
         ], 403);
     }
 
-    $staff = Staff::with([
-        'user',
-        'admin'
-    ])->get();
+    $staff = Staff::with(['user', 'admin.user'])
+        ->latest()
+        ->get()
+        ->map(function (Staff $member) {
+            $member->assigned_by_name = trim(
+                ($member->admin?->user?->first_name ?? '') . ' ' .
+                ($member->admin?->user?->last_name ?? ''),
+            ) ?: null;
+
+            return $member;
+        });
 
     return response()->json([
         'success' => true,

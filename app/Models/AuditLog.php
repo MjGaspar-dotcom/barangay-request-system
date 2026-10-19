@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
 {
- public function staff()
-{
-    return $this->belongsTo(Staff::class, 'staff_id', 'staff_id');
-}
-protected $primaryKey = 'audit_log_id';
+    protected $primaryKey = 'audit_log_id';
+
+    protected $guarded = [];
+
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class, 'staff_id', 'staff_id');
+    }
 }

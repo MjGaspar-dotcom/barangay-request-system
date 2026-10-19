@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
 import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import api from "../../services/api";
 
 const ROLE_FILTERS = [
     { value: "all", label: "All" },
@@ -20,10 +21,9 @@ const VERIFICATION_FILTERS = [
 ];
 
 export default function ManageUsers() {
-    const users = useMemo(() => [], []);
-    const loading = false;
-    const error =
-        "User management is unavailable because the API does not provide a user-list endpoint.";
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [verificationFilter, setVerificationFilter] = useState("all");
@@ -32,6 +32,48 @@ export default function ManageUsers() {
     const [actionError, setActionError] = useState("");
     const [busyUserId, setBusyUserId] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
+
+    const flash = useCallback((message, isError = false, messageType = "success") => {
+        if (isError) {
+            setActionError(message);
+            setActionMessage("");
+        } else {
+            setActionMessage(message);
+            setActionMessageType(messageType);
+            setActionError("");
+        }
+
+        window.setTimeout(() => {
+            setActionMessage("");
+            setActionError("");
+        }, 4000);
+    }, []);
+
+    const fetchUsers = useCallback(async ({ background = false } = {}) => {
+        try {
+            if (!background) setLoading(true);
+            const response = await api.get("/admin/users");
+            setUsers(response.data.data || []);
+            setError("");
+        } catch (err) {
+            console.error("Failed to load users:", err);
+            if (!background) {
+                setError("Failed to load users. Please refresh the page and try again.");
+            } else {
+                flash("The action succeeded, but the user list could not be refreshed.", true);
+            }
+        } finally {
+            if (!background) setLoading(false);
+        }
+    }, [flash]);
+
+    useEffect(() => {
+        const loadUsers = async () => {
+            await fetchUsers();
+        };
+
+        loadUsers();
+    }, [fetchUsers]);
 
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -71,22 +113,6 @@ export default function ManageUsers() {
         });
     }, [users, search, roleFilter, verificationFilter]);
 
-    const flash = (message, isError = false, messageType = "success") => {
-        if (isError) {
-            setActionError(message);
-            setActionMessage("");
-        } else {
-            setActionMessage(message);
-            setActionMessageType(messageType);
-            setActionError("");
-        }
-
-        window.setTimeout(() => {
-            setActionMessage("");
-            setActionError("");
-        }, 4000);
-    };
-
     const handleVerificationUpdate = async (user, newStatus) => {
         const name = fullName(user);
         setConfirmDialog({
@@ -103,12 +129,26 @@ export default function ManageUsers() {
     };
 
     const runVerificationUpdate = async (user, newStatus) => {
-        setBusyUserId(user.user_id);
-        flash(
-            `Setting verification to ${newStatus} is unavailable because the API does not provide this operation.`,
-            true,
-        );
-        setBusyUserId(null);
+        try {
+            setBusyUserId(user.user_id);
+            await api.patch(
+                `/admin/users/${user.user_id}/verification`,
+                { verification_status: newStatus },
+            );
+            flash(
+                `Verification for ${fullName(user)} was updated to ${newStatus}.`,
+            );
+            await fetchUsers({ background: true });
+        } catch (err) {
+            console.error("Failed to update verification:", err);
+            flash(
+                err.response?.data?.message ||
+                    "Failed to update verification status.",
+                true,
+            );
+        } finally {
+            setBusyUserId(null);
+        }
     };
 
     const handleDelete = async (user) => {
@@ -123,12 +163,20 @@ export default function ManageUsers() {
     };
 
     const runDelete = async (user) => {
-        setBusyUserId(user.user_id);
-        flash(
-            "Account deletion is unavailable because the API does not provide this operation.",
-            true,
-        );
-        setBusyUserId(null);
+        try {
+            setBusyUserId(user.user_id);
+            await api.delete(`/admin/users/${user.user_id}`);
+            flash(`The account for ${fullName(user)} was deleted.`, false, "danger");
+            await fetchUsers({ background: true });
+        } catch (err) {
+            console.error("Failed to delete user:", err);
+            flash(
+                err.response?.data?.message || "Failed to delete the account.",
+                true,
+            );
+        } finally {
+            setBusyUserId(null);
+        }
     };
 
     const fullName = (user) =>

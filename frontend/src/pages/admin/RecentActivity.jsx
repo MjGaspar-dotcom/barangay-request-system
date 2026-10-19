@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
 import AdminLayout from "../../layouts/AdminLayout";
+import api from "../../services/api";
 
 const ACTION_FILTERS = [
     { value: "all", label: "All Actions" },
@@ -10,14 +12,53 @@ const ACTION_FILTERS = [
     { value: "deleted", label: "Deleted" },
 ];
 
+const PAGE_SIZE = 25;
+
 export default function RecentActivity() {
-    const logs = [];
-    const meta = null;
-    const loading = false;
-    const error =
-        "Recent activity is unavailable because the API does not provide an audit-log endpoint.";
+    const [logs, setLogs] = useState([]);
+    const [meta, setMeta] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [actionFilter, setActionFilter] = useState("all");
+    const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
+
+    const fetchActivity = useCallback(async (targetPage = 1) => {
+        try {
+            setLoading(true);
+            const params = { per_page: PAGE_SIZE, page: targetPage };
+            if (actionFilter !== "all") params.action = actionFilter;
+
+            const response = await api.get("/admin/recent-activity", { params });
+            const payload = response.data?.data;
+            if (Array.isArray(payload?.data)) {
+                setLogs(payload.data);
+                setMeta(payload);
+                setError("");
+            } else {
+                throw new Error("Unexpected activity response.");
+            }
+        } catch (err) {
+            console.error("Failed to load recent activity:", err);
+            setError("Failed to load recent activity.");
+        } finally {
+            setLoading(false);
+        }
+    }, [actionFilter]);
+
+    useEffect(() => {
+        const loadActivity = async () => {
+            await fetchActivity(1);
+        };
+
+        loadActivity();
+    }, [fetchActivity]);
+
+    const goToPage = (nextPage) => {
+        if (!meta || nextPage < 1 || nextPage > meta.last_page) return;
+        setPage(nextPage);
+        fetchActivity(nextPage);
+    };
 
     const actorName = (entry) => {
         if (entry.user) {
@@ -120,7 +161,10 @@ export default function RecentActivity() {
                             <select
                                 value={actionFilter}
                                 onChange={(event) =>
-                                    setActionFilter(event.target.value)
+                                    {
+                                        setActionFilter(event.target.value);
+                                        setPage(1);
+                                    }
                                 }
                                 className="form-select filter-select"
                             >
@@ -158,8 +202,15 @@ export default function RecentActivity() {
                                 <p>Loading activity...</p>
                             </div>
                         ) : error ? (
-                            <div className="alert alert-info" role="status">
-                                {error}
+                            <div className="alert alert-danger" role="alert">
+                                <p>{error}</p>
+                                <Button
+                                    type="button"
+                                    className="btn btn-outline-danger btn-sm"
+                                    onClick={() => fetchActivity(page)}
+                                >
+                                    Retry
+                                </Button>
                             </div>
                         ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
@@ -258,6 +309,37 @@ export default function RecentActivity() {
                         )}
                     </section>
 
+                    {meta && meta.last_page > 1 && (
+                        <nav aria-label="Activity pagination">
+                            <ul className="pagination activity-pagination">
+                                <li>
+                                    <Button
+                                        type="button"
+                                        className="btn btn-outline-secondary btn-sm"
+                                        disabled={page <= 1}
+                                        onClick={() => goToPage(page - 1)}
+                                    >
+                                        ← Previous
+                                    </Button>
+                                </li>
+                                <li>
+                                    <span className="pagination-label">
+                                        Page {page} of {meta.last_page}
+                                    </span>
+                                </li>
+                                <li>
+                                    <Button
+                                        type="button"
+                                        className="btn btn-outline-secondary btn-sm"
+                                        disabled={page >= meta.last_page}
+                                        onClick={() => goToPage(page + 1)}
+                                    >
+                                        Next →
+                                    </Button>
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
                 </div>
             </div>
         </AdminLayout>

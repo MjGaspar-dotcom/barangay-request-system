@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 
@@ -28,24 +29,28 @@ export default function ManageStaff() {
     const [formSuccess, setFormSuccess] = useState("");
     const [search, setSearch] = useState("");
     const [showForm, setShowForm] = useState(false);
+    const [busyStaffId, setBusyStaffId] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
     useEffect(() => {
         let active = true;
 
-        api.get("/staff")
-            .then((response) => {
+        const loadStaff = async () => {
+            try {
+                const response = await api.get("/staff");
                 if (active) {
                     setStaff(response.data.data || []);
                     setError("");
                 }
-            })
-            .catch((err) => {
+            } catch (err) {
                 console.error(err);
                 if (active) setError("Failed to load staff.");
-            })
-            .finally(() => {
+            } finally {
                 if (active) setLoading(false);
-            });
+            }
+        };
+
+        loadStaff();
 
         return () => {
             active = false;
@@ -57,13 +62,59 @@ export default function ManageStaff() {
         setForm((previous) => ({ ...previous, [name]: value }));
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
         if (!validateForm(event.currentTarget)) return;
-        setFormError(
-            "Staff creation is unavailable because the API does not provide this operation.",
-        );
+        setFormError("");
+        setFormSuccess("");
+
+        try {
+            await api.post("/admin/staff", form);
+            setFormSuccess(
+                `Staff account for ${form.first_name} ${form.last_name} created successfully.`,
+            );
+            setForm(EMPTY_FORM);
+            setShowForm(false);
+            const response = await api.get("/staff");
+            setStaff(response.data.data || []);
+        } catch (err) {
+            console.error("Failed to create staff account:", err);
+            const errors = err.response?.data?.errors || {};
+            const firstError = Object.values(errors)[0]?.[0];
+            setFormError(
+                firstError ||
+                    err.response?.data?.message ||
+                    "Failed to create staff account.",
+            );
+        }
+    };
+
+    const handleDelete = (member) => {
+        setConfirmDialog({
+            title: "Remove staff account",
+            message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This also deletes the associated user account.`,
+            confirmLabel: "Remove staff account",
+            variant: "danger",
+            onConfirm: () => runDelete(member),
+        });
+    };
+
+    const runDelete = async (member) => {
+        setBusyStaffId(member.staff_id);
+        try {
+            await api.delete(`/admin/staff/${member.staff_id}`);
+            setStaff((current) =>
+                current.filter((item) => item.staff_id !== member.staff_id),
+            );
+        } catch (err) {
+            console.error("Failed to remove staff account:", err);
+            setError(
+                err.response?.data?.message || "Failed to remove staff account.",
+            );
+        } finally {
+            setBusyStaffId(null);
+        }
     };
 
     const filtered = staff.filter((member) => {
@@ -139,8 +190,6 @@ export default function ManageStaff() {
                             <Button
                                 type="button"
                                 className="btn btn-success staff-create-button"
-                                disabled
-                                title="The API does not provide a staff-creation endpoint."
                                 onClick={() => {
                                     setShowForm((current) => !current);
                                     setFormError("");
@@ -150,11 +199,6 @@ export default function ManageStaff() {
                                 {showForm ? "Close Form" : "＋ Create Staff"}
                             </Button>
                         </div>
-                    </div>
-
-                    <div className="alert alert-info" role="status">
-                        Staff accounts can be viewed, but this API does not
-                        support creating or removing them.
                     </div>
 
                     {formSuccess && (
@@ -371,7 +415,6 @@ export default function ManageStaff() {
                                         <Button
                                             type="submit"
                                             className="btn btn-success"
-                                            disabled
                                         >
                                             Create Staff Account
                                         </Button>
@@ -494,9 +537,19 @@ export default function ManageStaff() {
                                                     )}
                                                 </td>
                                                 <td>
-                                                    <span className="text-muted-sm">
-                                                        Not available
-                                                    </span>
+                                                    <Button
+                                                        type="button"
+                                                        className="btn btn-outline-danger btn-sm"
+                                                        disabled={
+                                                            busyStaffId ===
+                                                            member.staff_id
+                                                        }
+                                                        onClick={() =>
+                                                            handleDelete(member)
+                                                        }
+                                                    >
+                                                        Remove
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -507,6 +560,20 @@ export default function ManageStaff() {
                     </section>
                 </div>
             </div>
+            <ConfirmDialog
+                isOpen={Boolean(confirmDialog)}
+                onClose={() => setConfirmDialog(null)}
+                onConfirm={() => {
+                    const action = confirmDialog?.onConfirm;
+                    setConfirmDialog(null);
+                    action?.();
+                }}
+                title={confirmDialog?.title}
+                confirmLabel={confirmDialog?.confirmLabel}
+                variant={confirmDialog?.variant}
+            >
+                {confirmDialog?.message}
+            </ConfirmDialog>
         </AdminLayout>
     );
 }
