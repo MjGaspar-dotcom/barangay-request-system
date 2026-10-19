@@ -2,6 +2,7 @@
 
 namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\BarangayRequest;
 use Laravel\Sanctum\HasApiTokens;
@@ -36,12 +37,12 @@ class User extends Authenticatable
     //     return $this->role === 'admin';
     // }
 
-    
+
 
 
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory;
+    use HasApiTokens, HasFactory, SoftDeletes;
     protected $primaryKey = 'user_id';
 
     protected $hidden = [

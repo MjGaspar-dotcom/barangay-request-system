@@ -10,6 +10,7 @@ import { useAuth } from "../../hooks/useAuth";
 import StaffLayout from "../../layouts/StaffLayout";
 >>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 import api from "../../services/api";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 /*
 |--------------------------------------------------------------------------
@@ -35,11 +36,7 @@ function Dashboard() {
 <<<<<<< HEAD
     const navigationItems = [
         { label: "Dashboard", to: "/staff/dashboard", icon: "▦" },
-        {
-            label: "Request Queue",
-            to: "/staff/dashboard#request-queue",
-            icon: "📋",
-        },
+        { label: "All Requests", to: "/staff/requests", icon: "📋" },
     ];
 =======
 >>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
@@ -307,30 +304,41 @@ function Dashboard() {
                                 Loading requests...
                             </p>
                         ) : requests.length ? (
-                            <div className="staff-request-list">
-                                {requests.slice(0, 6).map((request) => (
-                                    <Link
-                                        className="staff-request-row"
-                                        key={`${request.request_type}-${request.request_id}`}
-                                        to={`/staff/requests/${request.request_type}/${request.request_id}`}
-                                    >
-                                        <span className="staff-request-details">
-                                            <strong>
-                                                {request.tracking_number}
-                                            </strong>
-                                            <span>
-                                                {requesterName(request)} ·{" "}
-                                                {request.document_type
-                                                    ?.document_name ||
-                                                    "Document request"}
+                            <>
+                                <div className="staff-request-list">
+                                    {requests.slice(0, 8).map((request) => (
+                                        <Link
+                                            className="staff-request-row"
+                                            key={`${request.request_type}-${request.request_id}`}
+                                            to={`/staff/requests/${request.request_type}/${request.request_id}`}
+                                        >
+                                            <span className="staff-request-details">
+                                                <strong>
+                                                    {request.tracking_number}
+                                                </strong>
+                                                <span>
+                                                    {requesterName(request)} ·{" "}
+                                                    {request.document_type
+                                                        ?.document_name ||
+                                                        "Document request"}
+                                                </span>
                                             </span>
-                                        </span>
-                                        <span className="staff-request-status">
-                                            {request.status || "Unknown"}
-                                        </span>
+                                            <StatusBadge
+                                                status={request.status}
+                                                size="sm"
+                                            />
+                                        </Link>
+                                    ))}
+                                </div>
+                                {requests.length > 8 && (
+                                    <Link
+                                        to="/staff/requests"
+                                        className="staff-view-all-link"
+                                    >
+                                        View all {requests.length} requests →
                                     </Link>
-                                ))}
-                            </div>
+                                )}
+                            </>
                         ) : (
                             <div className="staff-empty-state">
                                 <div className="staff-empty-icon">≡</div>

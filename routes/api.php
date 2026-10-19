@@ -31,6 +31,13 @@ Route::get('/test', function () {
     ]);
 });
 
+// Document types are needed by both guests and authenticated users when
+// submitting a request. Management actions remain protected below.
+Route::get(
+    '/document-types',
+    [DocumentTypeController::class, 'index']
+);
+
 // ==========================
 // AUTHENTICATION
 // ==========================
@@ -108,11 +115,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // --------------------------------------------------
     // Document Types
     // --------------------------------------------------
-
-    Route::get(
-        '/document-types',
-        [DocumentTypeController::class, 'index']
-    );
 
     // User Profile Update
     Route::patch('/profile', [UserController::class, 'updateProfile']);

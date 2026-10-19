@@ -13,6 +13,14 @@ class UserController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
+        foreach (['valid_id_front', 'valid_id_back'] as $field) {
+            if ($request->hasFile($field)) {
+                $validated[$field] = $request
+                    ->file($field)
+                    ->store('resident-valid-ids', 'public');
+            }
+        }
+
         $user->update($validated);
 
         return response()->json([

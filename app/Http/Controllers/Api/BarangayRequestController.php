@@ -129,10 +129,16 @@ class BarangayRequestController extends Controller
             }
         }
 
-        $barangayRequest->load([
+        $relations = [
             'documentType',
             'verifier',
-        ]);
+        ];
+
+        if ($user->staff || $user->admin) {
+            $relations[] = 'user';
+        }
+
+        $barangayRequest->load($relations);
 
         return response()->json([
             'success' => true,
