@@ -12,6 +12,7 @@ const navigationItems = [
     { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
     { label: "Document Types", to: "/admin/document-types", icon: "bi-file-earmark-text" },
     { label: "Recent Activity", to: "/admin/recent-activity", icon: "bi-activity" },
+    { label: "Workflow Analysis", to: "/admin/workflow-analysis", icon: "bi-diagram-3" },
 ];
 
 const count = (value) =>
@@ -145,15 +146,14 @@ function Dashboard() {
 
                     <div className="admin-system-status">
                         <span
-                            className={`admin-system-dot ${
-                                error ? "error" : ""
-                            }`}
+                            className={`admin-system-dot ${error ? "error" : ""
+                                }`}
                         ></span>
                         {loading
                             ? "CHECKING SYSTEM"
                             : error
-                              ? "DATA UNAVAILABLE"
-                              : "SYSTEM ONLINE"}
+                                ? "DATA UNAVAILABLE"
+                                : "SYSTEM ONLINE"}
                     </div>
                 </div>
 
@@ -170,9 +170,9 @@ function Dashboard() {
                             {loading || error || !stats
                                 ? "ΓÇö"
                                 : count(
-                                      Number(stats.total_registered_requests) +
-                                          Number(stats.total_guest_requests)
-                                  )}
+                                    Number(stats.total_registered_requests) +
+                                    Number(stats.total_guest_requests)
+                                )}
                         </strong>
 
                         <p>Total requests</p>
@@ -366,8 +366,8 @@ function Dashboard() {
                                         <span>
                                             {entry.created_at
                                                 ? new Date(
-                                                      entry.created_at
-                                                  ).toLocaleString()
+                                                    entry.created_at
+                                                ).toLocaleString()
                                                 : "ΓÇö"}
                                         </span>
                                     </div>
@@ -398,9 +398,9 @@ function Dashboard() {
                                 {loading || error || !stats
                                     ? "ΓÇö"
                                     : count(
-                                          Number(stats.completed_requests) +
-                                              Number(stats.guest_completed)
-                                      )}
+                                        Number(stats.completed_requests) +
+                                        Number(stats.guest_completed)
+                                    )}
                             </div>
 
                             <p>
@@ -412,9 +412,9 @@ function Dashboard() {
                                 {loading || error || !stats
                                     ? "LOADING"
                                     : `${count(
-                                          Number(stats.pending_requests) +
-                                              Number(stats.guest_pending)
-                                      )} REQUESTS PENDING`}
+                                        Number(stats.pending_requests) +
+                                        Number(stats.guest_pending)
+                                    )} REQUESTS PENDING`}
                             </span>
                         </div>
                     </div>

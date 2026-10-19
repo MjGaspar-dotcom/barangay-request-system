@@ -23,3 +23,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Flutter mobile project (maintained as a separate repo)
+mobile/

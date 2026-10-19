@@ -35,14 +35,18 @@ function AdminLayout({ children }) {
             to: "/admin/recent-activity",
             icon: "bi-activity",
         },
+        {
+            label: "Workflow Analysis",
+            to: "/admin/workflow-analysis",
+            icon: "bi-diagram-3",
+        },
     ];
 
     return (
         <div className="dashboard-layout admin-management-layout">
             <div
-                className={`dashboard-sidebar-wrapper ${
-                    sidebarOpen ? "open" : ""
-                }`}
+                className={`dashboard-sidebar-wrapper ${sidebarOpen ? "open" : ""
+                    }`}
             >
                 <Sidebar
                     items={navigationItems}

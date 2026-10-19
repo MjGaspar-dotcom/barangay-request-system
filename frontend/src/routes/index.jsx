@@ -11,9 +11,6 @@ import Login from "../pages/user/Login";
 import Register from "../pages/user/Register";
 import UserDashboard from "../pages/user/Dashboard";
 import RequestDetails from "../pages/user/RequestDetails";
-import GuestRequest from "../pages/guest/Request";
-import IDScanner from "../pages/guest/IDScanner";
-import TrackRequest from "../pages/guest/TrackRequest";
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
@@ -31,6 +28,7 @@ const AdminRequestDetails = lazy(
     () => import("../pages/admin/AdminRequestDetails"),
 );
 const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
+const WorkflowAnalysis = lazy(() => import("../pages/admin/WorkflowAnalysis"));
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
 const StaffDashboard = lazy(() => import("../pages/staff/Dashboard"));
 const StaffRequestQueue = lazy(() => import("../pages/staff/RequestQueue"));
@@ -75,12 +73,6 @@ export default function AppRoutes() {
                     {/* AUTH */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-
-                    {/* GUEST */}
-                    <Route path="/request" element={<GuestRequest />}>
-                        <Route path="id-scan" element={<IDScanner />} />
-                    </Route>
-                    <Route path="/track-request" element={<TrackRequest />} />
 
                     {/* RESIDENT / USER */}
                     <Route
@@ -204,6 +196,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <RecentActivity />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/workflow-analysis"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <WorkflowAnalysis />
                             </ProtectedRoute>
                         }
                     />
