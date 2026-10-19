@@ -256,14 +256,29 @@ export default function AdminRequestDetails() {
     if (!request) return null;
 
     const isGuest = requestType === "guest";
-    const idImage = isGuest
-        ? request.valid_id_image
-        : null;
+    const idImages = (
+        isGuest
+            ? [{ label: "Uploaded Valid ID", path: request.valid_id_image }]
+            : [
+                  {
+                      label: "Front of Valid ID",
+                      path: request.user?.valid_id_front,
+                  },
+                  {
+                      label: "Back of Valid ID",
+                      path: request.user?.valid_id_back,
+                  },
+              ]
+    ).filter((image) => image.path);
 
     const getValidIdImageUrl = (path) => {
         if (!path) return null;
         if (path.startsWith("http")) return path;
-        return `http://127.0.0.1:8000/storage/${path}`;
+        const appUrl = (api.defaults.baseURL || window.location.origin).replace(
+            /\/api\/?$/,
+            ""
+        );
+        return `${appUrl}/storage/${path.replace(/^\/+/, "")}`;
     };
 
     const formatDate = (value) =>
@@ -440,8 +455,41 @@ export default function AdminRequestDetails() {
                                                     Name
                                                 </span>
                                                 <span className="detail-value">
-                                                    {request.user.first_name}{" "}
-                                                    {request.user.last_name}
+                                                    {[
+                                                        request.user.first_name,
+                                                        request.user.middle_name,
+                                                        request.user.last_name,
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(" ")}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Birth Date
+                                                </span>
+                                                <span className="detail-value">
+                                                    {request.user.birth_date
+                                                        ? new Date(
+                                                              request.user.birth_date
+                                                          ).toLocaleDateString()
+                                                        : "—"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Gender
+                                                </span>
+                                                <span className="detail-value">
+                                                    {request.user.gender || "—"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Civil Status
+                                                </span>
+                                                <span className="detail-value">
+                                                    {request.user.civil_status || "—"}
                                                 </span>
                                             </div>
                                             <div>
@@ -475,6 +523,15 @@ export default function AdminRequestDetails() {
                                                 </span>
                                                 <span className="detail-value">
                                                     {request.user.address ||
+                                                        "—"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Valid ID Type
+                                                </span>
+                                                <span className="detail-value">
+                                                    {request.user.valid_id_type ||
                                                         "—"}
                                                 </span>
                                             </div>
@@ -585,6 +642,7 @@ export default function AdminRequestDetails() {
                                                         "—"}
                                                 </span>
                                             </div>
+<<<<<<< Updated upstream
                                             <div>
                                                 <span className="detail-label">
                                                     Valid ID Image
@@ -613,8 +671,72 @@ export default function AdminRequestDetails() {
                                                     )}
                                                 </span>
                                             </div>
+=======
+>>>>>>> Stashed changes
                                         </div>
                                     )}
+
+                                    <div style={{ marginTop: "18px" }}>
+                                        <span className="detail-label">
+                                            Uploaded ID Images
+                                        </span>
+                                        {idImages.length ? (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexWrap: "wrap",
+                                                    gap: "16px",
+                                                    marginTop: "10px",
+                                                }}
+                                            >
+                                                {idImages.map(({ label, path }) => (
+                                                    <a
+                                                        key={label}
+                                                        href={getValidIdImageUrl(path)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        style={{
+                                                            display: "block",
+                                                            maxWidth: "320px",
+                                                            color: "#166534",
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        <span
+                                                            style={{
+                                                                display: "block",
+                                                                marginBottom: "6px",
+                                                            }}
+                                                        >
+                                                            {label} ↗
+                                                        </span>
+                                                        <img
+                                                            src={getValidIdImageUrl(path)}
+                                                            alt={label}
+                                                            style={{
+                                                                display: "block",
+                                                                width: "100%",
+                                                                maxHeight: "220px",
+                                                                objectFit: "contain",
+                                                                border: "1px solid #d1d5db",
+                                                                borderRadius: "8px",
+                                                                background: "#f9fafb",
+                                                            }}
+                                                        />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p
+                                                style={{
+                                                    marginTop: "8px",
+                                                    color: "#6b7280",
+                                                }}
+                                            >
+                                                No ID images uploaded.
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </section>
                         </div>

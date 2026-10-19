@@ -15,6 +15,7 @@ import RecentActivity from "../pages/admin/RecentActivity";
 import StaffLogin from "../pages/staff/Login";
 import StaffDashboard from "../pages/staff/Dashboard";
 import StaffRequestDetails from "../pages/staff/RequestDetails";
+<<<<<<< Updated upstream
 =======
 import { lazy, Suspense, useEffect } from "react";
 import {
@@ -33,6 +34,9 @@ import GuestRequest from "../pages/guest/Request";
 import IDScanner from "../pages/guest/IDScanner";
 import TrackRequest from "../pages/guest/TrackRequest";
 >>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
+=======
+import AllRequests from "../pages/staff/AllRequests";
+>>>>>>> Stashed changes
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
@@ -89,6 +93,15 @@ export default function AppRoutes() {
                     element={
                         <ProtectedRoute allowedRoles={["staff"]}>
                             <StaffDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/staff/requests"
+                    element={
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                            <AllRequests />
                         </ProtectedRoute>
                     }
                 />
