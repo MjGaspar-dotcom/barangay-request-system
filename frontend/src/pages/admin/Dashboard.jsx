@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import PortalLayout from "../../layouts/PortalLayout";
@@ -6,25 +6,16 @@ import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 const navigationItems = [
-<<<<<<< HEAD
-    { label: "Dashboard", to: "/admin/dashboard", icon: "▦" },
-    { label: "Manage Users", to: "/admin/users", icon: "👥" },
-    { label: "Manage Staff", to: "/admin/staff", icon: "🧑‍💼" },
-    { label: "Manage Requests", to: "/admin/requests", icon: "📋" },
-    { label: "Document Types", to: "/admin/document-types", icon: "📄" },
-    { label: "Recent Activity", to: "/admin/recent-activity", icon: "📊" },
-=======
     { label: "Dashboard", to: "/admin/dashboard", icon: "bi-speedometer2" },
     { label: "Manage Users", to: "/admin/users", icon: "bi-people" },
     { label: "Manage Staff", to: "/admin/staff", icon: "bi-person-badge" },
     { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
     { label: "Document Types", to: "/admin/document-types", icon: "bi-file-earmark-text" },
     { label: "Recent Activity", to: "/admin/recent-activity", icon: "bi-activity" },
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 ];
 
 const count = (value) =>
-    Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
+    Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "ΓÇö";
 
 /*
 |--------------------------------------------------------------------------
@@ -177,7 +168,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "—"
+                                ? "ΓÇö"
                                 : count(
                                       Number(stats.total_registered_requests) +
                                           Number(stats.total_guest_requests)
@@ -192,7 +183,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "—"
+                                ? "ΓÇö"
                                 : count(stats.total_residents)}
                         </strong>
 
@@ -204,7 +195,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "—"
+                                ? "ΓÇö"
                                 : count(stats.total_staff)}
                         </strong>
 
@@ -218,7 +209,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "—"
+                                ? "ΓÇö"
                                 : count(stats.active_document_types)}
                         </strong>
 
@@ -232,7 +223,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "—"
+                                ? "ΓÇö"
                                 : count(stats.total_audit_logs)}
                         </strong>
 
@@ -271,7 +262,7 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow">ΓåÆ</span>
                         </Link>
 
                         {/* Staff */}
@@ -287,7 +278,7 @@ function Dashboard() {
                                 <span>Manage staff accounts and access.</span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow">ΓåÆ</span>
                         </Link>
 
                         {/* Requests */}
@@ -305,7 +296,7 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow">ΓåÆ</span>
                         </Link>
 
                         {/* Document Types */}
@@ -323,7 +314,7 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow">ΓåÆ</span>
                         </Link>
                     </div>
                 </div>
@@ -377,14 +368,14 @@ function Dashboard() {
                                                 ? new Date(
                                                       entry.created_at
                                                   ).toLocaleString()
-                                                : "—"}
+                                                : "ΓÇö"}
                                         </span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="admin-empty-state">
-                                <div className="admin-empty-icon">≡</div>
+                                <div className="admin-empty-icon">Γëí</div>
                                 <h3>No recent activity</h3>
                                 <p>System activity will appear here.</p>
                             </div>
@@ -405,7 +396,7 @@ function Dashboard() {
                         <div className="admin-analytics-content">
                             <div className="admin-analytics-value">
                                 {loading || error || !stats
-                                    ? "—"
+                                    ? "ΓÇö"
                                     : count(
                                           Number(stats.completed_requests) +
                                               Number(stats.guest_completed)

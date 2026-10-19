@@ -1,9 +1,4 @@
-import { useEffect, useState } from "react";
-<<<<<<< HEAD
-import api from "../../services/api";
-import AdminLayout from "../../layouts/AdminLayout";
-
-=======
+﻿import { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
@@ -11,7 +6,6 @@ import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 import { validateForm } from "../../utils/validateForm";
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 const EMPTY_FORM = {
     username: "",
     password: "",
@@ -37,11 +31,8 @@ export default function ManageStaff() {
     const [busyStaffId, setBusyStaffId] = useState(null);
     const [search, setSearch] = useState("");
     const [showForm, setShowForm] = useState(false);
-<<<<<<< HEAD
-=======
     const [actionError, setActionError] = useState("");
     const [confirmDialog, setConfirmDialog] = useState(null);
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     const fetchStaff = async () => {
         try {
@@ -68,21 +59,14 @@ export default function ManageStaff() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-<<<<<<< HEAD
-=======
 
         if (!validateForm(event.currentTarget)) return;
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         setFormError("");
         setFormSuccess("");
 
         try {
             setSubmitting(true);
-<<<<<<< HEAD
-            const response = await api.post("/admin/staff", form);
-=======
             await api.post("/admin/staff", form);
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
             setFormSuccess(
                 `Staff account for ${form.first_name} ${form.last_name} created successfully.`
@@ -112,13 +96,6 @@ export default function ManageStaff() {
     };
 
     const handleDelete = async (member) => {
-<<<<<<< HEAD
-        const confirmDelete = window.confirm(
-            `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`
-        );
-        if (!confirmDelete) return;
-
-=======
         setConfirmDialog({
             title: "Remove staff account",
             message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
@@ -129,18 +106,13 @@ export default function ManageStaff() {
     };
 
     const runDelete = async (member) => {
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         try {
             setBusyStaffId(member.staff_id);
             await api.delete(`/admin/staff/${member.staff_id}`);
             await fetchStaff();
         } catch (err) {
             console.error(err);
-<<<<<<< HEAD
-            alert(
-=======
             setActionError(
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 err.response?.data?.message ||
                     "Failed to remove staff account."
             );
@@ -172,7 +144,7 @@ export default function ManageStaff() {
             .join(" ");
 
     const formatDate = (value) =>
-        value ? new Date(value).toLocaleString() : "—";
+        value ? new Date(value).toLocaleString() : "ΓÇö";
 
     if (loading) {
         return (
@@ -194,11 +166,7 @@ export default function ManageStaff() {
         return (
             <AdminLayout>
                 <div className="page-loading">
-<<<<<<< HEAD
-                    <p>{error}</p>
-=======
                     <div className="alert alert-danger" role="alert">{error}</div>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 </div>
             </AdminLayout>
         );
@@ -206,25 +174,10 @@ export default function ManageStaff() {
 
     return (
         <AdminLayout>
-<<<<<<< HEAD
-            <div className="admin-dashboard">
-                <div className="container-fluid">
-                    <div className="dashboard-page-header">
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "flex-start",
-                                flexWrap: "wrap",
-                                gap: "12px",
-                            }}
-                        >
-=======
             <div className="admin-dashboard manage-staff-page">
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
                         <div className="header-row-between-lg manage-staff-header-row">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             <div>
                                 <span className="section-label">
                                     STAFF MANAGEMENT
@@ -238,27 +191,17 @@ export default function ManageStaff() {
                                 </p>
                             </div>
 
-<<<<<<< HEAD
-                            <button
-                                type="button"
-                                className="btn btn-success"
-=======
                             <Button
                                 type="button"
                                 className="btn btn-success staff-create-button"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 onClick={() => {
                                     setShowForm((current) => !current);
                                     setFormError("");
                                     setFormSuccess("");
                                 }}
                             >
-                                {showForm ? "Close Form" : "＋ Create Staff"}
-<<<<<<< HEAD
-                            </button>
-=======
+                                {showForm ? "Close Form" : "∩╝ï Create Staff"}
                             </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </div>
                     </div>
 
@@ -277,16 +220,6 @@ export default function ManageStaff() {
                         </div>
                     )}
 
-<<<<<<< HEAD
-                    {showForm && (
-                        <section className="dashboard-section">
-                            <div className="admin-form-card">
-                                <h3
-                                    style={{
-                                        marginBottom: "20px",
-                                        color: "#14532d",
-                                    }}
-=======
                     {actionError && (
                         <div className="alert alert-danger" role="alert">
                             {actionError}
@@ -298,16 +231,11 @@ export default function ManageStaff() {
                             <div className="admin-form-card">
                                 <h3 className="section-title-spaced"
                                     
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 >
                                     New Staff Account
                                 </h3>
 
-<<<<<<< HEAD
-                                <form onSubmit={handleSubmit}>
-=======
                                 <form noValidate onSubmit={handleSubmit}>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     <div className="row g-3">
                                         <div className="col-md-6">
                                             <label className="form-label">
@@ -491,21 +419,10 @@ export default function ManageStaff() {
                                         </div>
                                     </div>
 
-<<<<<<< HEAD
-                                    <div
-                                        style={{
-                                            marginTop: "20px",
-                                            display: "flex",
-                                            gap: "10px",
-                                        }}
-                                    >
-                                        <button
-=======
                                     <div className="form-actions"
                                         
                                     >
                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                             type="submit"
                                             className="btn btn-success"
                                             disabled={submitting}
@@ -513,15 +430,9 @@ export default function ManageStaff() {
                                             {submitting
                                                 ? "Creating..."
                                                 : "Create Staff Account"}
-<<<<<<< HEAD
-                                        </button>
-
-                                        <button
-=======
                                         </Button>
 
                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                             type="button"
                                             className="btn btn-outline-secondary"
                                             onClick={() => {
@@ -532,11 +443,7 @@ export default function ManageStaff() {
                                             disabled={submitting}
                                         >
                                             Cancel
-<<<<<<< HEAD
-                                        </button>
-=======
                                         </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     </div>
                                 </form>
                             </div>
@@ -545,48 +452,22 @@ export default function ManageStaff() {
 
                     <section className="dashboard-section">
                         <div
-<<<<<<< HEAD
-                            className="admin-filters"
-                            style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "12px",
-                                alignItems: "center",
-                            }}
-                        >
-                            <input
-                                type="search"
-                                className="form-control"
-=======
                             className="admin-filters filter-bar filter-row"
                             
                         >
                             <input
                                 type="search"
                                 className="form-control filter-search-360"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 placeholder="Search by name, username, email..."
                                 value={search}
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-<<<<<<< HEAD
-                                style={{ maxWidth: "360px", flex: "1 1 280px" }}
-                            />
-
-                            <div
-                                style={{
-                                    marginLeft: "auto",
-                                    color: "#6b7280",
-                                    fontSize: "14px",
-                                }}
-=======
                                 
                             />
 
                             <div className="filter-count"
                                 
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             >
                                 Showing {filtered.length} of {staff.length}{" "}
                                 staff
@@ -597,13 +478,8 @@ export default function ManageStaff() {
                     <section className="dashboard-section">
                         {filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
-<<<<<<< HEAD
-                                <div className="dashboard-empty-icon">
-                                    🧑‍💼
-=======
                                 <div className="dashboard-empty-icon" aria-hidden="true">
                                     <i className="bi bi-person-workspace" />
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 </div>
                                 <h3>No Staff Found</h3>
                                 <p>
@@ -614,12 +490,6 @@ export default function ManageStaff() {
                             </div>
                         ) : (
                             <div
-<<<<<<< HEAD
-                                className="admin-table-wrapper"
-                                style={{ overflowX: "auto" }}
-                            >
-                                <table className="admin-table">
-=======
                                 className="table-scroll admin-table-wrapper u-scroll-x"
                                 
                             >
@@ -633,7 +503,6 @@ export default function ManageStaff() {
                                         <col className="staff-created-column" />
                                         <col className="staff-actions-column" />
                                     </colgroup>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     <thead>
                                         <tr>
                                             <th>Name</th>
@@ -655,19 +524,11 @@ export default function ManageStaff() {
                                                             member.user
                                                         )}
                                                     </strong>
-<<<<<<< HEAD
-                                                    <div
-                                                        style={{
-                                                            fontSize: "12px",
-                                                            color: "#6b7280",
-                                                        }}
-=======
                                                     <div className="text-muted-sm"
                                                         
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                     >
                                                         {member.user?.address ||
-                                                            "—"}
+                                                            "ΓÇö"}
                                                     </div>
                                                 </td>
                                                 <td>
@@ -678,11 +539,11 @@ export default function ManageStaff() {
                                                 </td>
                                                 <td>
                                                     {member.user
-                                                        ?.contact_number || "—"}
+                                                        ?.contact_number || "ΓÇö"}
                                                 </td>
                                                 <td>
                                                     {member.assigned_by_name ||
-                                                        "—"}
+                                                        "ΓÇö"}
                                                 </td>
                                                 <td>
                                                     {formatDate(
@@ -690,11 +551,7 @@ export default function ManageStaff() {
                                                     )}
                                                 </td>
                                                 <td>
-<<<<<<< HEAD
-                                                    <button
-=======
                                                     <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                         type="button"
                                                         className="btn btn-outline-danger btn-sm"
                                                         disabled={
@@ -708,27 +565,17 @@ export default function ManageStaff() {
                                                         }
                                                     >
                                                         Remove
-<<<<<<< HEAD
-                                                    </button>
-=======
                                                     </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
-<<<<<<< HEAD
-                                </table>
-=======
                                 </Table>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </div>
                         )}
                     </section>
                 </div>
             </div>
-<<<<<<< HEAD
-=======
             <ConfirmDialog
                 isOpen={Boolean(confirmDialog)}
                 onClose={() => setConfirmDialog(null)}
@@ -743,7 +590,6 @@ export default function ManageStaff() {
             >
                 {confirmDialog?.message}
             </ConfirmDialog>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         </AdminLayout>
     );
 }

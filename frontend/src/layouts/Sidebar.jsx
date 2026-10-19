@@ -1,16 +1,10 @@
-<<<<<<< HEAD
-import { NavLink, useNavigate } from "react-router-dom";
-=======
-import BrandMark from "../components/ui/BrandMark";
+﻿import BrandMark from "../components/ui/BrandMark";
 import { Link, useLocation, useNavigate } from "react-router-dom";
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 import { useAuth } from "../hooks/useAuth";
 
 function Sidebar({ items = [], onNavigate }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-<<<<<<< HEAD
-=======
     const location = useLocation();
 
     const underPath = (prefix) =>
@@ -31,7 +25,6 @@ function Sidebar({ items = [], onNavigate }) {
             return otherHash && otherPath === path && location.hash === `#${otherHash}`;
         });
     };
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     const handleLogout = async () => {
         onNavigate?.();

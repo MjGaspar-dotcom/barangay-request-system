@@ -1,9 +1,4 @@
-import { useEffect, useState } from "react";
-<<<<<<< HEAD
-import api from "../../services/api";
-import AdminLayout from "../../layouts/AdminLayout";
-
-=======
+﻿import { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
@@ -11,7 +6,6 @@ import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 import { validateForm } from "../../utils/validateForm";
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 const EMPTY_FORM = {
     document_name: "",
     description: "",
@@ -31,11 +25,8 @@ export default function ManageDocumentTypes() {
     const [submitting, setSubmitting] = useState(false);
     const [busyId, setBusyId] = useState(null);
     const [showForm, setShowForm] = useState(false);
-<<<<<<< HEAD
-=======
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [actionMessageType, setActionMessageType] = useState("success");
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     const fetchDocumentTypes = async () => {
         try {
@@ -56,10 +47,7 @@ export default function ManageDocumentTypes() {
     }, []);
 
     const flash = (message) => {
-<<<<<<< HEAD
-=======
         setActionMessageType("success");
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         setActionMessage(message);
         window.setTimeout(() => setActionMessage(""), 4000);
     };
@@ -72,13 +60,8 @@ export default function ManageDocumentTypes() {
                 type === "checkbox"
                     ? checked
                     : name === "processing_days"
-<<<<<<< HEAD
-                    ? Number(value)
-                    : value,
-=======
                       ? Number(value)
                       : value,
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         }));
     };
 
@@ -103,11 +86,8 @@ export default function ManageDocumentTypes() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-<<<<<<< HEAD
-=======
 
         if (!validateForm(event.currentTarget)) return;
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         setFormError("");
 
         try {
@@ -131,20 +111,12 @@ export default function ManageDocumentTypes() {
                 setFormError(
                     firstKey
                         ? errors[firstKey][0]
-<<<<<<< HEAD
-                        : "Please check the form for errors."
-=======
                         : "Please check the form for errors.",
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 );
             } else {
                 setFormError(
                     err.response?.data?.message ||
-<<<<<<< HEAD
-                        "Failed to save document type."
-=======
                         "Failed to save document type.",
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 );
             }
         } finally {
@@ -153,36 +125,17 @@ export default function ManageDocumentTypes() {
     };
 
     const handleDelete = async (docType) => {
-<<<<<<< HEAD
-        const confirmDelete = window.confirm(
-            `Delete document type "${docType.document_name}"? This cannot be undone.`
-        );
-        if (!confirmDelete) return;
-
-        try {
-            setBusyId(docType.document_type_id);
-            await api.delete(
-                `/document-types/${docType.document_type_id}`
-            );
-=======
         try {
             setBusyId(docType.document_type_id);
             await api.delete(`/document-types/${docType.document_type_id}`);
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
             flash(`Document type "${docType.document_name}" has been deleted.`);
             await fetchDocumentTypes();
         } catch (err) {
             console.error(err);
-<<<<<<< HEAD
-            alert(
-                err.response?.data?.message ||
-                    "Failed to delete document type."
-=======
             setActionMessageType("danger");
             setActionMessage(
                 err.response?.data?.message ||
                     "Failed to delete document type.",
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
             );
         } finally {
             setBusyId(null);
@@ -201,16 +154,10 @@ export default function ManageDocumentTypes() {
             await fetchDocumentTypes();
         } catch (err) {
             console.error(err);
-<<<<<<< HEAD
-            alert(
-                err.response?.data?.message ||
-                    "Failed to update document type."
-=======
             setActionMessageType("danger");
             setActionMessage(
                 err.response?.data?.message ||
                     "Failed to update document type.",
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
             );
         } finally {
             setBusyId(null);
@@ -231,14 +178,7 @@ export default function ManageDocumentTypes() {
         return (
             <AdminLayout>
                 <div className="page-loading">
-<<<<<<< HEAD
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-=======
                     <div className="spinner-border text-success" role="status">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         <span className="visually-hidden">Loading...</span>
                     </div>
                     <p>Loading document types...</p>
@@ -259,25 +199,10 @@ export default function ManageDocumentTypes() {
 
     return (
         <AdminLayout>
-<<<<<<< HEAD
-            <div className="admin-dashboard">
-                <div className="container-fluid">
-                    <div className="dashboard-page-header">
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "flex-start",
-                                flexWrap: "wrap",
-                                gap: "12px",
-                            }}
-                        >
-=======
             <div className="admin-dashboard manage-document-types-page">
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
                         <div className="page-header-row document-types-header-row">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             <div>
                                 <span className="section-label">
                                     DOCUMENT TYPES
@@ -292,15 +217,9 @@ export default function ManageDocumentTypes() {
                                 </p>
                             </div>
 
-<<<<<<< HEAD
-                            <button
-                                type="button"
-                                className="btn btn-success"
-=======
                             <Button
                                 type="button"
                                 className="btn btn-success document-type-create-button"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 onClick={() => {
                                     if (showForm && !editingId) {
                                         handleCancel();
@@ -314,22 +233,14 @@ export default function ManageDocumentTypes() {
                             >
                                 {showForm && !editingId
                                     ? "Close Form"
-                                    : "＋ New Document Type"}
-<<<<<<< HEAD
-                            </button>
-=======
+                                    : "∩╝ï New Document Type"}
                             </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </div>
                     </div>
 
                     {actionMessage && (
                         <div
-<<<<<<< HEAD
-                            className="alert alert-success"
-=======
                             className={`alert alert-${actionMessageType}`}
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             role="alert"
                         >
                             {actionMessage}
@@ -339,26 +250,13 @@ export default function ManageDocumentTypes() {
                     {showForm && (
                         <section className="dashboard-section">
                             <div className="admin-form-card">
-<<<<<<< HEAD
-                                <h3
-                                    style={{
-                                        marginBottom: "20px",
-                                        color: "#14532d",
-                                    }}
-                                >
-=======
                                 <h3 className="form-section-title mb-5-token">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     {editingId
                                         ? "Edit Document Type"
                                         : "New Document Type"}
                                 </h3>
 
-<<<<<<< HEAD
-                                <form onSubmit={handleSubmit}>
-=======
                                 <form noValidate onSubmit={handleSubmit}>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     <div className="row g-3">
                                         <div className="col-md-6">
                                             <label className="form-label">
@@ -393,16 +291,7 @@ export default function ManageDocumentTypes() {
                                             <label className="form-label">
                                                 Status
                                             </label>
-<<<<<<< HEAD
-                                            <div
-                                                className="form-check form-switch"
-                                                style={{
-                                                    paddingTop: "8px",
-                                                }}
-                                            >
-=======
                                             <div className="form-check form-switch form-switch-spaced">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                 <input
                                                     type="checkbox"
                                                     name="is_active"
@@ -445,19 +334,8 @@ export default function ManageDocumentTypes() {
                                         </div>
                                     )}
 
-<<<<<<< HEAD
-                                    <div
-                                        style={{
-                                            marginTop: "20px",
-                                            display: "flex",
-                                            gap: "10px",
-                                        }}
-                                    >
-                                        <button
-=======
                                     <div className="form-actions-row">
                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                             type="submit"
                                             className="btn btn-success"
                                             disabled={submitting}
@@ -465,30 +343,18 @@ export default function ManageDocumentTypes() {
                                             {submitting
                                                 ? "Saving..."
                                                 : editingId
-<<<<<<< HEAD
-                                                ? "Save Changes"
-                                                : "Create Document Type"}
-                                        </button>
-
-                                        <button
-=======
                                                   ? "Save Changes"
                                                   : "Create Document Type"}
                                         </Button>
 
                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                             type="button"
                                             className="btn btn-outline-secondary"
                                             onClick={handleCancel}
                                             disabled={submitting}
                                         >
                                             Cancel
-<<<<<<< HEAD
-                                        </button>
-=======
                                         </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     </div>
                                 </form>
                             </div>
@@ -496,46 +362,18 @@ export default function ManageDocumentTypes() {
                     )}
 
                     <section className="dashboard-section">
-<<<<<<< HEAD
-                        <div
-                            className="admin-filters"
-                            style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "12px",
-                                alignItems: "center",
-                            }}
-                        >
-                            <input
-                                type="search"
-                                className="form-control"
-=======
                         <div className="admin-filters filter-bar">
                             <input
                                 type="search"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 placeholder="Search by name or description..."
                                 value={search}
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-<<<<<<< HEAD
-                                style={{ maxWidth: "360px", flex: "1 1 280px" }}
-                            />
-
-                            <div
-                                style={{
-                                    marginLeft: "auto",
-                                    color: "#6b7280",
-                                    fontSize: "14px",
-                                }}
-                            >
-=======
                                 className="form-control filter-search"
                             />
 
                             <div className="filter-summary">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 Showing {filtered.length} of{" "}
                                 {documentTypes.length} document
                                 {documentTypes.length === 1 ? "" : "s"}
@@ -547,23 +385,6 @@ export default function ManageDocumentTypes() {
                         {filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon">
-<<<<<<< HEAD
-                                    📄
-                                </div>
-                                <h3>No Document Types Found</h3>
-                                <p>
-                                    No document types match the current
-                                    filters. Use the "New Document Type"
-                                    button to add one.
-                                </p>
-                            </div>
-                        ) : (
-                            <div
-                                className="admin-table-wrapper"
-                                style={{ overflowX: "auto" }}
-                            >
-                                <table className="admin-table">
-=======
                                     <i
                                         className="bi bi-file-earmark-text"
                                         aria-hidden="true"
@@ -586,16 +407,10 @@ export default function ManageDocumentTypes() {
                                         <col className="document-type-status-column" />
                                         <col className="document-type-actions-column" />
                                     </colgroup>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     <thead>
                                         <tr>
                                             <th>Name</th>
                                             <th>Description</th>
-<<<<<<< HEAD
-                                            <th>Processing Days</th>
-                                            <th>Status</th>
-                                            <th style={{ minWidth: "260px" }}>
-=======
                                             <th className="document-type-days-heading">
                                                 Processing Days
                                             </th>
@@ -603,7 +418,6 @@ export default function ManageDocumentTypes() {
                                                 Status
                                             </th>
                                             <th className="table-actions-heading document-type-actions-heading">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                 Actions
                                             </th>
                                         </tr>
@@ -617,32 +431,14 @@ export default function ManageDocumentTypes() {
                                                         {docType.document_name}
                                                     </strong>
                                                 </td>
-<<<<<<< HEAD
-                                                <td
-                                                    style={{
-                                                        maxWidth: "320px",
-                                                    }}
-                                                >
-                                                    {docType.description || (
-                                                        <span
-                                                            style={{
-                                                                color: "#9ca3af",
-                                                            }}
-                                                        >
-=======
                                                 <td className="document-description-cell">
                                                     {docType.description || (
                                                         <span className="text-muted-token">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             No description
                                                         </span>
                                                     )}
                                                 </td>
-<<<<<<< HEAD
-                                                <td>
-=======
                                                 <td className="document-type-days-cell">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                     {docType.processing_days}{" "}
                                                     day
                                                     {docType.processing_days ===
@@ -650,45 +446,6 @@ export default function ManageDocumentTypes() {
                                                         ? ""
                                                         : "s"}
                                                 </td>
-<<<<<<< HEAD
-                                                <td>
-                                                    {docType.is_active ? (
-                                                        <span
-                                                            style={{
-                                                                display:
-                                                                    "inline-block",
-                                                                padding:
-                                                                    "2px 10px",
-                                                                borderRadius:
-                                                                    "999px",
-                                                                backgroundColor:
-                                                                    "#dcfce7",
-                                                                color: "#166534",
-                                                                fontSize:
-                                                                    "12px",
-                                                                fontWeight: 600,
-                                                            }}
-                                                        >
-                                                            Active
-                                                        </span>
-                                                    ) : (
-                                                        <span
-                                                            style={{
-                                                                display:
-                                                                    "inline-block",
-                                                                padding:
-                                                                    "2px 10px",
-                                                                borderRadius:
-                                                                    "999px",
-                                                                backgroundColor:
-                                                                    "#fee2e2",
-                                                                color: "#991b1b",
-                                                                fontSize:
-                                                                    "12px",
-                                                                fontWeight: 600,
-                                                            }}
-                                                        >
-=======
                                                 <td className="document-type-status-cell">
                                                     {docType.is_active ? (
                                                         <span className="document-status-badge is-active">
@@ -696,26 +453,13 @@ export default function ManageDocumentTypes() {
                                                         </span>
                                                     ) : (
                                                         <span className="document-status-badge is-inactive">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             Inactive
                                                         </span>
                                                     )}
                                                 </td>
-<<<<<<< HEAD
-                                                <td>
-                                                    <div
-                                                        style={{
-                                                            display: "flex",
-                                                            gap: "6px",
-                                                            flexWrap: "wrap",
-                                                        }}
-                                                    >
-                                                        <button
-=======
                                                 <td className="document-type-actions-cell">
                                                     <div className="table-action-group document-type-action-group">
                                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             type="button"
                                                             className="btn btn-outline-success btn-sm"
                                                             disabled={
@@ -724,24 +468,14 @@ export default function ManageDocumentTypes() {
                                                             }
                                                             onClick={() =>
                                                                 handleEdit(
-<<<<<<< HEAD
-                                                                    docType
-=======
                                                                     docType,
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                                 )
                                                             }
                                                         >
                                                             Edit
-<<<<<<< HEAD
-                                                        </button>
-
-                                                        <button
-=======
                                                         </Button>
 
                                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             type="button"
                                                             className={`btn btn-sm ${
                                                                 docType.is_active
@@ -754,26 +488,16 @@ export default function ManageDocumentTypes() {
                                                             }
                                                             onClick={() =>
                                                                 handleToggleActive(
-<<<<<<< HEAD
-                                                                    docType
-=======
                                                                     docType,
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                                 )
                                                             }
                                                         >
                                                             {docType.is_active
                                                                 ? "Deactivate"
                                                                 : "Activate"}
-<<<<<<< HEAD
-                                                        </button>
-
-                                                        <button
-=======
                                                         </Button>
 
                                                         <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             type="button"
                                                             className="btn btn-outline-danger btn-sm"
                                                             disabled={
@@ -781,39 +505,24 @@ export default function ManageDocumentTypes() {
                                                                 docType.document_type_id
                                                             }
                                                             onClick={() =>
-<<<<<<< HEAD
-                                                                handleDelete(
-                                                                    docType
-=======
                                                                 setDeleteTarget(
                                                                     docType,
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                                 )
                                                             }
                                                         >
                                                             Delete
-<<<<<<< HEAD
-                                                        </button>
-=======
                                                         </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                     </div>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
-<<<<<<< HEAD
-                                </table>
-=======
                                 </Table>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </div>
                         )}
                     </section>
                 </div>
             </div>
-<<<<<<< HEAD
-=======
             <ConfirmDialog
                 isOpen={Boolean(deleteTarget)}
                 onClose={() => setDeleteTarget(null)}
@@ -826,10 +535,9 @@ export default function ManageDocumentTypes() {
                 confirmLabel="Delete document type"
                 variant="danger"
             >
-                Delete document type “{deleteTarget?.document_name}”? This
+                Delete document type ΓÇ£{deleteTarget?.document_name}ΓÇ¥? This
                 cannot be undone.
             </ConfirmDialog>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         </AdminLayout>
     );
 }

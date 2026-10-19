@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import BrandMark from "../../components/ui/BrandMark";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -71,11 +71,7 @@ function Login() {
                     aria-label="Back to Barangay Document System"
                     title="Back to Barangay Document System"
                 >
-<<<<<<< HEAD
-                    ←
-=======
                     <i className="bi bi-arrow-left" aria-hidden="true" />
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 </Link>
 
                 {/* =================================================
@@ -83,11 +79,7 @@ function Login() {
                 ================================================= */}
                 <div className="portal-auth-header">
                     {/* Temporary logo */}
-<<<<<<< HEAD
-                    <div className="auth-logo">B</div>
-=======
                     <BrandMark className="auth-logo" />
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
                     <span className="portal-auth-label">
                         ADMINISTRATOR PORTAL
@@ -116,38 +108,22 @@ function Login() {
                     ERROR MESSAGE
                     ================================================= */}
                     {error && (
-<<<<<<< HEAD
-                        <div className="alert alert-danger" role="alert">
-                            {error}
-=======
                         <div className="portal-auth-error" role="alert">
                             <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
                             <span>{error}</span>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </div>
                     )}
 
                     {/* =================================================
                     LOGIN FORM
                     ================================================= */}
-<<<<<<< HEAD
-                    <form onSubmit={handleSubmit}>
-=======
                     <form noValidate onSubmit={handleSubmit}>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         {/* Username */}
                         <div className="portal-form-group">
                             <label htmlFor="admin-username">Username</label>
 
                             <input
                                 id="admin-username"
-<<<<<<< HEAD
-                                type="text"
-                                value={username}
-                                onChange={(event) =>
-                                    setUsername(event.target.value)
-                                }
-=======
                                 name="username"
                                 type="text"
                                 value={username}
@@ -155,7 +131,6 @@ function Login() {
                                     setUsername(event.target.value);
                                     setError("");
                                 }}
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 placeholder="Enter administrator username"
                                 autoComplete="username"
                                 required
@@ -166,19 +141,6 @@ function Login() {
                         <div className="portal-form-group">
                             <label htmlFor="admin-password">Password</label>
 
-<<<<<<< HEAD
-                            <input
-                                id="admin-password"
-                                type="password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                                placeholder="Enter your password"
-                                autoComplete="current-password"
-                                required
-                            />
-=======
                             <div className="portal-form-password">
                                 <input
                                     id="admin-password"
@@ -209,7 +171,6 @@ function Login() {
                                     <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`} aria-hidden="true" />
                                 </button>
                             </div>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </div>
 
                         {/* Login button */}
@@ -228,11 +189,7 @@ function Login() {
                                     Signing in...
                                 </>
                             ) : (
-<<<<<<< HEAD
-                                "SIGN IN TO ADMIN PORTAL"
-=======
                                 "Sign in to admin portal"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             )}
                         </button>
                     </form>

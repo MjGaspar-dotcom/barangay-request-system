@@ -1,4 +1,4 @@
-import { useContext } from "react";
+﻿import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 
 export function useAuth() {
@@ -9,8 +9,4 @@ export function useAuth() {
     }
 
     return context;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
