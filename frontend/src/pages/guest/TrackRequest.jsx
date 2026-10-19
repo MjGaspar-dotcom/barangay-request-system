@@ -1,74 +1,25 @@
 import { useState } from "react";
-import {
-    Button,
-    CircularProgress,
-    Table,
-    TableBody,
-    TableRow,
-    TextField,
-} from "@mui/material";
-import { useForm } from "react-hook-form";
-import FieldValidationError from "../../components/forms/FieldValidationError";
-import PageHeader from "../../components/ui/PageHeader";
-import StatusBadge from "../../components/ui/StatusBadge";
 import api from "../../services/api";
-import {
-    GuestBackHomeLink,
-    GuestPageCard,
-    GuestPageContainer,
-    GuestPageRoot,
-} from "./GuestPage.styles";
-import {
-    TrackingNumberValue,
-    TrackLabelCell,
-    TrackRequestField,
-    TrackRequestForm,
-    TrackResult,
-    TrackResultTitle,
-    TrackTableContainer,
-    TrackValueCell,
-} from "./TrackRequest.styles";
 
 import { validateForm } from "../../utils/validateForm";
 export default function TrackRequest() {
+    const [trackingNumber, setTrackingNumber] = useState("");
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [requestError, setRequestError] = useState("");
+    const [error, setError] = useState("");
 
-    const {
-        register,
-        handleSubmit,
-        setError,
-        formState: { errors },
-    } = useForm({
-        defaultValues: {
-            tracking_number: "",
-        },
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-    });
-
-<<<<<<< Updated upstream
-    const trackingNumberField = register("tracking_number", {
-        validate: (value) =>
-            value.trim() !== "" || "Tracking number is required.",
-    });
-
-    const handleTrack = async (values) => {
-        setRequestError("");
-=======
-        if (!validateForm(e.currentTarget)) return;
+    const handleTrack = async (e) => {
+        e.preventDefault();
 
         if (!validateForm(e.currentTarget)) return;
 
         setError("");
->>>>>>> Stashed changes
         setResult(null);
         setLoading(true);
 
         try {
             const response = await api.get(
-                `/guest-requests/track/${values.tracking_number.trim()}`,
+                `/guest-requests/track/${trackingNumber.trim()}`
             );
 
             setResult(response.data.data);
@@ -76,15 +27,11 @@ export default function TrackRequest() {
             console.error(err);
 
             if (err.response?.status === 404) {
-                setError("tracking_number", {
-                    type: "server",
-                    message:
-                        "No request found with that tracking number. Please check and try again.",
-                });
-            } else {
-                setRequestError(
-                    "Unable to look up the tracking number. Please try again.",
+                setError(
+                    "No request found with that tracking number. Please check and try again."
                 );
+            } else {
+                setError("Failed to look up the tracking number. Please try again.");
             }
         } finally {
             setLoading(false);
@@ -92,80 +39,18 @@ export default function TrackRequest() {
     };
 
     return (
-        <GuestPageRoot>
-            <GuestPageContainer>
-                <GuestBackHomeLink to="/">
-                    ← Back to Home
-                </GuestBackHomeLink>
+        <div className="container py-5">
 
-                <PageHeader
-                    align="center"
-                    eyebrow="Request Tracking"
-                    title="Track Your Request"
-                    description="Enter the tracking number you received when your request was submitted."
-                />
+            <h1 className="fw-bold text-center mb-4">
+                Track Your Request
+            </h1>
 
-                <GuestPageCard>
-                    <TrackRequestForm
-                        onSubmit={handleSubmit(handleTrack)}
-                        noValidate
-                    >
-                        <TrackRequestField>
-                            <TextField
-                                id="tracking_number"
-                                name={trackingNumberField.name}
-                                type="text"
-                                fullWidth
-                                required
-                                label="Tracking Number"
-                                placeholder="Example: GR-20260902-ABCDEF"
-                                onChange={trackingNumberField.onChange}
-                                onBlur={trackingNumberField.onBlur}
-                                inputRef={trackingNumberField.ref}
-                                error={Boolean(errors.tracking_number)}
-                                slotProps={{
-                                    htmlInput: {
-                                        "aria-invalid": Boolean(
-                                            errors.tracking_number,
-                                        ),
-                                        "aria-describedby":
-                                            errors.tracking_number
-                                                ? "tracking-number-error"
-                                                : undefined,
-                                    },
-                                }}
-                            />
+            <div className="row justify-content-center">
 
-                            <FieldValidationError
-                                id="tracking-number-error"
-                                error={errors.tracking_number}
-                            />
-                        </TrackRequestField>
+                <div className="col-md-6">
 
-                        {requestError && (
-                            <FieldValidationError
-                                id="tracking-request-error"
-                                error={requestError}
-                            />
-                        )}
+                    <div className="card shadow-sm border-0">
 
-<<<<<<< Updated upstream
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <CircularProgress
-                                        size={18}
-                                        color="inherit"
-                                    />
-                                    Searching...
-                                </>
-                            ) : (
-                                "Track Request"
-=======
                         <div className="card-body">
 
                             <form noValidate onSubmit={handleTrack}>
@@ -202,92 +87,65 @@ export default function TrackRequest() {
                             {/* Error */}
                             {error && (
                                 <p className="text-danger mt-3">{error}</p>
->>>>>>> Stashed changes
                             )}
-                        </Button>
-                    </TrackRequestForm>
 
-                    {result && (
-                        <TrackResult>
-                            <TrackResultTitle>Request Status</TrackResultTitle>
+                            {/* Result */}
+                            {result && (
+                                <div className="mt-4">
+                                    <h5 className="fw-bold">Request Status</h5>
 
-                            <TrackTableContainer>
-                                <Table>
-                                    <TableBody>
-                                        <TableRow>
-                                            <TrackLabelCell>
-                                                Tracking Number
-                                            </TrackLabelCell>
-
-                                            <TrackValueCell>
-                                                <TrackingNumberValue>
+                                    <table className="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <th>Tracking Number</th>
+                                                <td className="font-monospace">
                                                     {result.tracking_number}
-                                                </TrackingNumberValue>
-                                            </TrackValueCell>
-                                        </TableRow>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Document</th>
+                                                <td>{result.document}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Status</th>
+                                                <td>
+                                                    <span className="badge bg-primary">
+                                                        {result.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Purpose</th>
+                                                <td>{result.purpose}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Submitted</th>
+                                                <td>
+                                                    {new Date(
+                                                        result.submitted_at
+                                                    ).toLocaleString()}
+                                                </td>
+                                            </tr>
 
-                                        <TableRow>
-                                            <TrackLabelCell>
-                                                Document
-                                            </TrackLabelCell>
+                                            {result.remarks && (
+                                                <tr>
+                                                    <th>Remarks</th>
+                                                    <td>{result.remarks}</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
 
-                                            <TrackValueCell>
-                                                {result.document}
-                                            </TrackValueCell>
-                                        </TableRow>
+                        </div>
 
-                                        <TableRow>
-                                            <TrackLabelCell>
-                                                Status
-                                            </TrackLabelCell>
+                    </div>
 
-                                            <TrackValueCell>
-                                                <StatusBadge
-                                                    status={result.status}
-                                                />
-                                            </TrackValueCell>
-                                        </TableRow>
+                </div>
 
-                                        <TableRow>
-                                            <TrackLabelCell>
-                                                Purpose
-                                            </TrackLabelCell>
+            </div>
 
-                                            <TrackValueCell>
-                                                {result.purpose}
-                                            </TrackValueCell>
-                                        </TableRow>
-
-                                        <TableRow>
-                                            <TrackLabelCell>
-                                                Submitted
-                                            </TrackLabelCell>
-
-                                            <TrackValueCell>
-                                                {new Date(
-                                                    result.submitted_at,
-                                                ).toLocaleString()}
-                                            </TrackValueCell>
-                                        </TableRow>
-
-                                        {result.remarks && (
-                                            <TableRow>
-                                                <TrackLabelCell>
-                                                    Remarks
-                                                </TrackLabelCell>
-
-                                                <TrackValueCell>
-                                                    {result.remarks}
-                                                </TrackValueCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </TrackTableContainer>
-                        </TrackResult>
-                    )}
-                </GuestPageCard>
-            </GuestPageContainer>
-        </GuestPageRoot>
+        </div>
     );
 }

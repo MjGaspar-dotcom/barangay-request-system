@@ -1,22 +1,3 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import {
-    PortalBackground,
-    PortalBrand,
-    PortalBrandName,
-    PortalBrandSubtitle,
-    PortalBrandText,
-    PortalContent,
-    PortalFooter,
-    PortalHeader,
-    PortalHeaderLabel,
-    PortalLogo,
-    PortalMain,
-    PortalPage,
-} from "./PortalLayout.styles";
-=======
-=======
->>>>>>> Stashed changes
 import BrandMark from "../components/ui/BrandMark";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -46,28 +27,53 @@ function PortalLayout({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const hasSidebar = Boolean(sidebarItems?.length);
->>>>>>> Stashed changes
 
-function PortalLayout({ children, portalLabel = "BARANGAY ONLINE SERVICES" }) {
     return (
-        <PortalPage>
-            <PortalBackground aria-hidden="true" />
+        <div
+            className={`portal-page ${
+                hasSidebar ? "portal-dashboard-page" : ""
+            } ${portalLabel === "STAFF & ADMINISTRATION" ? "portal-staff-admin-page" : ""} ${
+                portalLabel === "STAFF SERVICES" ? "portal-staff-workspace" : ""
+            } ${portalLabel === "ADMINISTRATION" ? "portal-admin-workspace" : ""}`}
+        >
+            {/* 
+                Background photograph.
+                Its opacity is controlled entirely through CSS.
+            */}
+            <div className="portal-background" aria-hidden="true"></div>
 
-            <PortalContent>
-                <PortalHeader>
-                    <PortalBrand to="/">
-                        <PortalLogo>B</PortalLogo>
+            {/* 
+                Main portal content.
+                This stays fully visible above the background image.
+            */}
+            <div
+                className={
+                    hasSidebar ? "portal-dashboard-layout" : "portal-content"
+                }
+            >
+                {hasSidebar && (
+                    <>
+                        <div
+                            className={`portal-dashboard-sidebar ${
+                                sidebarOpen ? "open" : ""
+                            }`}
+                        >
+                            <Sidebar
+                                items={sidebarItems}
+                                onNavigate={() => setSidebarOpen(false)}
+                            />
+                        </div>
+                        {sidebarOpen && (
+                            <button
+                                type="button"
+                                className="portal-sidebar-overlay"
+                                onClick={() => setSidebarOpen(false)}
+                                aria-label="Close navigation"
+                            />
+                        )}
+                    </>
+                )}
 
-<<<<<<< Updated upstream
-                        <PortalBrandText>
-                            <PortalBrandName>Barangay System</PortalBrandName>
-
-                            <PortalBrandSubtitle>
-                                Document Services
-                            </PortalBrandSubtitle>
-                        </PortalBrandText>
-                    </PortalBrand>
-=======
                 <div
                     className={`portal-content ${
                         hasSidebar ? "portal-dashboard-main" : ""
@@ -82,19 +88,19 @@ function PortalLayout({ children, portalLabel = "BARANGAY ONLINE SERVICES" }) {
                                     <span className="portal-brand-name">
                                         Barangay Aurora
                                     </span>
->>>>>>> Stashed changes
 
-                    <PortalHeaderLabel>{portalLabel}</PortalHeaderLabel>
-                </PortalHeader>
+                                    <span className="portal-brand-subtitle">
+                                        Document Services
+                                    </span>
+                                </div>
+                            </Link>
 
-                <PortalMain>{children}</PortalMain>
+                            <div className="portal-header-label">
+                                {portalLabel}
+                            </div>
+                        </header>
+                    )}
 
-<<<<<<< Updated upstream
-                <PortalFooter>
-                    <span>
-                        Barangay Document Request System with Automated ID Verification and Receipt QR Validation
-                    </span>
-=======
                     {hasSidebar && (
                         <div className="portal-menu-control">
                             {portalLabel === "ADMINISTRATION" && (
@@ -111,12 +117,20 @@ function PortalLayout({ children, portalLabel = "BARANGAY ONLINE SERVICES" }) {
                             </button>
                         </div>
                     )}
->>>>>>> Stashed changes
 
-                    <span>© 2026</span>
-                </PortalFooter>
-            </PortalContent>
-        </PortalPage>
+                    <main className="portal-main">{children}</main>
+
+                    <footer className="portal-footer">
+                        <span>
+                            Integrated Barangay Document Request,
+                            Processing, and Analytics System
+                        </span>
+
+                        <span>© 2026</span>
+                    </footer>
+                </div>
+            </div>
+        </div>
     );
 }
 

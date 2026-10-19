@@ -1,148 +1,62 @@
 import { useState } from "react";
-import { Checkbox, MenuItem, TextField } from "@mui/material";
-import { Controller, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import EmailOtpVerification from "../../components/forms/EmailOtpVerification";
-import FieldValidationError from "../../components/forms/FieldValidationError";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import {
-    AuthCardWide,
-    AuthDescription,
-    AuthFooter,
-    AuthFooterLink,
-    AuthForm,
-    AuthFormField,
-    AuthHeader,
-    AuthLabel,
-    AuthMessage,
-    AuthMiddleNameOption,
-    AuthPage,
-    AuthSubmitButton,
-    AuthTitle,
-    FormSection,
-    FormSectionTitle,
-    FullWidthField,
-    ThreeColumnFormGrid,
-    TwoColumnFormGrid,
-} from "../../styles/auth.styles";
 
-<<<<<<< Updated upstream
-const DEFAULT_FORM_VALUES = {
-    username: "",
-    password: "",
-    password_confirmation: "",
-    first_name: "",
-    middle_name: "",
-    no_middle_name: false,
-    last_name: "",
-    birth_date: "",
-    gender: "",
-    civil_status: "",
-    address: "",
-    contact_number: "",
-    email: "",
-};
-
-=======
->>>>>>> Stashed changes
 import { validateForm } from "../../utils/validateForm";
 function Register() {
     const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(false);
-    const [requestError, setRequestError] = useState("");
-    const [success, setSuccess] = useState("");
-    const [emailVerification, setEmailVerification] = useState({
+    const [form, setForm] = useState({
+        username: "",
+        password: "",
+        password_confirmation: "",
+        first_name: "",
+        middle_name: "",
+        last_name: "",
+        birth_date: "",
+        gender: "",
+        civil_status: "",
+        address: "",
+        contact_number: "",
         email: "",
-        token: "",
     });
 
-    const {
-        control,
-        handleSubmit,
-        setError,
-        setValue,
-        clearErrors,
-        watch,
-        formState: { errors },
-    } = useForm({
-        defaultValues: DEFAULT_FORM_VALUES,
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    const password = watch("password");
-    const email = watch("email");
-    const noMiddleName = watch("no_middle_name");
+    const handleChange = (event) => {
+        const { name, value } = event.target;
 
-    const applyServerValidationErrors = (validationErrors) => {
-        let hasMappedError = false;
-
-        Object.entries(validationErrors).forEach(([fieldName, messages]) => {
-            if (
-                !Object.prototype.hasOwnProperty.call(
-                    DEFAULT_FORM_VALUES,
-                    fieldName,
-                )
-            ) {
-                return;
-            }
-
-            const message = Array.isArray(messages) ? messages[0] : messages;
-
-            setError(fieldName, {
-                type: "server",
-                message,
-            });
-
-            hasMappedError = true;
-        });
-
-        return hasMappedError;
+        setForm((previous) => ({
+            ...previous,
+            [name]: value,
+        }));
     };
 
-    const submitRegistration = async (values) => {
-        const normalizedEmail = values.email.trim().toLowerCase();
-        const {
-            no_middle_name,
-            ...registrationValues
-        } = values;
-
-<<<<<<< Updated upstream
-        setRequestError("");
-=======
-        if (!validateForm(event.currentTarget)) return;
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
         if (!validateForm(event.currentTarget)) return;
 
         setError("");
->>>>>>> Stashed changes
         setSuccess("");
 
-        if (
-            !emailVerification.token ||
-            emailVerification.email !== normalizedEmail
-        ) {
-            setRequestError(
-                "Verify your email address with the OTP code before creating your account.",
-            );
+        if (form.password !== form.password_confirmation) {
+            setError("Passwords do not match.");
             return;
         }
 
         setLoading(true);
 
         try {
-            await api.post("/register", {
-                ...registrationValues,
-                email: normalizedEmail,
-                email_verification_token: emailVerification.token,
-            });
+            await api.post("/register", form);
 
             setSuccess(
                 "Registration successful. You can now log in to your account.",
             );
 
-            window.setTimeout(() => {
+            setTimeout(() => {
                 navigate("/login");
             }, 1500);
         } catch (error) {
@@ -152,23 +66,19 @@ function Register() {
                 const validationErrors = error.response.data?.errors;
 
                 if (validationErrors) {
-                    const hasMappedError =
-                        applyServerValidationErrors(validationErrors);
+                    const firstError = Object.values(validationErrors)
+                        .flat()
+                        .find(Boolean);
 
-                    if (!hasMappedError) {
-                        setRequestError(
-                            error.response.data?.message ||
-                                "Please review your information and try again.",
-                        );
-                    }
+                    setError(firstError || "Please check your information.");
                 } else {
-                    setRequestError(
+                    setError(
                         error.response.data?.message ||
-                            "Please review your information and try again.",
+                            "Please check your information.",
                     );
                 }
             } else {
-                setRequestError(
+                setError(
                     error.response?.data?.message ||
                         "Registration failed. Please try again.",
                 );
@@ -179,691 +89,289 @@ function Register() {
     };
 
     return (
-        <AuthPage>
-            <AuthCardWide>
-                <AuthHeader>
-                    <AuthLabel>CREATE ACCOUNT</AuthLabel>
+        <div className="auth-page">
+            <div className="auth-card auth-card-wide">
+                <div className="auth-header">
+                    <span className="section-label">CREATE ACCOUNT</span>
 
-                    <AuthTitle>Resident Registration</AuthTitle>
+                    <h1>Resident Registration</h1>
 
-                    <AuthDescription>
+                    <p>
                         Create an account to request and track barangay
                         documents online.
-                    </AuthDescription>
-                </AuthHeader>
+                    </p>
+                </div>
 
-                {success && (
-                    <AuthMessage severity="success">{success}</AuthMessage>
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}
+                    </div>
                 )}
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                <AuthForm
-                    onSubmit={handleSubmit(submitRegistration)}
-                    noValidate
-                >
-                    <FormSection>
-                        <FormSectionTitle>Account Information</FormSectionTitle>
-=======
-=======
->>>>>>> Stashed changes
+                {success && (
+                    <div className="alert alert-success" role="alert">
+                        {success}
+                    </div>
+                )}
+
                 <form noValidate onSubmit={handleSubmit}>
                     <div className="form-section">
                         <h2>Account Information</h2>
->>>>>>> Stashed changes
 
-                        <TwoColumnFormGrid>
-                            <AuthFormField>
-                                <Controller
+                        <div className="row g-3">
+                            <div className="col-md-6">
+                                <label
+                                    htmlFor="username"
+                                    className="form-label"
+                                >
+                                    Username
+                                </label>
+
+                                <input
+                                    id="username"
                                     name="username"
-                                    control={control}
-                                    rules={{
-                                        required: "Username is required.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="username"
-                                            name={field.name}
-                                            type="text"
-                                            fullWidth
-                                            required
-                                            label="Username"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.username)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.username,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.username
-                                                            ? "register-username-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="text"
+                                    className="form-control"
+                                    value={form.username}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-username-error"
-                                    error={errors.username}
-                                />
-                            </AuthFormField>
+                            <div className="col-md-6">
+                                <label htmlFor="email" className="form-label">
+                                    Email
+                                </label>
 
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="email"
                                     name="email"
-                                    control={control}
-                                    rules={{
-                                        required: "Email is required.",
-                                        pattern: {
-                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                            message:
-                                                "Enter a valid email address.",
-                                        },
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="email"
-                                            name={field.name}
-                                            type="email"
-                                            fullWidth
-                                            required
-                                            label="Email"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.email)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.email,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.email
-                                                            ? "register-email-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="email"
+                                    className="form-control"
+                                    value={form.email}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-email-error"
-                                    error={errors.email}
-                                />
+                            <div className="col-md-6">
+                                <label
+                                    htmlFor="password"
+                                    className="form-label"
+                                >
+                                    Password
+                                </label>
 
-                                <EmailOtpVerification
-                                    email={email}
-                                    purpose="registration"
-                                    idPrefix="register-email"
-                                    onVerificationChange={
-                                        setEmailVerification
-                                    }
-                                />
-                            </AuthFormField>
-
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="password"
                                     name="password"
-                                    control={control}
-                                    rules={{
-                                        required: "Password is required.",
-                                        minLength: {
-                                            value: 8,
-                                            message:
-                                                "Password must be at least 8 characters.",
-                                        },
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="password"
-                                            name={field.name}
-                                            type="password"
-                                            fullWidth
-                                            required
-                                            label="Password"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.password)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    minLength: 8,
-                                                    "aria-invalid": Boolean(
-                                                        errors.password,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.password
-                                                            ? "register-password-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="password"
+                                    className="form-control"
+                                    value={form.password}
+                                    onChange={handleChange}
+                                    required
+                                    minLength={8}
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-password-error"
-                                    error={errors.password}
-                                />
-                            </AuthFormField>
+                            <div className="col-md-6">
+                                <label
+                                    htmlFor="password_confirmation"
+                                    className="form-label"
+                                >
+                                    Confirm Password
+                                </label>
 
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="password_confirmation"
                                     name="password_confirmation"
-                                    control={control}
-                                    rules={{
-                                        required: "Confirm your password.",
-                                        validate: (value) =>
-                                            value === password ||
-                                            "Passwords do not match.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="password_confirmation"
-                                            name={field.name}
-                                            type="password"
-                                            fullWidth
-                                            required
-                                            label="Confirm Password"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(
-                                                errors.password_confirmation,
-                                            )}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    minLength: 8,
-                                                    "aria-invalid": Boolean(
-                                                        errors.password_confirmation,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.password_confirmation
-                                                            ? "register-password-confirmation-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="password"
+                                    className="form-control"
+                                    value={form.password_confirmation}
+                                    onChange={handleChange}
+                                    required
+                                    minLength={8}
                                 />
+                            </div>
+                        </div>
+                    </div>
 
-                                <FieldValidationError
-                                    id="register-password-confirmation-error"
-                                    error={errors.password_confirmation}
-                                />
-                            </AuthFormField>
-                        </TwoColumnFormGrid>
-                    </FormSection>
+                    <div className="form-section">
+                        <h2>Personal Information</h2>
 
-                    <FormSection>
-                        <FormSectionTitle>
-                            Personal Information
-                        </FormSectionTitle>
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <label
+                                    htmlFor="first_name"
+                                    className="form-label"
+                                >
+                                    First Name
+                                </label>
 
-                        <ThreeColumnFormGrid>
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="first_name"
                                     name="first_name"
-                                    control={control}
-                                    rules={{
-                                        required: "First name is required.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="first_name"
-                                            name={field.name}
-                                            type="text"
-                                            fullWidth
-                                            required
-                                            label="First Name"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.first_name)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.first_name,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.first_name
-                                                            ? "register-first-name-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="text"
+                                    className="form-control"
+                                    value={form.first_name}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-first-name-error"
-                                    error={errors.first_name}
-                                />
-                            </AuthFormField>
+                            <div className="col-md-4">
+                                <label
+                                    htmlFor="middle_name"
+                                    className="form-label"
+                                >
+                                    Middle Name
+                                </label>
 
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="middle_name"
                                     name="middle_name"
-                                    control={control}
-                                    rules={{
-                                        validate: (value) =>
-                                            noMiddleName ||
-                                            value.trim() !== "" ||
-                                            "Middle name is required.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="middle_name"
-                                            name={field.name}
-                                            type="text"
-                                            fullWidth
-                                            required={!noMiddleName}
-                                            disabled={noMiddleName}
-                                            label="Middle Name"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(
-                                                errors.middle_name,
-                                            )}
-                                            placeholder={
-                                                noMiddleName
-                                                    ? "No middle name"
-                                                    : "Enter middle name"
-                                            }
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.middle_name,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.middle_name
-                                                            ? "register-middle-name-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="text"
+                                    className="form-control"
+                                    value={form.middle_name}
+                                    onChange={handleChange}
                                 />
+                            </div>
 
-                                <Controller
-                                    name="no_middle_name"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <AuthMiddleNameOption
-                                            control={
-                                                <Checkbox
-                                                    name={field.name}
-                                                    checked={field.value}
-                                                    onChange={(event) => {
-                                                        const checked =
-                                                            event.target
-                                                                .checked;
+                            <div className="col-md-4">
+                                <label
+                                    htmlFor="last_name"
+                                    className="form-label"
+                                >
+                                    Last Name
+                                </label>
 
-                                                        field.onChange(
-                                                            checked,
-                                                        );
-
-                                                        if (checked) {
-                                                            setValue(
-                                                                "middle_name",
-                                                                "",
-                                                            );
-
-                                                            clearErrors(
-                                                                "middle_name",
-                                                            );
-                                                        }
-                                                    }}
-                                                    onBlur={field.onBlur}
-                                                    inputRef={field.ref}
-                                                />
-                                            }
-                                            label="I have no middle name"
-                                        />
-                                    )}
-                                />
-
-                                <FieldValidationError
-                                    id="register-middle-name-error"
-                                    error={errors.middle_name}
-                                />
-                            </AuthFormField>
-
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="last_name"
                                     name="last_name"
-                                    control={control}
-                                    rules={{
-                                        required: "Last name is required.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="last_name"
-                                            name={field.name}
-                                            type="text"
-                                            fullWidth
-                                            required
-                                            label="Last Name"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.last_name)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.last_name,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.last_name
-                                                            ? "register-last-name-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="text"
+                                    className="form-control"
+                                    value={form.last_name}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-last-name-error"
-                                    error={errors.last_name}
-                                />
-                            </AuthFormField>
+                            <div className="col-md-4">
+                                <label
+                                    htmlFor="birth_date"
+                                    className="form-label"
+                                >
+                                    Birth Date
+                                </label>
 
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="birth_date"
                                     name="birth_date"
-                                    control={control}
-                                    rules={{
-                                        required: "Birth date is required.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="birth_date"
-                                            name={field.name}
-                                            type="date"
-                                            fullWidth
-                                            required
-                                            label="Birth Date"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.birth_date)}
-                                            slotProps={{
-                                                inputLabel: {
-                                                    shrink: true,
-                                                },
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.birth_date,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.birth_date
-                                                            ? "register-birth-date-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="date"
+                                    className="form-control"
+                                    value={form.birth_date}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-birth-date-error"
-                                    error={errors.birth_date}
-                                />
-                            </AuthFormField>
+                            <div className="col-md-4">
+                                <label htmlFor="gender" className="form-label">
+                                    Gender
+                                </label>
 
-                            <AuthFormField>
-                                <Controller
+                                <select
+                                    id="gender"
                                     name="gender"
-                                    control={control}
-                                    rules={{
-                                        required: "Select your gender.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="gender"
-                                            name={field.name}
-                                            select
-                                            fullWidth
-                                            required
-                                            label="Gender"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.gender)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.gender,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.gender
-                                                            ? "register-gender-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        >
-                                            <MenuItem value="">
-                                                Select gender
-                                            </MenuItem>
+                                    className="form-select"
+                                    value={form.gender}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
 
-                                            <MenuItem value="Male">
-                                                Male
-                                            </MenuItem>
+                            <div className="col-md-4">
+                                <label
+                                    htmlFor="civil_status"
+                                    className="form-label"
+                                >
+                                    Civil Status
+                                </label>
 
-                                            <MenuItem value="Female">
-                                                Female
-                                            </MenuItem>
-                                        </TextField>
-                                    )}
-                                />
-
-                                <FieldValidationError
-                                    id="register-gender-error"
-                                    error={errors.gender}
-                                />
-                            </AuthFormField>
-
-                            <AuthFormField>
-                                <Controller
+                                <select
+                                    id="civil_status"
                                     name="civil_status"
-                                    control={control}
-                                    rules={{
-                                        required: "Select your civil status.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="civil_status"
-                                            name={field.name}
-                                            select
-                                            fullWidth
-                                            required
-                                            label="Civil Status"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.civil_status)}
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.civil_status,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.civil_status
-                                                            ? "register-civil-status-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        >
-                                            <MenuItem value="">
-                                                Select civil status
-                                            </MenuItem>
+                                    className="form-select"
+                                    value={form.civil_status}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">
+                                        Select civil status
+                                    </option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Separated">Separated</option>
+                                </select>
+                            </div>
 
-                                            <MenuItem value="Single">
-                                                Single
-                                            </MenuItem>
+                            <div className="col-12">
+                                <label htmlFor="address" className="form-label">
+                                    Address
+                                </label>
 
-                                            <MenuItem value="Married">
-                                                Married
-                                            </MenuItem>
-
-                                            <MenuItem value="Widowed">
-                                                Widowed
-                                            </MenuItem>
-
-                                            <MenuItem value="Separated">
-                                                Separated
-                                            </MenuItem>
-                                        </TextField>
-                                    )}
-                                />
-
-                                <FieldValidationError
-                                    id="register-civil-status-error"
-                                    error={errors.civil_status}
-                                />
-                            </AuthFormField>
-
-                            <FullWidthField>
-                                <Controller
+                                <textarea
+                                    id="address"
                                     name="address"
-                                    control={control}
-                                    rules={{
-                                        required: "Purok is required.",
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="purok"
-                                            name={field.name}
-                                            fullWidth
-                                            required
-                                            label="Purok"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(errors.address)}
-                                            placeholder="e.g., Purok 3"
-                                            slotProps={{
-                                                htmlInput: {
-                                                    "aria-invalid": Boolean(
-                                                        errors.address,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.address
-                                                            ? "register-address-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    className="form-control"
+                                    rows="3"
+                                    value={form.address}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
 
-                                <FieldValidationError
-                                    id="register-address-error"
-                                    error={errors.address}
-                                />
-                            </FullWidthField>
+                            <div className="col-md-6">
+                                <label
+                                    htmlFor="contact_number"
+                                    className="form-label"
+                                >
+                                    Contact Number
+                                </label>
 
-                            <AuthFormField>
-                                <Controller
+                                <input
+                                    id="contact_number"
                                     name="contact_number"
-                                    control={control}
-                                    rules={{
-                                        required: "Contact number is required.",
-                                        pattern: {
-                                            value: /^09\d{9}$/,
-                                            message:
-                                                "Enter a valid 11-digit mobile number.",
-                                        },
-                                    }}
-                                    render={({ field }) => (
-                                        <TextField
-                                            id="contact_number"
-                                            name={field.name}
-                                            type="tel"
-                                            fullWidth
-                                            required
-                                            label="Contact Number"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
-                                            inputRef={field.ref}
-                                            error={Boolean(
-                                                errors.contact_number,
-                                            )}
-                                            helperText="Used for contact only. OTP verification is sent to your email."
-                                            slotProps={{
-                                                htmlInput: {
-                                                    inputMode: "numeric",
-                                                    maxLength: 11,
-                                                    "aria-invalid": Boolean(
-                                                        errors.contact_number,
-                                                    ),
-                                                    "aria-describedby":
-                                                        errors.contact_number
-                                                            ? "register-contact-number-error"
-                                                            : undefined,
-                                                },
-                                            }}
-                                        />
-                                    )}
+                                    type="tel"
+                                    className="form-control"
+                                    value={form.contact_number}
+                                    onChange={handleChange}
+                                    required
                                 />
+                            </div>
+                        </div>
+                    </div>
 
-                                <FieldValidationError
-                                    id="register-contact-number-error"
-                                    error={errors.contact_number}
-                                />
-                            </AuthFormField>
-                        </ThreeColumnFormGrid>
-                    </FormSection>
-
-                    {requestError && (
-                        <FieldValidationError
-                            id="register-form-error"
-                            error={requestError}
-                        />
-                    )}
-
-                    <AuthSubmitButton
+                    <button
                         type="submit"
-                        variant="contained"
-                        color="success"
+                        className="btn btn-success w-100"
                         disabled={loading}
                     >
                         {loading ? "Creating Account..." : "Create Account"}
-                    </AuthSubmitButton>
-                </AuthForm>
+                    </button>
+                </form>
 
-                <AuthFooter>
-                    <p>
-                        <span>Already have an account?</span>{" "}
-                        <AuthFooterLink to="/login">Login</AuthFooterLink>
-                    </p>
-
-                    <AuthFooterLink to="/">
-                        ← Back to Home
-                    </AuthFooterLink>
-                </AuthFooter>
-            </AuthCardWide>
-        </AuthPage>
+                <div className="auth-footer">
+                    <span>Already have an account?</span>{" "}
+                    <Link to="/login">Login</Link>
+                </div>
+            </div>
+        </div>
     );
 }
 

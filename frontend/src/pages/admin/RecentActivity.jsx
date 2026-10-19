@@ -1,53 +1,8 @@
 import { useEffect, useState } from "react";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import {
-    Alert,
-    Button,
-    CircularProgress,
-    MenuItem,
-    TableBody,
-    TableHead,
-} from "@mui/material";
-=======
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
->>>>>>> Stashed changes
-=======
-import Table from "react-bootstrap/Table";
-import Button from "../../components/ui/Button";
->>>>>>> Stashed changes
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
-import {
-    AdminDataTable,
-    AdminEmptyIcon,
-    AdminEmptyState,
-    AdminFilterBar,
-    AdminFilterField,
-    AdminMessages,
-    AdminPage,
-    AdminPageHeader,
-    AdminPageLabel,
-    AdminPageState,
-    AdminResultsCount,
-    AdminSearchField,
-    AdminSection,
-    AdminTableDataCell,
-    AdminTableHeaderCell,
-    AdminTablePrimaryText,
-    AdminTableRow,
-    AdminTableWrapper,
-} from "../../components/admin/AdminCrud.styles";
-import {
-    ActivityCode,
-    ActivityIcon,
-    ActivityIconCell,
-    ActivityPageIndicator,
-    ActivityPagination,
-    ActivitySecondaryText,
-    ActivityTypeHeaderCell,
-} from "./RecentActivity.styles";
 
 const ACTION_FILTERS = [
     { value: "all", label: "All Actions" },
@@ -71,7 +26,6 @@ export default function RecentActivity() {
     const fetchActivity = async (targetPage = page) => {
         try {
             setLoading(true);
-
             const params = {
                 per_page: PAGE_SIZE,
                 page: targetPage,
@@ -87,9 +41,8 @@ export default function RecentActivity() {
 
             const payload = response.data.data;
 
-            // Laravel paginate() returns:
-            // { data: [...], current_page, last_page, total, ... }
-            // Some endpoints also return the array directly.
+            // Laravel paginate() returns: { data: [...], current_page, last_page, total, ... }
+            // Some endpoints also return the array directly — support both.
             if (Array.isArray(payload)) {
                 setLogs(payload);
                 setMeta(null);
@@ -114,10 +67,7 @@ export default function RecentActivity() {
     }, [actionFilter]);
 
     const goToPage = (nextPage) => {
-        if (!meta || nextPage < 1 || nextPage > meta.last_page) {
-            return;
-        }
-
+        if (!meta || nextPage < 1 || nextPage > meta.last_page) return;
         setPage(nextPage);
         fetchActivity(nextPage);
     };
@@ -126,32 +76,26 @@ export default function RecentActivity() {
         if (entry.user) {
             return `${entry.user.first_name} ${entry.user.last_name}`;
         }
-
         if (entry.staff?.user) {
             return `${entry.staff.user.first_name} ${entry.staff.user.last_name}`;
         }
-
         return "System";
     };
 
     const actorRole = (entry) => {
         if (entry.staff) return "Staff";
         if (entry.user) return "User";
-
         return "System";
     };
 
     const formatDate = (value) => {
         if (!value) return "—";
-
         return new Date(value).toLocaleString();
     };
 
     const filtered = logs.filter((entry) => {
         if (!search) return true;
-
         const needle = search.toLowerCase();
-
         return [
             entry.description,
             entry.table_name,
@@ -168,31 +112,34 @@ export default function RecentActivity() {
         switch (action) {
             case "created":
                 return "✚";
-
             case "deleted":
                 return "✕";
-
             case "status_changed":
                 return "⟳";
-
             case "verification_updated":
                 return "✓";
-
             default:
                 return "•";
         }
     };
 
+    const actionColor = (action) => {
+        switch (action) {
+            case "created":
+                return { bg: "#dcfce7", color: "#166534" };
+            case "deleted":
+                return { bg: "#fee2e2", color: "#991b1b" };
+            case "status_changed":
+                return { bg: "#dbeafe", color: "#1e40af" };
+            case "verification_updated":
+                return { bg: "#ede9fe", color: "#6d28d9" };
+            default:
+                return { bg: "#e5e7eb", color: "#374151" };
+        }
+    };
+
     return (
         <AdminLayout>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            <AdminPage>
-                <AdminPageHeader>
-                    <AdminPageLabel>SYSTEM ACTIVITY</AdminPageLabel>
-=======
-=======
->>>>>>> Stashed changes
             <div className="admin-dashboard recent-activity-page">
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
@@ -200,106 +147,17 @@ export default function RecentActivity() {
                             <span className="section-label">
                                 SYSTEM ACTIVITY
                             </span>
->>>>>>> Stashed changes
 
-                    <h1>Recent Activity</h1>
-
-                    <p>
-                        A chronological log of every important action performed
-                        on the system. Use the filters below to narrow down by
-                        action type.
-                    </p>
-                </AdminPageHeader>
-
-                {error && (
-                    <AdminMessages>
-                        <Alert severity="error">{error}</Alert>
-                    </AdminMessages>
-                )}
-
-                <AdminSection>
-                    <AdminFilterBar>
-                        <AdminSearchField
-                            type="search"
-                            size="small"
-                            label="Search Activity"
-                            placeholder="Search descriptions, actors, table names..."
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                        />
-
-                        <AdminFilterField
-                            select
-                            size="small"
-                            label="Action"
-                            value={actionFilter}
-                            onChange={(event) =>
-                                setActionFilter(event.target.value)
-                            }
-                        >
-                            {ACTION_FILTERS.map((filter) => (
-                                <MenuItem
-                                    key={filter.value}
-                                    value={filter.value}
-                                >
-                                    {filter.label}
-                                </MenuItem>
-                            ))}
-                        </AdminFilterField>
-
-                        {meta && (
-                            <AdminResultsCount>
-                                Page {meta.current_page} of {meta.last_page} •
-                                Total {meta.total} entries
-                            </AdminResultsCount>
-                        )}
-                    </AdminFilterBar>
-                </AdminSection>
-
-                <AdminSection>
-                    {loading ? (
-                        <AdminPageState>
-                            <CircularProgress color="success" size={32} />
-
-                            <p>Loading activity...</p>
-                        </AdminPageState>
-                    ) : filtered.length === 0 ? (
-                        <AdminEmptyState>
-                            <AdminEmptyIcon>📊</AdminEmptyIcon>
-
-                            <h3>No Activity Found</h3>
+                            <h1>Recent Activity</h1>
 
                             <p>
-                                No activity matches your current filters. Try a
-                                different action type or clear the search.
+                                A chronological log of every important action
+                                performed on the system. Use the filters below
+                                to narrow down by action type.
                             </p>
-                        </AdminEmptyState>
-                    ) : (
-                        <AdminTableWrapper>
-                            <AdminDataTable>
-                                <TableHead>
-                                    <AdminTableRow>
-                                        <ActivityTypeHeaderCell>
-                                            Type
-                                        </ActivityTypeHeaderCell>
+                        </div>
+                    </div>
 
-<<<<<<< Updated upstream
-                                        <AdminTableHeaderCell>
-                                            Description
-                                        </AdminTableHeaderCell>
-
-                                        <AdminTableHeaderCell>
-                                            Actor
-                                        </AdminTableHeaderCell>
-
-                                        <AdminTableHeaderCell>
-                                            Target
-                                        </AdminTableHeaderCell>
-
-                                        <AdminTableHeaderCell>
-                                            IP Address
-                                        </AdminTableHeaderCell>
-=======
                     <section className="dashboard-section">
                         <div className="admin-filters filter-bar">
                             <input
@@ -390,70 +248,13 @@ export default function RecentActivity() {
                                             <th>When</th>
                                         </tr>
                                     </thead>
->>>>>>> Stashed changes
 
-                                        <AdminTableHeaderCell>
-                                            When
-                                        </AdminTableHeaderCell>
-                                    </AdminTableRow>
-                                </TableHead>
+                                    <tbody>
+                                        {filtered.map((entry) => {
+                                            const color = actionColor(
+                                                entry.action
+                                            );
 
-<<<<<<< Updated upstream
-                                <TableBody>
-                                    {filtered.map((entry) => (
-                                        <AdminTableRow key={entry.audit_log_id}>
-                                            <ActivityIconCell>
-                                                <ActivityIcon
-                                                    actionType={entry.action}
-                                                    title={entry.action}
-                                                >
-                                                    {actionIcon(entry.action)}
-                                                </ActivityIcon>
-                                            </ActivityIconCell>
-
-                                            <AdminTableDataCell>
-                                                <AdminTablePrimaryText>
-                                                    {entry.description || "—"}
-                                                </AdminTablePrimaryText>
-
-                                                <ActivitySecondaryText>
-                                                    Action:{" "}
-                                                    <ActivityCode>
-                                                        {entry.action}
-                                                    </ActivityCode>
-                                                </ActivitySecondaryText>
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                <AdminTablePrimaryText>
-                                                    {actorName(entry)}
-                                                </AdminTablePrimaryText>
-
-                                                <ActivitySecondaryText>
-                                                    {actorRole(entry)}
-                                                </ActivitySecondaryText>
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                <ActivityCode>
-                                                    {entry.table_name}
-                                                </ActivityCode>{" "}
-                                                #{entry.record_id}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {entry.ip_address || "—"}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {formatDate(entry.created_at)}
-                                            </AdminTableDataCell>
-                                        </AdminTableRow>
-                                    ))}
-                                </TableBody>
-                            </AdminDataTable>
-                        </AdminTableWrapper>
-=======
                                             return (
                                                 <tr key={entry.audit_log_id}>
                                                     <td>
@@ -543,40 +344,9 @@ export default function RecentActivity() {
                                 </li>
                             </ul>
                         </nav>
->>>>>>> Stashed changes
                     )}
-                </AdminSection>
-
-                {meta && meta.last_page > 1 && (
-                    <ActivityPagination aria-label="Activity pagination">
-                        <Button
-                            type="button"
-                            variant="outlined"
-                            color="secondary"
-                            size="small"
-                            disabled={page <= 1 || loading}
-                            onClick={() => goToPage(page - 1)}
-                        >
-                            ← Previous
-                        </Button>
-
-                        <ActivityPageIndicator>
-                            Page {page} of {meta.last_page}
-                        </ActivityPageIndicator>
-
-                        <Button
-                            type="button"
-                            variant="outlined"
-                            color="secondary"
-                            size="small"
-                            disabled={page >= meta.last_page || loading}
-                            onClick={() => goToPage(page + 1)}
-                        >
-                            Next →
-                        </Button>
-                    </ActivityPagination>
-                )}
-            </AdminPage>
+                </div>
+            </div>
         </AdminLayout>
     );
 }

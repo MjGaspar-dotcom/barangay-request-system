@@ -1,67 +1,9 @@
 import { useEffect, useState } from "react";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { Controller, useForm } from "react-hook-form";
-import {
-    Alert,
-    Button,
-    CircularProgress,
-    TableBody,
-    TableHead,
-    TextField,
-} from "@mui/material";
-import FieldValidationError from "../../components/forms/FieldValidationError";
-import api from "../../services/api";
-import AdminLayout from "../../layouts/AdminLayout";
-import StatusBadge from "../../components/ui/StatusBadge";
-import {
-    AdminDataTable,
-    AdminEmptyIcon,
-    AdminEmptyState,
-    AdminFilterBar,
-    AdminMessages,
-    AdminMutedText,
-    AdminPage,
-    AdminPageHeader,
-    AdminPageLabel,
-    AdminPageState,
-    AdminResultsCount,
-    AdminRowActions,
-    AdminSearchField,
-    AdminSection,
-    AdminTableDataCell,
-    AdminTableHeaderCell,
-    AdminTablePrimaryText,
-    AdminTableRow,
-    AdminTableWrapper,
-} from "../../components/admin/AdminCrud.styles";
-import {
-    DocumentActionsHeaderCell,
-    DocumentDescriptionCell,
-    DocumentFormActions,
-    DocumentFormField,
-    DocumentFormGrid,
-    DocumentFormTitle,
-    DocumentFullField,
-    DocumentPageHeaderRow,
-    DocumentStatusControl,
-    DocumentStatusField,
-    DocumentStatusSwitch,
-} from "./ManageDocumentTypes.styles";
-=======
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
->>>>>>> Stashed changes
-=======
-import Table from "react-bootstrap/Table";
-import Button from "../../components/ui/Button";
-import api from "../../services/api";
-import AdminLayout from "../../layouts/AdminLayout";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
->>>>>>> Stashed changes
 
 import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
@@ -74,8 +16,9 @@ const EMPTY_FORM = {
 export default function ManageDocumentTypes() {
     const [documentTypes, setDocumentTypes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setErrorMessage] = useState("");
+    const [error, setError] = useState("");
     const [search, setSearch] = useState("");
+    const [form, setForm] = useState(EMPTY_FORM);
     const [editingId, setEditingId] = useState(null);
     const [formError, setFormError] = useState("");
     const [actionMessage, setActionMessage] = useState("");
@@ -84,34 +27,16 @@ export default function ManageDocumentTypes() {
     const [showForm, setShowForm] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [actionMessageType, setActionMessageType] = useState("success");
-<<<<<<< Updated upstream
-
-    const {
-        control,
-        handleSubmit,
-        setError,
-        clearErrors,
-        reset,
-        formState: { errors },
-    } = useForm({
-        defaultValues: EMPTY_FORM,
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-    });
-=======
->>>>>>> Stashed changes
 
     const fetchDocumentTypes = async () => {
         try {
             setLoading(true);
-
             const response = await api.get("/document-types");
-
             setDocumentTypes(response.data.data || []);
-            setErrorMessage("");
+            setError("");
         } catch (err) {
             console.error(err);
-            setErrorMessage("Failed to load document types.");
+            setError("Failed to load document types.");
         } finally {
             setLoading(false);
         }
@@ -124,12 +49,9 @@ export default function ManageDocumentTypes() {
     const flash = (message) => {
         setActionMessageType("success");
         setActionMessage(message);
+        window.setTimeout(() => setActionMessage(""), 4000);
+    };
 
-<<<<<<< Updated upstream
-        window.setTimeout(() => {
-            setActionMessage("");
-        }, 4000);
-=======
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;
         setForm((previous) => ({
@@ -141,73 +63,41 @@ export default function ManageDocumentTypes() {
                       ? Number(value)
                       : value,
         }));
->>>>>>> Stashed changes
     };
 
     const handleEdit = (docType) => {
-        reset({
+        setForm({
             document_name: docType.document_name,
             description: docType.description || "",
             processing_days: docType.processing_days,
             is_active: Boolean(docType.is_active),
         });
-
-        clearErrors();
         setEditingId(docType.document_type_id);
         setShowForm(true);
         setFormError("");
     };
 
     const handleCancel = () => {
-        reset(EMPTY_FORM);
-        clearErrors();
+        setForm(EMPTY_FORM);
         setEditingId(null);
         setShowForm(false);
         setFormError("");
     };
 
-<<<<<<< Updated upstream
-    const applyServerValidationErrors = (validationErrors) => {
-        let hasMappedError = false;
-
-        Object.entries(validationErrors).forEach(([fieldName, messages]) => {
-            if (!Object.prototype.hasOwnProperty.call(EMPTY_FORM, fieldName)) {
-                return;
-            }
-
-            const message = Array.isArray(messages) ? messages[0] : messages;
-
-            setError(fieldName, {
-                type: "server",
-                message,
-            });
-
-            hasMappedError = true;
-        });
-
-        return hasMappedError;
-    };
-
-    const submitDocumentType = async (values) => {
-=======
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         if (!validateForm(event.currentTarget)) return;
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         setFormError("");
 
         try {
             setSubmitting(true);
 
             if (editingId) {
-                await api.put(`/document-types/${editingId}`, values);
+                await api.put(`/document-types/${editingId}`, form);
                 flash("Document type updated successfully.");
             } else {
-                await api.post("/document-types", values);
+                await api.post("/document-types", form);
                 flash("Document type created successfully.");
             }
 
@@ -215,19 +105,7 @@ export default function ManageDocumentTypes() {
             await fetchDocumentTypes();
         } catch (err) {
             console.error(err);
-
             if (err.response?.status === 422) {
-<<<<<<< Updated upstream
-                const validationErrors = err.response.data.errors || {};
-                const hasMappedError =
-                    applyServerValidationErrors(validationErrors);
-
-                if (!hasMappedError) {
-                    setFormError(
-                        "Please review the document type information and try again.",
-                    );
-                }
-=======
                 const errors = err.response.data.errors || {};
                 const firstKey = Object.keys(errors)[0];
                 setFormError(
@@ -235,7 +113,6 @@ export default function ManageDocumentTypes() {
                         ? errors[firstKey][0]
                         : "Please check the form for errors.",
                 );
->>>>>>> Stashed changes
             } else {
                 setFormError(
                     err.response?.data?.message ||
@@ -248,46 +125,15 @@ export default function ManageDocumentTypes() {
     };
 
     const handleDelete = async (docType) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        const confirmDelete = window.confirm(
-            `Delete document type "${docType.document_name}"? This cannot be undone.`,
-        );
-
-        if (!confirmDelete) return;
-
-        try {
-            setBusyId(docType.document_type_id);
-
-            await api.delete(`/document-types/${docType.document_type_id}`);
-
-=======
         try {
             setBusyId(docType.document_type_id);
             await api.delete(`/document-types/${docType.document_type_id}`);
->>>>>>> Stashed changes
-=======
-        try {
-            setBusyId(docType.document_type_id);
-            await api.delete(`/document-types/${docType.document_type_id}`);
->>>>>>> Stashed changes
             flash(`Document type "${docType.document_name}" has been deleted.`);
-
             await fetchDocumentTypes();
         } catch (err) {
             console.error(err);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-            alert(
-=======
             setActionMessageType("danger");
             setActionMessage(
->>>>>>> Stashed changes
-=======
-            setActionMessageType("danger");
-            setActionMessage(
->>>>>>> Stashed changes
                 err.response?.data?.message ||
                     "Failed to delete document type.",
             );
@@ -299,29 +145,17 @@ export default function ManageDocumentTypes() {
     const handleToggleActive = async (docType) => {
         try {
             setBusyId(docType.document_type_id);
-
             await api.put(`/document-types/${docType.document_type_id}`, {
                 document_name: docType.document_name,
                 description: docType.description || "",
                 processing_days: docType.processing_days,
                 is_active: !docType.is_active,
             });
-
             await fetchDocumentTypes();
         } catch (err) {
             console.error(err);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-            alert(
-=======
             setActionMessageType("danger");
             setActionMessage(
->>>>>>> Stashed changes
-=======
-            setActionMessageType("danger");
-            setActionMessage(
->>>>>>> Stashed changes
                 err.response?.data?.message ||
                     "Failed to update document type.",
             );
@@ -332,9 +166,7 @@ export default function ManageDocumentTypes() {
 
     const filtered = documentTypes.filter((docType) => {
         if (!search) return true;
-
         const needle = search.toLowerCase();
-
         return [docType.document_name, docType.description]
             .filter(Boolean)
             .join(" ")
@@ -345,18 +177,12 @@ export default function ManageDocumentTypes() {
     if (loading) {
         return (
             <AdminLayout>
-<<<<<<< Updated upstream
-                <AdminPageState>
-                    <CircularProgress color="success" size={32} />
-
-=======
                 <div className="page-loading">
                     <div className="spinner-border text-success" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
->>>>>>> Stashed changes
                     <p>Loading document types...</p>
-                </AdminPageState>
+                </div>
             </AdminLayout>
         );
     }
@@ -364,25 +190,15 @@ export default function ManageDocumentTypes() {
     if (error) {
         return (
             <AdminLayout>
-                <AdminPageState>
-                    <Alert severity="error">{error}</Alert>
-                </AdminPageState>
+                <div className="page-loading">
+                    <p>{error}</p>
+                </div>
             </AdminLayout>
         );
     }
 
     return (
         <AdminLayout>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            <AdminPage>
-                <AdminPageHeader>
-                    <DocumentPageHeaderRow>
-                        <div>
-                            <AdminPageLabel>DOCUMENT TYPES</AdminPageLabel>
-=======
-=======
->>>>>>> Stashed changes
             <div className="admin-dashboard manage-document-types-page">
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
@@ -391,414 +207,16 @@ export default function ManageDocumentTypes() {
                                 <span className="section-label">
                                     DOCUMENT TYPES
                                 </span>
->>>>>>> Stashed changes
 
-                            <h1>Manage Document Types</h1>
+                                <h1>Manage Document Types</h1>
 
-                            <p>
-                                Create, edit, and manage the document services
-                                offered by the barangay to residents and walk-in
-                                guests.
-                            </p>
-                        </div>
+                                <p>
+                                    Create, edit, and manage the document
+                                    services offered by the barangay to
+                                    residents and walk-in guests.
+                                </p>
+                            </div>
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                        <Button
-                            type="button"
-                            variant="contained"
-                            color="success"
-                            onClick={() => {
-                                if (showForm && !editingId) {
-                                    handleCancel();
-                                } else {
-                                    reset(EMPTY_FORM);
-                                    clearErrors();
-                                    setEditingId(null);
-                                    setShowForm(true);
-                                    setFormError("");
-                                }
-                            }}
-                        >
-                            {showForm && !editingId
-                                ? "Close Form"
-                                : "＋ New Document Type"}
-                        </Button>
-                    </DocumentPageHeaderRow>
-                </AdminPageHeader>
-
-                {actionMessage && (
-                    <AdminMessages>
-                        <Alert severity="success">{actionMessage}</Alert>
-                    </AdminMessages>
-                )}
-
-                {showForm && (
-                    <AdminSection>
-                        <DocumentFormTitle>
-                            {editingId
-                                ? "Edit Document Type"
-                                : "New Document Type"}
-                        </DocumentFormTitle>
-
-                        <form
-                            onSubmit={handleSubmit(submitDocumentType)}
-                            noValidate
-                        >
-                            <DocumentFormGrid>
-                                <DocumentFormField>
-                                    <Controller
-                                        name="document_name"
-                                        control={control}
-                                        rules={{
-                                            required:
-                                                "Document name is required.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="document-name"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Document Name"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.document_name,
-                                                )}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.document_name,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.document_name
-                                                                ? "document-name-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="document-name-error"
-                                        error={errors.document_name}
-                                    />
-                                </DocumentFormField>
-
-                                <DocumentFormField>
-                                    <Controller
-                                        name="processing_days"
-                                        control={control}
-                                        rules={{
-                                            required:
-                                                "Processing days is required.",
-                                            min: {
-                                                value: 1,
-                                                message:
-                                                    "Processing days must be at least 1.",
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="processing-days"
-                                                type="number"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Processing Days"
-                                                value={field.value}
-                                                onChange={(event) =>
-                                                    field.onChange(
-                                                        Number(
-                                                            event.target.value,
-                                                        ),
-                                                    )
-                                                }
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.processing_days,
-                                                )}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        min: 1,
-                                                        "aria-invalid": Boolean(
-                                                            errors.processing_days,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.processing_days
-                                                                ? "processing-days-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="processing-days-error"
-                                        error={errors.processing_days}
-                                    />
-                                </DocumentFormField>
-
-                                <DocumentStatusField>
-                                    <Controller
-                                        name="is_active"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <DocumentStatusControl
-                                                control={
-                                                    <DocumentStatusSwitch
-                                                        name={field.name}
-                                                        checked={field.value}
-                                                        onChange={(event) =>
-                                                            field.onChange(
-                                                                event.target
-                                                                    .checked,
-                                                            )
-                                                        }
-                                                        inputRef={field.ref}
-                                                        color="success"
-                                                    />
-                                                }
-                                                label={
-                                                    field.value
-                                                        ? "Active"
-                                                        : "Inactive"
-                                                }
-                                            />
-                                        )}
-                                    />
-                                </DocumentStatusField>
-
-                                <DocumentFullField>
-                                    <Controller
-                                        name="description"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="document-description"
-                                                name={field.name}
-                                                fullWidth
-                                                multiline
-                                                minRows={3}
-                                                label="Description"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                            />
-                                        )}
-                                    />
-                                </DocumentFullField>
-                            </DocumentFormGrid>
-
-                            {formError && (
-                                <FieldValidationError
-                                    id="document-type-form-error"
-                                    error={formError}
-                                />
-                            )}
-
-                            <DocumentFormActions>
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    color="success"
-                                    disabled={submitting}
-                                >
-                                    {submitting
-                                        ? "Saving..."
-                                        : editingId
-                                          ? "Save Changes"
-                                          : "Create Document Type"}
-                                </Button>
-
-                                <Button
-                                    type="button"
-                                    variant="outlined"
-                                    color="secondary"
-                                    disabled={submitting}
-                                    onClick={handleCancel}
-                                >
-                                    Cancel
-                                </Button>
-                            </DocumentFormActions>
-                        </form>
-                    </AdminSection>
-                )}
-
-                <AdminSection>
-                    <AdminFilterBar>
-                        <AdminSearchField
-                            type="search"
-                            size="small"
-                            label="Search Document Types"
-                            placeholder="Search by name or description..."
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                        />
-
-                        <AdminResultsCount>
-                            Showing {filtered.length} of {documentTypes.length}{" "}
-                            document
-                            {documentTypes.length === 1 ? "" : "s"}
-                        </AdminResultsCount>
-                    </AdminFilterBar>
-                </AdminSection>
-
-                <AdminSection>
-                    {filtered.length === 0 ? (
-                        <AdminEmptyState>
-                            <AdminEmptyIcon>📄</AdminEmptyIcon>
-
-                            <h3>No Document Types Found</h3>
-
-                            <p>
-                                No document types match the current filters. Use
-                                the "New Document Type" button to add one.
-                            </p>
-                        </AdminEmptyState>
-                    ) : (
-                        <AdminTableWrapper>
-                            <AdminDataTable>
-                                <TableHead>
-                                    <AdminTableRow>
-                                        <AdminTableHeaderCell>
-                                            Name
-                                        </AdminTableHeaderCell>
-
-                                        <AdminTableHeaderCell>
-                                            Description
-                                        </AdminTableHeaderCell>
-
-                                        <AdminTableHeaderCell>
-                                            Processing Days
-                                        </AdminTableHeaderCell>
-
-                                        <AdminTableHeaderCell>
-                                            Status
-                                        </AdminTableHeaderCell>
-
-                                        <DocumentActionsHeaderCell>
-                                            Actions
-                                        </DocumentActionsHeaderCell>
-                                    </AdminTableRow>
-                                </TableHead>
-
-                                <TableBody>
-                                    {filtered.map((docType) => (
-                                        <AdminTableRow
-                                            key={docType.document_type_id}
-                                        >
-                                            <AdminTableDataCell>
-                                                <AdminTablePrimaryText>
-                                                    {docType.document_name}
-                                                </AdminTablePrimaryText>
-                                            </AdminTableDataCell>
-
-                                            <DocumentDescriptionCell>
-                                                {docType.description || (
-                                                    <AdminMutedText>
-                                                        No description
-                                                    </AdminMutedText>
-                                                )}
-                                            </DocumentDescriptionCell>
-
-                                            <AdminTableDataCell>
-                                                {docType.processing_days} day
-                                                {docType.processing_days === 1
-                                                    ? ""
-                                                    : "s"}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                <StatusBadge
-                                                    status={
-                                                        docType.is_active
-                                                            ? "Active"
-                                                            : "Inactive"
-                                                    }
-                                                />
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                <AdminRowActions>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outlined"
-                                                        color="success"
-                                                        size="small"
-                                                        disabled={
-                                                            busyId ===
-                                                            docType.document_type_id
-                                                        }
-                                                        onClick={() =>
-                                                            handleEdit(docType)
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </Button>
-
-                                                    <Button
-                                                        type="button"
-                                                        variant="outlined"
-                                                        color={
-                                                            docType.is_active
-                                                                ? "warning"
-                                                                : "success"
-                                                        }
-                                                        size="small"
-                                                        disabled={
-                                                            busyId ===
-                                                            docType.document_type_id
-                                                        }
-                                                        onClick={() =>
-                                                            handleToggleActive(
-                                                                docType,
-                                                            )
-                                                        }
-                                                    >
-                                                        {docType.is_active
-                                                            ? "Deactivate"
-                                                            : "Activate"}
-                                                    </Button>
-
-                                                    <Button
-                                                        type="button"
-                                                        variant="outlined"
-                                                        color="error"
-                                                        size="small"
-                                                        disabled={
-                                                            busyId ===
-                                                            docType.document_type_id
-                                                        }
-                                                        onClick={() =>
-                                                            handleDelete(
-                                                                docType,
-                                                            )
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                </AdminRowActions>
-                                            </AdminTableDataCell>
-                                        </AdminTableRow>
-                                    ))}
-                                </TableBody>
-                            </AdminDataTable>
-                        </AdminTableWrapper>
-                    )}
-                </AdminSection>
-            </AdminPage>
-=======
-=======
->>>>>>> Stashed changes
                             <Button
                                 type="button"
                                 className="btn btn-success document-type-create-button"
@@ -1120,10 +538,6 @@ export default function ManageDocumentTypes() {
                 Delete document type “{deleteTarget?.document_name}”? This
                 cannot be undone.
             </ConfirmDialog>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         </AdminLayout>
     );
 }

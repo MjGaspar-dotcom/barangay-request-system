@@ -3,10 +3,8 @@ import { createRoot } from "react-dom/client";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 
 import ErrorBoundary from "./components/ErrorBoundary";
-<<<<<<< Updated upstream
 import { AuthProvider } from "./contexts/AuthProvider";
-import theme from "./theme/theme";
-=======
+import theme from "./theme/theme"
 
 import "./styles/tokens.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -20,7 +18,7 @@ import "./styles/direction-c.css";
 
 import "bootstrap-icons/font/bootstrap-icons.css";
 
->>>>>>> Stashed changes
+
 import App from "./App";
 
 if (import.meta.env.DEV) {

@@ -1,99 +1,60 @@
 import { useState } from "react";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import FieldValidationError from "../../components/forms/FieldValidationError";
-=======
-=======
->>>>>>> Stashed changes
 import BrandMark from "../../components/ui/BrandMark";
 import { Link, useNavigate } from "react-router-dom";
->>>>>>> Stashed changes
 import { useAuth } from "../../hooks/useAuth";
-import {
-    AuthCard,
-    AuthDescription,
-    AuthFooter,
-    AuthFooterLink,
-    AuthForm,
-    AuthFormField,
-    AuthHeader,
-    AuthLabel,
-    AuthLogo,
-    AuthPage,
-    AuthSubmitButton,
-    AuthTitle,
-} from "../../styles/auth.styles";
 
 import { validateForm } from "../../utils/validateForm";
 function StaffLogin() {
     // Get the shared login function from AuthContext.
     // This sends the username and password to the Laravel API.
-    const { login } = useAuth();
+    const { login, logout } = useAuth();
 
     // Used to redirect the Staff after successful login.
     const navigate = useNavigate();
 
-<<<<<<< Updated upstream
-=======
     // Store the values entered into the login form.
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
->>>>>>> Stashed changes
     // Stores an error message when login fails.
-    const [loginError, setLoginError] = useState("");
+    const [error, setError] = useState("");
 
     // Prevents multiple submissions while login is processing.
     const [loading, setLoading] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm({
-        defaultValues: {
-            username: "",
-            password: "",
-        },
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-    });
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     // Handles submission of the Staff login form.
-    const submitLogin = async (values) => {
-=======
+    const handleSubmit = async (event) => {
+        // Prevent the browser from refreshing the page.
+        event.preventDefault();
+
         if (!validateForm(event.currentTarget)) return;
 
->>>>>>> Stashed changes
-=======
-        if (!validateForm(event.currentTarget)) return;
-
->>>>>>> Stashed changes
         // Remove any previous error before attempting login.
-        setLoginError("");
+        setError("");
 
         // Disable the login button while the request is processing.
         setLoading(true);
 
         try {
             // Send the credentials to the shared authentication function.
-            await login(values.username, values.password);
+            const response = await login(username, password);
+
+            if (response.role !== "staff") {
+                await logout();
+                setError("This account does not have staff access.");
+                return;
+            }
 
             // Login succeeded, so redirect the Staff to their dashboard.
             navigate("/staff/dashboard");
         } catch (error) {
             // HTTP 401 means the username or password is incorrect.
             if (error.response?.status === 401) {
-                setLoginError("Invalid username or password.");
+                setError("Invalid username or password.");
             } else {
                 // Handles other problems such as server or network errors.
-                setLoginError("Login failed. Please try again.");
+                setError("Login failed. Please try again.");
             }
         } finally {
             // Always stop the loading state after the request finishes.
@@ -101,23 +62,7 @@ function StaffLogin() {
         }
     };
 
-    const usernameField = register("username", {
-        required: "Username is required.",
-    });
-
-    const passwordField = register("password", {
-        required: "Password is required.",
-    });
-
     return (
-<<<<<<< Updated upstream
-        <AuthPage>
-            <AuthCard>
-                <AuthHeader>
-                    <AuthLogo>B</AuthLogo>
-
-                    <AuthLabel>STAFF PORTAL</AuthLabel>
-=======
         <div className="portal-auth-page">
             <div className="portal-auth-card">
                 <Link
@@ -131,106 +76,25 @@ function StaffLogin() {
 
                 <div className="portal-auth-header">
                     <BrandMark className="auth-logo" />
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
-                    <AuthTitle>Staff Login</AuthTitle>
+                    <span className="portal-auth-label">
+                        STAFF PORTAL
+                    </span>
 
-                    <AuthDescription>
-                        Sign in to manage and process barangay document
-                        requests.
-                    </AuthDescription>
-                </AuthHeader>
+                    <h1>Barangay Document System</h1>
 
-                <AuthForm onSubmit={handleSubmit(submitLogin)} noValidate>
-                    <AuthFormField>
-                        <TextField
-                            id="staff-username"
-                            name={usernameField.name}
-                            type="text"
-                            fullWidth
-                            required
-                            label="Username"
-                            autoComplete="username"
-                            onChange={usernameField.onChange}
-                            onBlur={usernameField.onBlur}
-                            inputRef={usernameField.ref}
-                            error={Boolean(errors.username)}
-                            placeholder="Enter your username"
-                            slotProps={{
-                                htmlInput: {
-                                    "aria-invalid": Boolean(errors.username),
-                                    "aria-describedby": errors.username
-                                        ? "staff-username-error"
-                                        : undefined,
-                                },
-                            }}
-                        />
+                    <p>
+                        Integrated Document Request, Processing, and Analytics
+                        System
+                    </p>
+                </div>
 
-                        <FieldValidationError
-                            id="staff-username-error"
-                            error={errors.username}
-                        />
-                    </AuthFormField>
+                <div className="portal-auth-body">
+                    <div className="portal-auth-welcome">
+                        <h2>Welcome Back!</h2>
+                        <p>Please sign in to continue</p>
+                    </div>
 
-<<<<<<< Updated upstream
-                    <AuthFormField>
-                        <TextField
-                            id="staff-password"
-                            name={passwordField.name}
-                            type="password"
-                            fullWidth
-                            required
-                            label="Password"
-                            autoComplete="current-password"
-                            onChange={passwordField.onChange}
-                            onBlur={passwordField.onBlur}
-                            inputRef={passwordField.ref}
-                            error={Boolean(errors.password)}
-                            placeholder="Enter your password"
-                            slotProps={{
-                                htmlInput: {
-                                    "aria-invalid": Boolean(errors.password),
-                                    "aria-describedby": errors.password
-                                        ? "staff-password-error"
-                                        : undefined,
-                                },
-                            }}
-                        />
-
-                        <FieldValidationError
-                            id="staff-password-error"
-                            error={errors.password}
-                        />
-                    </AuthFormField>
-
-                    {loginError && (
-                        <FieldValidationError
-                            id="staff-login-error"
-                            error={loginError}
-                        />
-                    )}
-
-                    <AuthSubmitButton
-                        type="submit"
-                        variant="contained"
-                        color="success"
-                        disabled={loading}
-                    >
-                        {loading ? "Signing in..." : "Sign In"}
-                    </AuthSubmitButton>
-                </AuthForm>
-
-                <AuthFooter>
-                    <AuthFooterLink to="/">
-                        ← Back to Home
-                    </AuthFooterLink>
-                </AuthFooter>
-            </AuthCard>
-        </AuthPage>
-=======
                     {error && (
                         <div className="portal-auth-error" role="alert">
                             <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
@@ -302,7 +166,6 @@ function StaffLogin() {
                 </div>
             </div>
         </div>
->>>>>>> Stashed changes
     );
 }
 

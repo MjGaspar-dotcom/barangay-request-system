@@ -1,36 +1,27 @@
+import { Link } from "react-router-dom";
 import NavLinks from "./NavLinks";
-import {
-    MobileLoginLink,
-    MobileMenuActions,
-    MobileMenuRoot,
-    MobileRegisterLink,
-} from "./MobileMenu.styles";
 
 function MobileMenu({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        <MobileMenuRoot>
-            <NavLinks isMobile onLinkClick={onClose} />
-=======
-=======
->>>>>>> Stashed changes
         <div className="mobile-menu" id="mobile-navigation-menu">
             <NavLinks onLinkClick={onClose} />
->>>>>>> Stashed changes
 
-            <MobileMenuActions>
-                <MobileLoginLink to="/login" onClick={onClose}>
+            <div className="mobile-menu-actions">
+                <Link to="/login" onClick={onClose} className="login-link">
                     Login
-                </MobileLoginLink>
+                </Link>
 
-                <MobileRegisterLink to="/register" onClick={onClose}>
+                <Link
+                    to="/register"
+                    onClick={onClose}
+                    className="register-button"
+                >
                     Register
-                </MobileRegisterLink>
-            </MobileMenuActions>
-        </MobileMenuRoot>
+                </Link>
+            </div>
+        </div>
     );
 }
 

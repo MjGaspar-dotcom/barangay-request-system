@@ -1,30 +1,8 @@
-import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
-import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import HistoryRoundedIcon from "@mui/icons-material/HistoryRounded";
-import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
-import PeopleOutlineRoundedIcon from "@mui/icons-material/PeopleOutlineRounded";
-import SummarizeRoundedIcon from "@mui/icons-material/SummarizeRounded";
-import { Chip } from "@mui/material";
-import ActionCard from "../../components/ui/ActionCard";
-import EmptyState from "../../components/ui/EmptyState";
-import PageHeader from "../../components/ui/PageHeader";
-import PortalWorkspace from "../../components/ui/PortalWorkspace";
-import SectionCard from "../../components/ui/SectionCard";
-import StatCard from "../../components/ui/StatCard";
-import { useAuth } from "../../hooks/useAuth";
-<<<<<<< Updated upstream
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import PortalLayout from "../../layouts/PortalLayout";
-import {
-    AdminAnalyticsContent,
-    AdminAnalyticsNote,
-    AdminAnalyticsValue,
-    AdminBottomGrid,
-    AdminManagementGrid,
-    AdminOverviewGrid,
-    AdminPortal,
-} from "./Dashboard.styles";
-=======
+import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 const navigationItems = [
@@ -38,7 +16,6 @@ const navigationItems = [
 
 const count = (value) =>
     Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
->>>>>>> Stashed changes
 
 /*
 |--------------------------------------------------------------------------
@@ -49,137 +26,402 @@ const count = (value) =>
 | Administrators have a wider view of the system than staff members.
 | They can monitor the overall system and access management areas.
 |
-| The statistics below are placeholders until the dashboard API is connected.
 |--------------------------------------------------------------------------
 */
 
 function Dashboard() {
     const { user } = useAuth();
+    const [stats, setStats] = useState(null);
+    const [activity, setActivity] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
 
+    const fetchDashboard = useCallback(async () => {
+        const [statsResponse, activityResponse] = await Promise.all([
+            api.get("/admin/stats"),
+            api.get("/admin/recent-activity", {
+                params: { per_page: 5 },
+            }),
+        ]);
+        const activityPage = activityResponse.data?.data;
+
+        if (
+            !statsResponse.data?.data ||
+            !Array.isArray(activityPage?.data)
+        ) {
+            throw new Error("Unexpected dashboard response.");
+        }
+
+        return {
+            stats: statsResponse.data.data,
+            activity: activityPage.data,
+        };
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+
+        const loadDashboard = async () => {
+            try {
+                const data = await fetchDashboard();
+                if (active) {
+                    setStats(data.stats);
+                    setActivity(data.activity);
+                }
+            } catch (fetchError) {
+                console.error(
+                    "Failed to load administrator dashboard:",
+                    fetchError
+                );
+                if (active) {
+                    setError(
+                        "Failed to load dashboard data. Please try again."
+                    );
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadDashboard();
+
+        return () => {
+            active = false;
+        };
+    }, [fetchDashboard, refreshKey]);
+
+    const handleRetry = () => {
+        setLoading(true);
+        setError("");
+        setRefreshKey((current) => current + 1);
+    };
+
+    /*
+     * Display the administrator's name when available.
+     */
     const adminName =
         user?.first_name || user?.firstName || user?.name || "Administrator";
 
     return (
-        <PortalLayout portalLabel="ADMINISTRATION">
-            <AdminPortal>
-                <PortalWorkspace>
-                    <PageHeader
-                        eyebrow="Administrator Portal"
-                        title={
-                            <>
-                                Welcome, <strong>{adminName}</strong>
-                            </>
-                        }
-                        description="Monitor the document request system and manage its users, staff, requests, and services."
-                        action={
-                            <Chip
-                                label="System Online"
-                                color="success"
-                                size="small"
-                                variant="outlined"
-                            />
-                        }
-                    />
-
-                    <AdminOverviewGrid>
-                        <StatCard
-                            label="Document Requests"
-                            value="0"
-                            description="Total requests"
-                            icon={<AssignmentOutlinedIcon />}
-                        />
-
-                        <StatCard
-                            label="Users"
-                            value="0"
-                            description="Registered residents"
-                            icon={<PeopleOutlineRoundedIcon />}
-                        />
-
-                        <StatCard
-                            label="Staff"
-                            value="0"
-                            description="Active staff accounts"
-                            icon={<BadgeOutlinedIcon />}
-                        />
-
-                        <StatCard
-                            label="Document Types"
-                            value="0"
-                            description="Available services"
-                            icon={<DescriptionOutlinedIcon />}
-                        />
-                    </AdminOverviewGrid>
-
-                    <SectionCard
-                        eyebrow="System Management"
-                        title="Administration"
-                    >
-                        <AdminManagementGrid>
-                            <ActionCard
-                                to="/admin/users"
-                                icon={<PeopleOutlineRoundedIcon />}
-                                title="User Management"
-                                description="Manage resident accounts and user information."
-                            />
-
-                            <ActionCard
-                                to="/admin/staff"
-                                icon={<BadgeOutlinedIcon />}
-                                title="Staff Management"
-                                description="Manage staff accounts and access."
-                            />
-
-                            <ActionCard
-                                to="/admin/requests"
-                                icon={<AssignmentOutlinedIcon />}
-                                title="Document Requests"
-                                description="Review and monitor document requests."
-                            />
-
-                            <ActionCard
-                                to="/admin/document-types"
-                                icon={<DescriptionOutlinedIcon />}
-                                title="Document Types"
-                                description="Manage available barangay document services."
-                            />
-                        </AdminManagementGrid>
-                    </SectionCard>
-
-                    <AdminBottomGrid>
-                        <SectionCard
-                            eyebrow="System Activity"
-                            title="Recent Activity"
+        <PortalLayout
+            portalLabel="ADMINISTRATION"
+            sidebarItems={navigationItems}
+        >
+            <section className="admin-portal">
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}{" "}
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger ms-2"
+                            onClick={handleRetry}
                         >
-                            <EmptyState
-                                icon={<HistoryRoundedIcon />}
-                                title="No recent activity"
-                                description="System activity will appear here when users and staff begin using the platform."
-                            />
-                        </SectionCard>
+                            Retry
+                        </button>
+                    </div>
+                )}
 
-                        <SectionCard
-                            eyebrow="Analytics"
-                            title="System Insights"
+                {/* -------------------------------------------------------
+                    Welcome Header
+                ------------------------------------------------------- */}
+                <div className="admin-portal-welcome">
+                    <div>
+                        <span className="portal-eyebrow">
+                            ADMINISTRATOR PORTAL
+                        </span>
+
+                        <h1>
+                            Welcome, <span>{adminName}</span>
+                        </h1>
+
+                        <p>
+                            Monitor the document request system and manage its
+                            users, staff, and services.
+                        </p>
+                    </div>
+
+                    <div className="admin-system-status">
+                        <span
+                            className={`admin-system-dot ${
+                                error ? "error" : ""
+                            }`}
+                        ></span>
+                        {loading
+                            ? "CHECKING SYSTEM"
+                            : error
+                              ? "DATA UNAVAILABLE"
+                              : "SYSTEM ONLINE"}
+                    </div>
+                </div>
+
+                {/* -------------------------------------------------------
+                    System Overview
+                ------------------------------------------------------- */}
+                <div className="admin-overview-grid">
+                    <div className="admin-overview-card">
+                        <span className="admin-overview-label">
+                            DOCUMENT REQUESTS
+                        </span>
+
+                        <strong>
+                            {loading || error || !stats
+                                ? "—"
+                                : count(
+                                      Number(stats.total_registered_requests) +
+                                          Number(stats.total_guest_requests)
+                                  )}
+                        </strong>
+
+                        <p>Total requests</p>
+                    </div>
+
+                    <div className="admin-overview-card">
+                        <span className="admin-overview-label">USERS</span>
+
+                        <strong>
+                            {loading || error || !stats
+                                ? "—"
+                                : count(stats.total_residents)}
+                        </strong>
+
+                        <p>Registered residents</p>
+                    </div>
+
+                    <div className="admin-overview-card">
+                        <span className="admin-overview-label">STAFF</span>
+
+                        <strong>
+                            {loading || error || !stats
+                                ? "—"
+                                : count(stats.total_staff)}
+                        </strong>
+
+                        <p>Active staff accounts</p>
+                    </div>
+
+                    <div className="admin-overview-card">
+                        <span className="admin-overview-label">
+                            DOCUMENT TYPES
+                        </span>
+
+                        <strong>
+                            {loading || error || !stats
+                                ? "—"
+                                : count(stats.active_document_types)}
+                        </strong>
+
+                        <p>Available services</p>
+                    </div>
+
+                    <div className="admin-overview-card">
+                        <span className="admin-overview-label">
+                            AUDIT LOGS
+                        </span>
+
+                        <strong>
+                            {loading || error || !stats
+                                ? "—"
+                                : count(stats.total_audit_logs)}
+                        </strong>
+
+                        <p>Recorded system actions</p>
+                    </div>
+                </div>
+
+                {/* -------------------------------------------------------
+                    Management Areas
+                ------------------------------------------------------- */}
+                <div className="admin-management-panel">
+                    <div className="admin-panel-header">
+                        <div>
+                            <span className="admin-section-label">
+                                SYSTEM MANAGEMENT
+                            </span>
+
+                            <h2>Administration</h2>
+                        </div>
+                    </div>
+
+                    <div className="admin-management-grid">
+                        {/* Users */}
+                        <Link
+                            to="/admin/users"
+                            className="admin-management-item"
                         >
-                            <AdminAnalyticsContent>
-                                <InsightsRoundedIcon />
+                            <div className="admin-management-icon">U</div>
 
-                                <AdminAnalyticsValue>—</AdminAnalyticsValue>
+                            <div className="admin-management-content">
+                                <strong>User Management</strong>
 
-                                <p>
-                                    Analytics will be available once sufficient
-                                    request data has been collected.
-                                </p>
+                                <span>
+                                    Manage resident accounts and user
+                                    information.
+                                </span>
+                            </div>
 
-                                <AdminAnalyticsNote>
-                                    Data Science Module
-                                </AdminAnalyticsNote>
-                            </AdminAnalyticsContent>
-                        </SectionCard>
-                    </AdminBottomGrid>
-                </PortalWorkspace>
-            </AdminPortal>
+                            <span className="admin-management-arrow">→</span>
+                        </Link>
+
+                        {/* Staff */}
+                        <Link
+                            to="/admin/staff"
+                            className="admin-management-item"
+                        >
+                            <div className="admin-management-icon">S</div>
+
+                            <div className="admin-management-content">
+                                <strong>Staff Management</strong>
+
+                                <span>Manage staff accounts and access.</span>
+                            </div>
+
+                            <span className="admin-management-arrow">→</span>
+                        </Link>
+
+                        {/* Requests */}
+                        <Link
+                            to="/admin/requests"
+                            className="admin-management-item"
+                        >
+                            <div className="admin-management-icon">R</div>
+
+                            <div className="admin-management-content">
+                                <strong>Document Requests</strong>
+
+                                <span>
+                                    Review and monitor document requests.
+                                </span>
+                            </div>
+
+                            <span className="admin-management-arrow">→</span>
+                        </Link>
+
+                        {/* Document Types */}
+                        <Link
+                            to="/admin/document-types"
+                            className="admin-management-item"
+                        >
+                            <div className="admin-management-icon">D</div>
+
+                            <div className="admin-management-content">
+                                <strong>Document Types</strong>
+
+                                <span>
+                                    Manage available barangay document services.
+                                </span>
+                            </div>
+
+                            <span className="admin-management-arrow">→</span>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* -------------------------------------------------------
+                    Analytics / Activity Area
+                ------------------------------------------------------- */}
+                <div className="admin-bottom-grid">
+                    <div className="admin-activity-card">
+                        <div className="admin-panel-header">
+                            <div>
+                                <span className="admin-section-label">
+                                    SYSTEM ACTIVITY
+                                </span>
+
+                                <h2>Recent Activity</h2>
+                            </div>
+                            <Link
+                                to="/admin/recent-activity"
+                                className="admin-activity-link"
+                            >
+                                View all
+                            </Link>
+                        </div>
+
+                        {error ? (
+                            <p className="admin-activity-message">
+                                Recent activity is unavailable.
+                            </p>
+                        ) : loading ? (
+                            <p className="admin-activity-message">
+                                Loading recent activity...
+                            </p>
+                        ) : activity.length ? (
+                            <div className="admin-activity-list">
+                                {activity.map((entry, index) => (
+                                    <div
+                                        className="admin-activity-item"
+                                        key={
+                                            entry.audit_log_id ??
+                                            entry.id ??
+                                            `${entry.created_at}-${index}`
+                                        }
+                                    >
+                                        <strong>
+                                            {entry.description ||
+                                                "System activity"}
+                                        </strong>
+                                        <span>
+                                            {entry.created_at
+                                                ? new Date(
+                                                      entry.created_at
+                                                  ).toLocaleString()
+                                                : "—"}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="admin-empty-state">
+                                <div className="admin-empty-icon">≡</div>
+                                <h3>No recent activity</h3>
+                                <p>System activity will appear here.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="admin-analytics-card">
+                        <div className="admin-panel-header">
+                            <div>
+                                <span className="admin-section-label">
+                                    ANALYTICS
+                                </span>
+
+                                <h2>System Insights</h2>
+                            </div>
+                        </div>
+
+                        <div className="admin-analytics-content">
+                            <div className="admin-analytics-value">
+                                {loading || error || !stats
+                                    ? "—"
+                                    : count(
+                                          Number(stats.completed_requests) +
+                                              Number(stats.guest_completed)
+                                      )}
+                            </div>
+
+                            <p>
+                                Total document requests completed across the
+                                system.
+                            </p>
+
+                            <span className="admin-analytics-note">
+                                {loading || error || !stats
+                                    ? "LOADING"
+                                    : `${count(
+                                          Number(stats.pending_requests) +
+                                              Number(stats.guest_pending)
+                                      )} REQUESTS PENDING`}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <NotificationCenter />
+            </section>
         </PortalLayout>
     );
 }

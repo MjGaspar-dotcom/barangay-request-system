@@ -1,29 +1,3 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Landing from "../pages/public/Landing";
-
-import Login from "../pages/user/Login";
-import Register from "../pages/user/Register";
-import UserDashboard from "../pages/user/Dashboard";
-import RequestDetails from "../pages/user/RequestDetails";
-
-import AdminDashboard from "../pages/admin/Dashboard";
-import AdminLogin from "../pages/admin/Login";
-import ManageStaff from "../pages/admin/ManageStaff";
-import ManageUsers from "../pages/admin/ManageUsers";
-import ManageRequests from "../pages/admin/ManageRequests";
-import ManageDocumentTypes from "../pages/admin/ManageDocumentTypes";
-import AdminRequestDetails from "../pages/admin/AdminRequestDetails";
-import RecentActivity from "../pages/admin/RecentActivity";
-
-import StaffLogin from "../pages/staff/Login";
-import StaffDashboard from "../pages/staff/Dashboard";
-import StaffRequestDetails from "../pages/staff/RequestDetails";
-=======
-=======
->>>>>>> Stashed changes
 import { lazy, Suspense, useEffect } from "react";
 import {
     BrowserRouter,
@@ -32,14 +6,14 @@ import {
     Routes,
     useLocation,
 } from "react-router-dom";
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
 
+import Login from "../pages/user/Login";
+import Register from "../pages/user/Register";
+import UserDashboard from "../pages/user/Dashboard";
+import RequestDetails from "../pages/user/RequestDetails";
 import GuestRequest from "../pages/guest/Request";
 import IDScanner from "../pages/guest/IDScanner";
 import TrackRequest from "../pages/guest/TrackRequest";
-=======
->>>>>>> Stashed changes
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
@@ -97,53 +71,35 @@ export default function AppRoutes() {
                 <Routes>
                     {/* PUBLIC */}
                     <Route path="/" element={<Landing />} />
-<<<<<<< Updated upstream
 
-<<<<<<< Updated upstream
-                {/* AUTH */}
-                <Route path="/login" element={<Login />} />
+                    {/* AUTH */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-                <Route path="/register" element={<Register />} />
+                    {/* GUEST */}
+                    <Route path="/request" element={<GuestRequest />}>
+                        <Route path="id-scan" element={<IDScanner />} />
+                    </Route>
+                    <Route path="/track-request" element={<TrackRequest />} />
 
-                {/* GUEST */}
-                <Route path="/request" element={<GuestRequest />}>
-                    <Route path="id-scan" element={<IDScanner />} />
-                </Route>
+                    {/* RESIDENT / USER */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <UserDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/requests/:requestId"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <RequestDetails />
+                            </ProtectedRoute>
+                        }
+                    />
 
-                <Route path="/track-request" element={<TrackRequest />} />
-
-                {/* RESIDENT / USER */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={["user"]}>
-                            <UserDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/requests/:requestId"
-                    element={
-                        <ProtectedRoute allowedRoles={["user"]}>
-                            <RequestDetails />
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* STAFF */}
-                <Route
-                    path="/staff/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={["staff"]}>
-                            <StaffDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-=======
-=======
-
->>>>>>> Stashed changes
                     {/* STAFF */}
                     <Route
                         path="/staff/dashboard"
@@ -153,11 +109,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-
                     <Route
                         path="/staff/reports"
                         element={
@@ -166,7 +117,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/staff/queue"
                         element={
@@ -175,7 +125,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/staff/requests/:type/:requestId"
                         element={
@@ -202,7 +151,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/admin/users"
                         element={
@@ -211,7 +159,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/admin/staff"
                         element={
@@ -220,7 +167,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/admin/requests"
                         element={
@@ -229,7 +175,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/admin/requests/:type/:requestId"
                         element={
@@ -238,7 +183,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/admin/requests/:requestId"
                         element={
@@ -247,7 +191,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
                     <Route
                         path="/admin/document-types"
                         element={
@@ -256,14 +199,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                <Route path="/staff/login" element={<StaffLogin />} />
-            </Routes>
-=======
-=======
->>>>>>> Stashed changes
                     <Route
                         path="/admin/recent-activity"
                         element={
@@ -275,16 +210,10 @@ export default function AppRoutes() {
 
                     {/* ROLE-SPECIFIC LOGIN */}
                     <Route path="/admin/login" element={<AdminLogin />} />
-
                     <Route path="/staff/login" element={<StaffLogin />} />
-
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Suspense>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         </BrowserRouter>
     );
 }

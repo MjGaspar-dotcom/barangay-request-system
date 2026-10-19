@@ -1,15 +1,5 @@
 import { useState } from "react";
-import MenuIcon from "@mui/icons-material/Menu";
 import Sidebar from "./Sidebar";
-import {
-    DashboardContent,
-    DashboardLayoutRoot,
-    DashboardMain,
-    DashboardMenuButton,
-    DashboardMobileHeader,
-    SidebarOverlay,
-    SidebarWrapper,
-} from "./DashboardLayout.styles";
 
 function AdminLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -48,46 +38,44 @@ function AdminLayout({ children }) {
     ];
 
     return (
-        <DashboardLayoutRoot>
-            <SidebarWrapper open={sidebarOpen}>
+        <div className="dashboard-layout admin-management-layout">
+            <div
+                className={`dashboard-sidebar-wrapper ${
+                    sidebarOpen ? "open" : ""
+                }`}
+            >
                 <Sidebar
                     items={navigationItems}
                     onNavigate={() => setSidebarOpen(false)}
                 />
-            </SidebarWrapper>
+            </div>
 
             {sidebarOpen && (
-                <SidebarOverlay
+                <button
                     type="button"
+                    className="sidebar-overlay"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Close navigation"
                 />
             )}
 
-            <DashboardMain>
-                <DashboardMobileHeader>
-                    <DashboardMenuButton
+            <div className="dashboard-main">
+                <header className="dashboard-mobile-header">
+                    <button
                         type="button"
+                        className="dashboard-menu-button"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Open navigation"
                     >
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                        <MenuIcon />
-                    </DashboardMenuButton>
-=======
-=======
->>>>>>> Stashed changes
                         <i className="bi bi-list" aria-hidden="true" />
                     </button>
->>>>>>> Stashed changes
 
                     <strong>Admin Panel</strong>
-                </DashboardMobileHeader>
+                </header>
 
-                <DashboardContent>{children}</DashboardContent>
-            </DashboardMain>
-        </DashboardLayoutRoot>
+                <main className="dashboard-content">{children}</main>
+            </div>
+        </div>
     );
 }
 

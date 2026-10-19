@@ -1,31 +1,9 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
 import BrandMark from "../components/ui/BrandMark";
 import { Link, useLocation, useNavigate } from "react-router-dom";
->>>>>>> Stashed changes
-=======
-import BrandMark from "../components/ui/BrandMark";
-import { Link, useLocation, useNavigate } from "react-router-dom";
->>>>>>> Stashed changes
 import { useAuth } from "../hooks/useAuth";
-import {
-    SidebarFooter,
-    SidebarHeader,
-    SidebarHeaderText,
-    SidebarLink,
-    SidebarLinkIcon,
-    SidebarLogo,
-    SidebarLogout,
-    SidebarNavigation,
-    SidebarRoot,
-    SidebarUser,
-} from "./Sidebar.styles";
 
 function Sidebar({ items = [], onNavigate }) {
     const { user, logout } = useAuth();
-<<<<<<< Updated upstream
-=======
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -47,70 +25,27 @@ function Sidebar({ items = [], onNavigate }) {
             return otherHash && otherPath === path && location.hash === `#${otherHash}`;
         });
     };
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
     const handleLogout = async () => {
+        onNavigate?.();
+        navigate("/", { replace: true });
         await logout();
     };
 
-    return (
-<<<<<<< Updated upstream
-        <SidebarRoot>
-            <SidebarHeader>
-                <SidebarLogo>B</SidebarLogo>
+    const isAdmin = user?.role === "admin";
+    const isStaff = user?.role === "staff";
 
-                <SidebarHeaderText>
-                    <h2>Barangay</h2>
-=======
+    return (
         <aside className={`dashboard-sidebar ${isAdmin ? "sidebar-admin" : ""} ${isStaff ? "sidebar-staff" : ""}`}>
             <div className="sidebar-header">
                 <BrandMark className="sidebar-logo" />
 
                 <div>
                     <h2>Barangay Aurora</h2>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
                     <span>Document System</span>
-                </SidebarHeaderText>
-            </SidebarHeader>
+                </div>
+            </div>
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            <SidebarUser>
-                <strong>{user?.first_name || user?.username || "User"}</strong>
-
-                <span>{user?.role || "user"}</span>
-            </SidebarUser>
-
-            <SidebarNavigation>
-                {items.map((item) => (
-                    <SidebarLink
-                        key={item.to}
-                        to={item.to}
-                        onClick={onNavigate}
-                    >
-                        {item.icon && (
-                            <SidebarLinkIcon>{item.icon}</SidebarLinkIcon>
-                        )}
-
-                        <span>{item.label}</span>
-                    </SidebarLink>
-                ))}
-            </SidebarNavigation>
-
-            <SidebarFooter>
-                <SidebarLogout type="button" onClick={handleLogout}>
-                    <span>↪</span>
-                    Logout
-                </SidebarLogout>
-            </SidebarFooter>
-        </SidebarRoot>
-=======
             {!isAdmin && !isStaff && (
                 <div className="sidebar-user">
                     <strong>{user?.first_name || user?.username || "User"}</strong>
@@ -125,22 +60,6 @@ function Sidebar({ items = [], onNavigate }) {
                 {items.map((item) => {
                     const active = isItemActive(item);
 
-=======
-            {!isAdmin && !isStaff && (
-                <div className="sidebar-user">
-                    <strong>{user?.first_name || user?.username || "User"}</strong>
-                    <span>{user?.role || "user"}</span>
-                </div>
-            )}
-
-            <nav className="sidebar-navigation">
-                {(isAdmin || isStaff) && (
-                    <span className="sidebar-menu-label">MENU</span>
-                )}
-                {items.map((item) => {
-                    const active = isItemActive(item);
-
->>>>>>> Stashed changes
                     return (
                         <Link
                             key={item.to}
@@ -200,7 +119,6 @@ function Sidebar({ items = [], onNavigate }) {
                 )}
             </div>
         </aside>
->>>>>>> Stashed changes
     );
 }
 

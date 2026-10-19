@@ -1,22 +1,8 @@
 import { useState } from "react";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
+import { Link } from "react-router-dom";
 
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
-import { LoginLink, RegisterLink } from "./navigation.styles";
-import {
-    BarangayName,
-    DesktopNavigation,
-    MobileMenuButton,
-    MobileNavbarContainer,
-    NavbarActions,
-    NavbarBrand,
-    NavbarLogo,
-    NavbarRoot,
-    NavbarTitle,
-    SystemName,
-} from "./Navbar.styles";
 
 function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,12 +16,6 @@ function Navbar() {
     };
 
     return (
-<<<<<<< Updated upstream
-        <NavbarRoot>
-            <MobileNavbarContainer>
-                <NavbarBrand to="/" onClick={closeMobileMenu}>
-                    <NavbarLogo>B</NavbarLogo>
-=======
         <header className="navbar">
             <div className="navbar-container">
                 <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
@@ -59,38 +39,26 @@ function Navbar() {
                     <Link to="/login" className="login-link">
                         Login
                     </Link>
->>>>>>> Stashed changes
 
-                    <NavbarTitle>
-                        <BarangayName>Barangay System</BarangayName>
-
-                        <SystemName>Document Request System</SystemName>
-                    </NavbarTitle>
-                </NavbarBrand>
-
-                <DesktopNavigation>
-                    <NavLinks />
-                </DesktopNavigation>
-
-                <NavbarActions>
-                    <LoginLink to="/login">Login</LoginLink>
-
-                    <RegisterLink to="/register">Register</RegisterLink>
-                </NavbarActions>
-
-                <MobileMenuButton
+                    <Link to="/register" className="register-button">
+                        Register
+                    </Link>
+                </div>
+                <button
                     type="button"
+                    className="mobile-menu-button"
                     onClick={toggleMobileMenu}
                     aria-label="Toggle navigation menu"
                     aria-expanded={isMobileMenuOpen}
                     aria-controls="mobile-navigation-menu"
                 >
-                    {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-                </MobileMenuButton>
-            </MobileNavbarContainer>
-
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
             <MobileMenu isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
-        </NavbarRoot>
+        </header>
     );
 }
 

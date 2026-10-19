@@ -1,64 +1,9 @@
 import { useEffect, useState } from "react";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { Controller, useForm } from "react-hook-form";
-import {
-    Alert,
-    Button,
-    CircularProgress,
-    MenuItem,
-    TableBody,
-    TableHead,
-    TextField,
-} from "@mui/material";
-import FieldValidationError from "../../components/forms/FieldValidationError";
-import api from "../../services/api";
-import AdminLayout from "../../layouts/AdminLayout";
-import {
-    AdminActionHeaderCell,
-    AdminDataTable,
-    AdminEmptyIcon,
-    AdminEmptyState,
-    AdminFilterBar,
-    AdminMessages,
-    AdminPage,
-    AdminPageHeader,
-    AdminPageLabel,
-    AdminPageState,
-    AdminResultsCount,
-    AdminRowActions,
-    AdminSearchField,
-    AdminSection,
-    AdminTableDataCell,
-    AdminTableHeaderCell,
-    AdminTablePrimaryText,
-    AdminTableRow,
-    AdminTableSecondaryText,
-    AdminTableWrapper,
-} from "../../components/admin/AdminCrud.styles";
-import {
-    StaffFormActions,
-    StaffFormGrid,
-    StaffFormTitle,
-    StaffFullField,
-    StaffHalfField,
-    StaffPageHeaderRow,
-    StaffThirdField,
-} from "./ManageStaff.styles";
-=======
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
->>>>>>> Stashed changes
-=======
-import Table from "react-bootstrap/Table";
-import Button from "../../components/ui/Button";
-import api from "../../services/api";
-import AdminLayout from "../../layouts/AdminLayout";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
->>>>>>> Stashed changes
 
 import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
@@ -78,7 +23,8 @@ const EMPTY_FORM = {
 export default function ManageStaff() {
     const [staff, setStaff] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setErrorMessage] = useState("");
+    const [error, setError] = useState("");
+    const [form, setForm] = useState(EMPTY_FORM);
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -87,32 +33,16 @@ export default function ManageStaff() {
     const [showForm, setShowForm] = useState(false);
     const [actionError, setActionError] = useState("");
     const [confirmDialog, setConfirmDialog] = useState(null);
-<<<<<<< Updated upstream
-
-    const {
-        control,
-        handleSubmit,
-        setError,
-        clearErrors,
-        reset,
-        formState: { errors },
-    } = useForm({
-        defaultValues: EMPTY_FORM,
-        mode: "onSubmit",
-        reValidateMode: "onChange",
-    });
-=======
->>>>>>> Stashed changes
 
     const fetchStaff = async () => {
         try {
             setLoading(true);
             const response = await api.get("/admin/staff");
             setStaff(response.data.data || []);
-            setErrorMessage("");
+            setError("");
         } catch (err) {
             console.error(err);
-            setErrorMessage("Failed to load staff.");
+            setError("Failed to load staff.");
         } finally {
             setLoading(false);
         }
@@ -122,79 +52,42 @@ export default function ManageStaff() {
         fetchStaff();
     }, []);
 
-    const applyServerValidationErrors = (validationErrors) => {
-        let hasMappedError = false;
-
-        Object.entries(validationErrors).forEach(([fieldName, messages]) => {
-            if (!Object.prototype.hasOwnProperty.call(EMPTY_FORM, fieldName)) {
-                return;
-            }
-
-            const message = Array.isArray(messages) ? messages[0] : messages;
-
-            setError(fieldName, {
-                type: "server",
-                message,
-            });
-
-            hasMappedError = true;
-        });
-
-        return hasMappedError;
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        setForm((previous) => ({ ...previous, [name]: value }));
     };
 
-<<<<<<< Updated upstream
-    const submitStaff = async (values) => {
-=======
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         if (!validateForm(event.currentTarget)) return;
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         setFormError("");
         setFormSuccess("");
 
         try {
             setSubmitting(true);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-            await api.post("/admin/staff", values);
-=======
             await api.post("/admin/staff", form);
->>>>>>> Stashed changes
-=======
-            await api.post("/admin/staff", form);
->>>>>>> Stashed changes
 
             setFormSuccess(
-                `Staff account for ${values.first_name} ${values.last_name} created successfully.`,
+                `Staff account for ${form.first_name} ${form.last_name} created successfully.`
             );
-
-            reset(EMPTY_FORM);
+            setForm(EMPTY_FORM);
             setShowForm(false);
-
             await fetchStaff();
         } catch (err) {
             console.error(err);
-
             if (err.response?.status === 422) {
-                const validationErrors = err.response.data.errors || {};
-                const hasMappedError =
-                    applyServerValidationErrors(validationErrors);
-
-                if (!hasMappedError) {
-                    setFormError(
-                        "Please review the staff information and try again.",
-                    );
-                }
+                const errors = err.response.data.errors || {};
+                const firstKey = Object.keys(errors)[0];
+                setFormError(
+                    firstKey
+                        ? errors[firstKey][0]
+                        : "Please check the form for errors."
+                );
             } else {
                 setFormError(
                     err.response?.data?.message ||
-                        "Failed to create staff account.",
+                        "Failed to create staff account."
                 );
             }
         } finally {
@@ -203,25 +96,6 @@ export default function ManageStaff() {
     };
 
     const handleDelete = async (member) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        const confirmDelete = window.confirm(
-            `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
-        );
-
-        if (!confirmDelete) return;
-=======
-        setConfirmDialog({
-            title: "Remove staff account",
-            message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
-            confirmLabel: "Remove staff account",
-            variant: "danger",
-            onConfirm: () => runDelete(member),
-        });
-    };
->>>>>>> Stashed changes
-
-=======
         setConfirmDialog({
             title: "Remove staff account",
             message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
@@ -231,28 +105,16 @@ export default function ManageStaff() {
         });
     };
 
->>>>>>> Stashed changes
     const runDelete = async (member) => {
         try {
             setBusyStaffId(member.staff_id);
-
             await api.delete(`/admin/staff/${member.staff_id}`);
-
             await fetchStaff();
         } catch (err) {
             console.error(err);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-            alert(
-=======
             setActionError(
->>>>>>> Stashed changes
-=======
-            setActionError(
->>>>>>> Stashed changes
                 err.response?.data?.message ||
-                    "Failed to remove staff account.",
+                    "Failed to remove staff account."
             );
         } finally {
             setBusyStaffId(null);
@@ -261,16 +123,14 @@ export default function ManageStaff() {
 
     const filtered = staff.filter((member) => {
         if (!search) return true;
-
         const needle = search.toLowerCase();
-        const user = member.user || {};
-
+        const u = member.user || {};
         return [
-            user.first_name,
-            user.last_name,
-            user.username,
-            user.email,
-            user.contact_number,
+            u.first_name,
+            u.last_name,
+            u.username,
+            u.email,
+            u.contact_number,
         ]
             .filter(Boolean)
             .join(" ")
@@ -289,11 +149,15 @@ export default function ManageStaff() {
     if (loading) {
         return (
             <AdminLayout>
-                <AdminPageState>
-                    <CircularProgress color="success" size={32} />
-
+                <div className="page-loading">
+                    <div
+                        className="spinner-border text-success"
+                        role="status"
+                    >
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
                     <p>Loading staff...</p>
-                </AdminPageState>
+                </div>
             </AdminLayout>
         );
     }
@@ -301,63 +165,15 @@ export default function ManageStaff() {
     if (error) {
         return (
             <AdminLayout>
-<<<<<<< Updated upstream
-                <AdminPageState>
-                    <Alert severity="error">{error}</Alert>
-                </AdminPageState>
-=======
                 <div className="page-loading">
                     <div className="alert alert-danger" role="alert">{error}</div>
                 </div>
->>>>>>> Stashed changes
             </AdminLayout>
         );
     }
 
     return (
         <AdminLayout>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            <AdminPage>
-                <AdminPageHeader>
-                    <StaffPageHeaderRow>
-                        <div>
-                            <AdminPageLabel>STAFF MANAGEMENT</AdminPageLabel>
-
-                            <h1>Manage Staff</h1>
-
-                            <p>
-                                Create staff accounts and assign personnel to
-                                process barangay document requests.
-                            </p>
-                        </div>
-
-                        <Button
-                            type="button"
-                            variant="contained"
-                            color="success"
-                            onClick={() => {
-                                if (showForm) {
-                                    reset(EMPTY_FORM);
-                                    clearErrors();
-                                    setShowForm(false);
-                                } else {
-                                    reset(EMPTY_FORM);
-                                    clearErrors();
-                                    setShowForm(true);
-                                }
-
-                                setFormError("");
-                                setFormSuccess("");
-                            }}
-                        >
-                            {showForm ? "Close Form" : "＋ Create Staff"}
-                        </Button>
-                    </StaffPageHeaderRow>
-                </AdminPageHeader>
-=======
-=======
->>>>>>> Stashed changes
             <div className="admin-dashboard manage-staff-page">
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
@@ -366,59 +182,15 @@ export default function ManageStaff() {
                                 <span className="section-label">
                                     STAFF MANAGEMENT
                                 </span>
->>>>>>> Stashed changes
 
-                {formSuccess && (
-                    <AdminMessages>
-                        <Alert severity="success">{formSuccess}</Alert>
-                    </AdminMessages>
-                )}
+                                <h1>Manage Staff</h1>
 
-                {showForm && (
-                    <AdminSection>
-                        <StaffFormTitle>New Staff Account</StaffFormTitle>
+                                <p>
+                                    Create staff accounts and assign personnel
+                                    to process barangay document requests.
+                                </p>
+                            </div>
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                        <form onSubmit={handleSubmit(submitStaff)} noValidate>
-                            <StaffFormGrid>
-                                <StaffHalfField>
-                                    <Controller
-                                        name="username"
-                                        control={control}
-                                        rules={{
-                                            required: "Username is required.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-username"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Username"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(errors.username)}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.username,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.username
-                                                                ? "staff-create-username-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-=======
-=======
->>>>>>> Stashed changes
                             <Button
                                 type="button"
                                 className="btn btn-success staff-create-button"
@@ -432,507 +204,19 @@ export default function ManageStaff() {
                             </Button>
                         </div>
                     </div>
->>>>>>> Stashed changes
 
-                                    <FieldValidationError
-                                        id="staff-create-username-error"
-                                        error={errors.username}
-                                    />
-                                </StaffHalfField>
+                    {formSuccess && (
+                        <div
+                            className="alert alert-success"
+                            role="alert"
+                        >
+                            {formSuccess}
+                        </div>
+                    )}
 
-                                <StaffHalfField>
-                                    <Controller
-                                        name="password"
-                                        control={control}
-                                        rules={{
-                                            required: "Password is required.",
-                                            minLength: {
-                                                value: 8,
-                                                message:
-                                                    "Password must be at least 8 characters.",
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-password"
-                                                type="password"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Password"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(errors.password)}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        minLength: 8,
-                                                        "aria-invalid": Boolean(
-                                                            errors.password,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.password
-                                                                ? "staff-create-password-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-<<<<<<< Updated upstream
-                                    <FieldValidationError
-                                        id="staff-create-password-error"
-                                        error={errors.password}
-                                    />
-                                </StaffHalfField>
-
-                                <StaffThirdField>
-                                    <Controller
-                                        name="first_name"
-                                        control={control}
-                                        rules={{
-                                            required: "First name is required.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-first-name"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="First Name"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.first_name,
-                                                )}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.first_name,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.first_name
-                                                                ? "staff-create-first-name-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-first-name-error"
-                                        error={errors.first_name}
-                                    />
-                                </StaffThirdField>
-
-                                <StaffThirdField>
-                                    <Controller
-                                        name="middle_name"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-middle-name"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                label="Middle Name"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                            />
-                                        )}
-                                    />
-                                </StaffThirdField>
-
-                                <StaffThirdField>
-                                    <Controller
-                                        name="last_name"
-                                        control={control}
-                                        rules={{
-                                            required: "Last name is required.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-last-name"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Last Name"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.last_name,
-                                                )}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.last_name,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.last_name
-                                                                ? "staff-create-last-name-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-last-name-error"
-                                        error={errors.last_name}
-                                    />
-                                </StaffThirdField>
-
-                                <StaffThirdField>
-                                    <Controller
-                                        name="birth_date"
-                                        control={control}
-                                        rules={{
-                                            required: "Birth date is required.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-birth-date"
-                                                type="date"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Birth Date"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.birth_date,
-                                                )}
-                                                slotProps={{
-                                                    inputLabel: {
-                                                        shrink: true,
-                                                    },
-                                                    htmlInput: {
-                                                        max: new Date()
-                                                            .toISOString()
-                                                            .slice(0, 10),
-                                                        "aria-invalid": Boolean(
-                                                            errors.birth_date,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.birth_date
-                                                                ? "staff-create-birth-date-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-birth-date-error"
-                                        error={errors.birth_date}
-                                    />
-                                </StaffThirdField>
-
-                                <StaffThirdField>
-                                    <Controller
-                                        name="gender"
-                                        control={control}
-                                        rules={{
-                                            required: "Select a gender.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-gender"
-                                                select
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Gender"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(errors.gender)}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.gender,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.gender
-                                                                ? "staff-create-gender-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            >
-                                                <MenuItem value="Male">
-                                                    Male
-                                                </MenuItem>
-
-                                                <MenuItem value="Female">
-                                                    Female
-                                                </MenuItem>
-
-                                                <MenuItem value="Prefer not to say">
-                                                    Prefer not to say
-                                                </MenuItem>
-                                            </TextField>
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-gender-error"
-                                        error={errors.gender}
-                                    />
-                                </StaffThirdField>
-
-                                <StaffThirdField>
-                                    <Controller
-                                        name="civil_status"
-                                        control={control}
-                                        rules={{
-                                            required: "Select a civil status.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-civil-status"
-                                                select
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Civil Status"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.civil_status,
-                                                )}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.civil_status,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.civil_status
-                                                                ? "staff-create-civil-status-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            >
-                                                <MenuItem value="Single">
-                                                    Single
-                                                </MenuItem>
-
-                                                <MenuItem value="Married">
-                                                    Married
-                                                </MenuItem>
-
-                                                <MenuItem value="Separated">
-                                                    Separated
-                                                </MenuItem>
-
-                                                <MenuItem value="Divorced">
-                                                    Divorced
-                                                </MenuItem>
-
-                                                <MenuItem value="Widowed">
-                                                    Widowed
-                                                </MenuItem>
-                                            </TextField>
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-civil-status-error"
-                                        error={errors.civil_status}
-                                    />
-                                </StaffThirdField>
-
-                                <StaffFullField>
-                                    <Controller
-                                        name="address"
-                                        control={control}
-                                        rules={{
-                                            required: "Purok is required.",
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-purok"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Purok"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(errors.address)}
-                                                placeholder="e.g., Purok 3"
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.address,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.address
-                                                                ? "staff-create-purok-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-purok-error"
-                                        error={errors.address}
-                                    />
-                                </StaffFullField>
-
-                                <StaffHalfField>
-                                    <Controller
-                                        name="contact_number"
-                                        control={control}
-                                        rules={{
-                                            required:
-                                                "Contact number is required.",
-                                            pattern: {
-                                                value: /^09\d{9}$/,
-                                                message:
-                                                    "Enter a valid 11-digit mobile number.",
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-contact-number"
-                                                type="text"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Contact Number"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(
-                                                    errors.contact_number,
-                                                )}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        inputMode: "numeric",
-                                                        maxLength: 11,
-                                                        "aria-invalid": Boolean(
-                                                            errors.contact_number,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.contact_number
-                                                                ? "staff-create-contact-number-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-contact-number-error"
-                                        error={errors.contact_number}
-                                    />
-                                </StaffHalfField>
-
-                                <StaffHalfField>
-                                    <Controller
-                                        name="email"
-                                        control={control}
-                                        rules={{
-                                            required: "Email is required.",
-                                            pattern: {
-                                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                                message:
-                                                    "Enter a valid email address.",
-                                            },
-                                        }}
-                                        render={({ field }) => (
-                                            <TextField
-                                                id="staff-create-email"
-                                                type="email"
-                                                name={field.name}
-                                                fullWidth
-                                                required
-                                                label="Email"
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                inputRef={field.ref}
-                                                error={Boolean(errors.email)}
-                                                slotProps={{
-                                                    htmlInput: {
-                                                        "aria-invalid": Boolean(
-                                                            errors.email,
-                                                        ),
-                                                        "aria-describedby":
-                                                            errors.email
-                                                                ? "staff-create-email-error"
-                                                                : undefined,
-                                                    },
-                                                }}
-                                            />
-                                        )}
-                                    />
-
-                                    <FieldValidationError
-                                        id="staff-create-email-error"
-                                        error={errors.email}
-                                    />
-                                </StaffHalfField>
-                            </StaffFormGrid>
-
-                            {formError && (
-                                <FieldValidationError
-                                    id="staff-create-form-error"
-                                    error={formError}
-                                />
-                            )}
-
-                            <StaffFormActions>
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    color="success"
-                                    disabled={submitting}
-                                >
-                                    {submitting
-                                        ? "Creating..."
-                                        : "Create Staff Account"}
-                                </Button>
-
-                                <Button
-                                    type="button"
-                                    variant="outlined"
-                                    color="secondary"
-                                    disabled={submitting}
-                                    onClick={() => {
-                                        reset(EMPTY_FORM);
-                                        clearErrors();
-                                        setFormError("");
-                                        setShowForm(false);
-                                    }}
-=======
-                    {actionError && (
+                    {formError && (
                         <div className="alert alert-danger" role="alert">
-                            {actionError}
+                            {formError}
                         </div>
                     )}
 
@@ -947,33 +231,10 @@ export default function ManageStaff() {
                             <div className="admin-form-card">
                                 <h3 className="section-title-spaced"
                                     
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
                                 >
-                                    Cancel
-                                </Button>
-                            </StaffFormActions>
-                        </form>
-                    </AdminSection>
-                )}
+                                    New Staff Account
+                                </h3>
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                <AdminSection>
-                    <AdminFilterBar>
-                        <AdminSearchField
-                            type="search"
-                            size="small"
-                            label="Search Staff"
-                            placeholder="Search by name, username, email..."
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                        />
-=======
-=======
->>>>>>> Stashed changes
                                 <form noValidate onSubmit={handleSubmit}>
                                     <div className="row g-3">
                                         <div className="col-md-6">
@@ -989,104 +250,175 @@ export default function ManageStaff() {
                                                 required
                                             />
                                         </div>
->>>>>>> Stashed changes
 
-                        <AdminResultsCount>
-                            Showing {filtered.length} of {staff.length} staff
-                        </AdminResultsCount>
-                    </AdminFilterBar>
-                </AdminSection>
+                                        <div className="col-md-6">
+                                            <label className="form-label">
+                                                Password *
+                                            </label>
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                className="form-control"
+                                                value={form.password}
+                                                onChange={handleChange}
+                                                minLength={8}
+                                                required
+                                            />
+                                        </div>
 
-                <AdminSection>
-                    {filtered.length === 0 ? (
-                        <AdminEmptyState>
-                            <AdminEmptyIcon>🧑‍💼</AdminEmptyIcon>
+                                        <div className="col-md-4">
+                                            <label className="form-label">
+                                                First Name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="first_name"
+                                                className="form-control"
+                                                value={form.first_name}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
 
-                            <h3>No Staff Found</h3>
+                                        <div className="col-md-4">
+                                            <label className="form-label">
+                                                Middle Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="middle_name"
+                                                className="form-control"
+                                                value={form.middle_name}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
 
-                            <p>
-                                No staff accounts match the current filters. Use
-                                the "Create Staff" button to add a new staff
-                                member.
-                            </p>
-                        </AdminEmptyState>
-                    ) : (
-                        <AdminTableWrapper>
-                            <AdminDataTable>
-                                <TableHead>
-                                    <AdminTableRow>
-                                        <AdminTableHeaderCell>
-                                            Name
-                                        </AdminTableHeaderCell>
+                                        <div className="col-md-4">
+                                            <label className="form-label">
+                                                Last Name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="last_name"
+                                                className="form-control"
+                                                value={form.last_name}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
 
-                                        <AdminTableHeaderCell>
-                                            Username
-                                        </AdminTableHeaderCell>
+                                        <div className="col-md-4">
+                                            <label className="form-label">
+                                                Birth Date *
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="birth_date"
+                                                className="form-control"
+                                                value={form.birth_date}
+                                                onChange={handleChange}
+                                                max={new Date()
+                                                    .toISOString()
+                                                    .slice(0, 10)}
+                                                required
+                                            />
+                                        </div>
 
-                                        <AdminTableHeaderCell>
-                                            Email
-                                        </AdminTableHeaderCell>
+                                        <div className="col-md-4">
+                                            <label className="form-label">
+                                                Gender *
+                                            </label>
+                                            <select
+                                                name="gender"
+                                                className="form-select"
+                                                value={form.gender}
+                                                onChange={handleChange}
+                                                required
+                                            >
+                                                <option value="Male">
+                                                    Male
+                                                </option>
+                                                <option value="Female">
+                                                    Female
+                                                </option>
+                                                <option value="Prefer not to say">
+                                                    Prefer not to say
+                                                </option>
+                                            </select>
+                                        </div>
 
-                                        <AdminTableHeaderCell>
-                                            Contact
-                                        </AdminTableHeaderCell>
+                                        <div className="col-md-4">
+                                            <label className="form-label">
+                                                Civil Status *
+                                            </label>
+                                            <select
+                                                name="civil_status"
+                                                className="form-select"
+                                                value={form.civil_status}
+                                                onChange={handleChange}
+                                                required
+                                            >
+                                                <option value="Single">
+                                                    Single
+                                                </option>
+                                                <option value="Married">
+                                                    Married
+                                                </option>
+                                                <option value="Separated">
+                                                    Separated
+                                                </option>
+                                                <option value="Divorced">
+                                                    Divorced
+                                                </option>
+                                                <option value="Widowed">
+                                                    Widowed
+                                                </option>
+                                            </select>
+                                        </div>
 
-                                        <AdminTableHeaderCell>
-                                            Assigned By
-                                        </AdminTableHeaderCell>
+                                        <div className="col-12">
+                                            <label className="form-label">
+                                                Address *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="address"
+                                                className="form-control"
+                                                value={form.address}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
 
-                                        <AdminTableHeaderCell>
-                                            Created
-                                        </AdminTableHeaderCell>
+                                        <div className="col-md-6">
+                                            <label className="form-label">
+                                                Contact Number *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                name="contact_number"
+                                                className="form-control"
+                                                value={form.contact_number}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
 
-                                        <AdminActionHeaderCell>
-                                            Actions
-                                        </AdminActionHeaderCell>
-                                    </AdminTableRow>
-                                </TableHead>
+                                        <div className="col-md-6">
+                                            <label className="form-label">
+                                                Email *
+                                            </label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                className="form-control"
+                                                value={form.email}
+                                                onChange={handleChange}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                                <TableBody>
-                                    {filtered.map((member) => (
-                                        <AdminTableRow key={member.staff_id}>
-                                            <AdminTableDataCell>
-                                                <AdminTablePrimaryText>
-                                                    {fullName(member.user)}
-                                                </AdminTablePrimaryText>
-
-                                                <AdminTableSecondaryText>
-                                                    {member.user?.address ||
-                                                        "—"}
-                                                </AdminTableSecondaryText>
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {member.user?.username}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {member.user?.email}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {member.user?.contact_number ||
-                                                    "—"}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {member.assigned_by_name || "—"}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                {formatDate(member.created_at)}
-                                            </AdminTableDataCell>
-
-                                            <AdminTableDataCell>
-                                                <AdminRowActions>
-=======
-=======
->>>>>>> Stashed changes
                                     <div className="form-actions"
                                         
                                     >
@@ -1219,40 +551,21 @@ export default function ManageStaff() {
                                                     )}
                                                 </td>
                                                 <td>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
                                                     <Button
                                                         type="button"
-                                                        variant="outlined"
-                                                        color="error"
-                                                        size="small"
+                                                        className="btn btn-outline-danger btn-sm"
                                                         disabled={
                                                             busyStaffId ===
                                                             member.staff_id
                                                         }
                                                         onClick={() =>
-                                                            handleDelete(member)
+                                                            handleDelete(
+                                                                member
+                                                            )
                                                         }
                                                     >
                                                         Remove
                                                     </Button>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                                                </AdminRowActions>
-                                            </AdminTableDataCell>
-                                        </AdminTableRow>
-                                    ))}
-                                </TableBody>
-                            </AdminDataTable>
-                        </AdminTableWrapper>
-                    )}
-                </AdminSection>
-            </AdminPage>
-=======
-=======
->>>>>>> Stashed changes
                                                 </td>
                                             </tr>
                                         ))}
@@ -1277,10 +590,6 @@ export default function ManageStaff() {
             >
                 {confirmDialog?.message}
             </ConfirmDialog>
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         </AdminLayout>
     );
 }

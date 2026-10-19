@@ -1,11 +1,3 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { StatusBadgeRoot } from "./StatusBadge.styles";
-
-export default function StatusBadge({ status, size = "md" }) {
-    return (
-        <StatusBadgeRoot status={status} badgeSize={size}>
-=======
 /** Props: status, size. Maps existing status labels to shared semantic badge classes. */
 const STATUS_CLASSES = {
     Pending: "pending",
@@ -23,25 +15,6 @@ const STATUS_CLASSES = {
 };
 
 export default function StatusBadge({ status, size = "md" }) {
-=======
-/** Props: status, size. Maps existing status labels to shared semantic badge classes. */
-const STATUS_CLASSES = {
-    Pending: "pending",
-    Approved: "approved",
-    Processing: "processing",
-    "Ready for Pickup": "ready-for-pickup",
-    Completed: "completed",
-    Rejected: "rejected",
-    verified: "verified",
-    pending: "pending",
-    rejected: "rejected",
-    admin: "admin",
-    staff: "staff",
-    user: "user",
-};
-
-export default function StatusBadge({ status, size = "md" }) {
->>>>>>> Stashed changes
     const key =
         status in STATUS_CLASSES
             ? STATUS_CLASSES[status]
@@ -51,8 +24,7 @@ export default function StatusBadge({ status, size = "md" }) {
         <span
             className={`status-badge status-badge-${key} status-badge-${size === "sm" ? "sm" : "md"}`}
         >
->>>>>>> Stashed changes
             {status}
-        </StatusBadgeRoot>
+        </span>
     );
 }
