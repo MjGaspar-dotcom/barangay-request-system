@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
-<<<<<<< HEAD
-=======
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 
@@ -143,11 +140,7 @@ export default function RecentActivity() {
 
     return (
         <AdminLayout>
-<<<<<<< HEAD
-            <div className="admin-dashboard">
-=======
             <div className="admin-dashboard recent-activity-page">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
                         <div>
@@ -166,53 +159,23 @@ export default function RecentActivity() {
                     </div>
 
                     <section className="dashboard-section">
-<<<<<<< HEAD
-                        <div
-                            className="admin-filters"
-                            style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "12px",
-                                alignItems: "center",
-                            }}
-                        >
-                            <input
-                                type="search"
-                                className="form-control"
-=======
                         <div className="admin-filters filter-bar">
                             <input
                                 type="search"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 placeholder="Search descriptions, actors, table names..."
                                 value={search}
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-<<<<<<< HEAD
-                                style={{
-                                    maxWidth: "380px",
-                                    flex: "1 1 280px",
-                                }}
-                            />
-
-                            <select
-                                className="form-select"
-=======
                                 className="form-control filter-search"
                             />
 
                             <select
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 value={actionFilter}
                                 onChange={(event) =>
                                     setActionFilter(event.target.value)
                                 }
-<<<<<<< HEAD
-                                style={{ maxWidth: "240px" }}
-=======
                                 className="form-select filter-select"
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             >
                                 {ACTION_FILTERS.map((filter) => (
                                     <option
@@ -225,17 +188,7 @@ export default function RecentActivity() {
                             </select>
 
                             {meta && (
-<<<<<<< HEAD
-                                <div
-                                    style={{
-                                        marginLeft: "auto",
-                                        color: "#6b7280",
-                                        fontSize: "14px",
-                                    }}
-                                >
-=======
                                 <div className="filter-summary">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                     Page {meta.current_page} of{" "}
                                     {meta.last_page} • Total{" "}
                                     {meta.total} entries
@@ -246,11 +199,7 @@ export default function RecentActivity() {
 
                     <section className="dashboard-section">
                         {loading ? (
-<<<<<<< HEAD
-                            <div className="page-loading">
-=======
                             <div className="page-loading" role="status">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 <div
                                     className="spinner-border text-success"
                                     role="status"
@@ -261,13 +210,6 @@ export default function RecentActivity() {
                                 </div>
                                 <p>Loading activity...</p>
                             </div>
-<<<<<<< HEAD
-                        ) : filtered.length === 0 ? (
-                            <div className="dashboard-empty-state">
-                                <div className="dashboard-empty-icon">
-                                    📊
-                                </div>
-=======
                         ) : error ? (
                             <div className="alert alert-danger" role="alert">
                                 <p>{error}</p>
@@ -276,7 +218,6 @@ export default function RecentActivity() {
                         ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon"><i className="bi bi-activity" aria-hidden="true" /></div>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 <h3>No Activity Found</h3>
                                 <p>
                                     No activity matches your current filters.
@@ -285,16 +226,6 @@ export default function RecentActivity() {
                                 </p>
                             </div>
                         ) : (
-<<<<<<< HEAD
-                            <div
-                                className="admin-table-wrapper"
-                                style={{ overflowX: "auto" }}
-                            >
-                                <table className="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th style={{ width: "50px" }}>
-=======
                             <div className="admin-table-wrapper table-scroll">
                                 <Table className="admin-table data-table recent-activity-table">
                                     <colgroup>
@@ -308,7 +239,6 @@ export default function RecentActivity() {
                                     <thead>
                                         <tr>
                                             <th className="activity-type-heading">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                 Type
                                             </th>
                                             <th>Description</th>
@@ -329,27 +259,8 @@ export default function RecentActivity() {
                                                 <tr key={entry.audit_log_id}>
                                                     <td>
                                                         <span
-<<<<<<< HEAD
-                                                            style={{
-                                                                display:
-                                                                    "inline-flex",
-                                                                alignItems:
-                                                                    "center",
-                                                                justifyContent:
-                                                                    "center",
-                                                                width: "32px",
-                                                                height: "32px",
-                                                                borderRadius:
-                                                                    "8px",
-                                                                backgroundColor:
-                                                                    color.bg,
-                                                                color: color.color,
-                                                                fontWeight: 700,
-                                                            }}
-=======
                                                             className="activity-type-icon"
                                                             style={{ "--activity-bg": color.bg, "--activity-color": color.color }}
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             title={entry.action}
                                                         >
                                                             {actionIcon(
@@ -362,19 +273,7 @@ export default function RecentActivity() {
                                                             {entry.description ||
                                                                 "—"}
                                                         </strong>
-<<<<<<< HEAD
-                                                        <div
-                                                            style={{
-                                                                fontSize:
-                                                                    "12px",
-                                                                color: "#6b7280",
-                                                                marginTop:
-                                                                    "2px",
-                                                            }}
-                                                        >
-=======
                                                         <div className="table-meta-text">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             Action:{" "}
                                                             <code>
                                                                 {entry.action}
@@ -385,17 +284,7 @@ export default function RecentActivity() {
                                                         <strong>
                                                             {actorName(entry)}
                                                         </strong>
-<<<<<<< HEAD
-                                                        <div
-                                                            style={{
-                                                                fontSize:
-                                                                    "12px",
-                                                                color: "#6b7280",
-                                                            }}
-                                                        >
-=======
                                                         <div className="table-meta-text">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                                             {actorRole(entry)}
                                                         </div>
                                                     </td>
@@ -418,80 +307,40 @@ export default function RecentActivity() {
                                             );
                                         })}
                                     </tbody>
-<<<<<<< HEAD
-                                </table>
-=======
                                 </Table>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </div>
                         )}
                     </section>
 
                     {meta && meta.last_page > 1 && (
                         <nav aria-label="Activity pagination">
-<<<<<<< HEAD
-                            <ul
-                                className="pagination"
-                                style={{
-                                    display: "flex",
-                                    gap: "6px",
-                                    listStyle: "none",
-                                    padding: 0,
-                                }}
-                            >
-                                <li>
-                                    <button
-=======
                             <ul className="pagination activity-pagination">
                                 <li>
                                     <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                         type="button"
                                         className="btn btn-outline-secondary btn-sm"
                                         disabled={page <= 1}
                                         onClick={() => goToPage(page - 1)}
                                     >
                                         ← Previous
-<<<<<<< HEAD
-                                    </button>
-                                </li>
-
-                                <li>
-                                    <span
-                                        style={{
-                                            padding: "6px 12px",
-                                            color: "#6b7280",
-                                            fontSize: "14px",
-                                        }}
-                                    >
-=======
                                     </Button>
                                 </li>
 
                                 <li>
                                     <span className="pagination-label">
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                         Page {page} of {meta.last_page}
                                     </span>
                                 </li>
 
                                 <li>
-<<<<<<< HEAD
-                                    <button
-=======
                                     <Button
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                         type="button"
                                         className="btn btn-outline-secondary btn-sm"
                                         disabled={page >= meta.last_page}
                                         onClick={() => goToPage(page + 1)}
                                     >
                                         Next →
-<<<<<<< HEAD
-                                    </button>
-=======
                                     </Button>
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 </li>
                             </ul>
                         </nav>

@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-<<<<<<< HEAD
-=======
 import BrandMark from "../../components/ui/BrandMark";
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
 import { validateForm } from "../../utils/validateForm";
 function Login() {

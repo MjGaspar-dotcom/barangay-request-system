@@ -37,11 +37,7 @@ function Landing() {
                             </span>
                             <span className="staff-admin-option-action">
                                 Continue to Staff Login
-<<<<<<< HEAD
-                                <span aria-hidden="true"> →</span>
-=======
                                 <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </span>
                         </span>
                     </button>
@@ -63,11 +59,7 @@ function Landing() {
                             </span>
                             <span className="staff-admin-option-action">
                                 Continue to Admin Login
-<<<<<<< HEAD
-                                <span aria-hidden="true"> →</span>
-=======
                                 <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
->>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </span>
                         </span>
                     </button>
