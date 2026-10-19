@@ -6,12 +6,21 @@ import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 const navigationItems = [
+<<<<<<< HEAD
     { label: "Dashboard", to: "/admin/dashboard", icon: "▦" },
     { label: "Manage Users", to: "/admin/users", icon: "👥" },
     { label: "Manage Staff", to: "/admin/staff", icon: "🧑‍💼" },
     { label: "Manage Requests", to: "/admin/requests", icon: "📋" },
     { label: "Document Types", to: "/admin/document-types", icon: "📄" },
     { label: "Recent Activity", to: "/admin/recent-activity", icon: "📊" },
+=======
+    { label: "Dashboard", to: "/admin/dashboard", icon: "bi-speedometer2" },
+    { label: "Manage Users", to: "/admin/users", icon: "bi-people" },
+    { label: "Manage Staff", to: "/admin/staff", icon: "bi-person-badge" },
+    { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
+    { label: "Document Types", to: "/admin/document-types", icon: "bi-file-earmark-text" },
+    { label: "Recent Activity", to: "/admin/recent-activity", icon: "bi-activity" },
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 ];
 
 const count = (value) =>

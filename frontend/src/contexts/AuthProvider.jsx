@@ -1,7 +1,24 @@
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:frontend/src/contexts/AuthContext.jsx
+
+import { createContext, useContext, useEffect, useState } from "react";
+
+import api from "../services/api";
+
+
+const AuthContext = createContext(null);
+
+========
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import api from "../services/api";
 
+<<<<<<< HEAD
+=======
+>>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c:frontend/src/contexts/AuthProvider.jsx
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
 
@@ -18,6 +35,10 @@ export function AuthProvider({ children }) {
         const verifyAuthentication = async () => {
             const storedToken = localStorage.getItem("auth_token");
 
+<<<<<<< HEAD
+=======
+            // No token = not authenticated
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
             if (!storedToken) {
                 setAuthLoading(false);
                 return;
@@ -72,9 +93,20 @@ export function AuthProvider({ children }) {
             throw new Error("Authentication token was not returned.");
         }
 
+<<<<<<< HEAD
         localStorage.setItem("auth_token", authToken);
         setToken(authToken);
 
+=======
+        // Save token
+        localStorage.setItem("auth_token", authToken);
+        setToken(authToken);
+
+<<<<<<<< HEAD:frontend/src/contexts/AuthContext.jsx
+        // Get authenticated user
+========
+>>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c:frontend/src/contexts/AuthProvider.jsx
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         const userResponse = await api.get("/user");
 
         const authenticatedUser =
@@ -130,4 +162,27 @@ export function AuthProvider({ children }) {
             {children}
         </AuthContext.Provider>
     );
+<<<<<<< HEAD
 }
+=======
+}
+<<<<<<<< HEAD:frontend/src/contexts/AuthContext.jsx
+
+// =========================================
+// USE AUTH HOOK
+// =========================================
+export function useAuth() {
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error(
+            "useAuth must be used inside an AuthProvider"
+        );
+    }
+
+    return context;
+}
+
+========
+>>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c:frontend/src/contexts/AuthProvider.jsx
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c

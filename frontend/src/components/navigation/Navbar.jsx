@@ -17,14 +17,16 @@ function Navbar() {
 
     return (
         <header className="navbar">
-            {" "}
             <div className="navbar-container">
-                {" "}
                 <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
-                    {" "}
-                    <div className="navbar-logo">B </div>
+                    <img
+                        className="navbar-logo"
+                        src="/assets/images/barangay-aurora-logo.png"
+                        alt="Barangay Aurora, Alicia, Isabela seal"
+                        decoding="async"
+                    />
                     <div className="navbar-title">
-                        <span className="barangay-name">Barangay System</span>
+                        <span className="barangay-name">Barangay Aurora</span>
                         <span className="system-name">
                             Document Request System
                         </span>
@@ -48,6 +50,7 @@ function Navbar() {
                     onClick={toggleMobileMenu}
                     aria-label="Toggle navigation menu"
                     aria-expanded={isMobileMenuOpen}
+                    aria-controls="mobile-navigation-menu"
                 >
                     <span></span>
                     <span></span>

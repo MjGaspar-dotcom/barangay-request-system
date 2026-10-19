@@ -1,16 +1,39 @@
-# React + Vite
+# Barangay Document Request System — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend for the Barangay Document Request System. The project includes public service pages and role-specific staff/admin workflows.
 
-Currently, two official plugins are available:
+## Requirements
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js compatible with the versions in `package.json` and `package-lock.json`
+- npm
 
-## React Compiler
+## Run locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+## Build and lint
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run build
+npm run lint
+```
+
+## Design and motion notes
+
+The existing visual identity is preserved: forest green for the public/resident experience, teal for staff, neutral surfaces, and the current component/layout structure. See `DESIGN-SYSTEM.md` and `brand-spec.md` for the token and asset notes.
+
+The shared motion layer provides fine-pointer hover feedback, brief route entrance cues, one-time viewport reveals, smooth scroll behavior, and keyboard focus visibility. It respects `prefers-reduced-motion` and avoids animating layout dimensions.
+
+## Project structure
+
+- `src/pages/` — public, resident, staff, admin, and guest pages
+- `src/components/` — reusable UI, navigation, forms, and sections
+- `src/layouts/` — shared public and role-specific layouts
+- `src/routes/` — route definitions and route guards
+- `src/assets/styles/` — design tokens, Bootstrap bridge, layouts, components, and page styles
+- `public/assets/images/` — local image assets
+
+The ZIP distribution intentionally excludes `node_modules/` and generated `dist/`; reinstall dependencies with `npm install` after extracting it.

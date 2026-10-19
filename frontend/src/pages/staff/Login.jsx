@@ -1,7 +1,9 @@
 import { useState } from "react";
+import BrandMark from "../../components/ui/BrandMark";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
+import { validateForm } from "../../utils/validateForm";
 function StaffLogin() {
     // Get the shared login function from AuthContext.
     // This sends the username and password to the Laravel API.
@@ -13,6 +15,7 @@ function StaffLogin() {
     // Store the values entered into the login form.
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     // Stores an error message when login fails.
     const [error, setError] = useState("");
@@ -24,6 +27,8 @@ function StaffLogin() {
     const handleSubmit = async (event) => {
         // Prevent the browser from refreshing the page.
         event.preventDefault();
+
+        if (!validateForm(event.currentTarget)) return;
 
         // Remove any previous error before attempting login.
         setError("");
@@ -66,11 +71,19 @@ function StaffLogin() {
                     aria-label="Back to Barangay Document System"
                     title="Back to Barangay Document System"
                 >
+<<<<<<< HEAD
                     ←
                 </Link>
 
                 <div className="portal-auth-header">
                     <div className="auth-logo">B</div>
+=======
+                    <i className="bi bi-arrow-left" aria-hidden="true" />
+                </Link>
+
+                <div className="portal-auth-header">
+                    <BrandMark className="auth-logo" />
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
                     <span className="portal-auth-label">
                         STAFF PORTAL
@@ -91,12 +104,22 @@ function StaffLogin() {
                     </div>
 
                     {error && (
+<<<<<<< HEAD
                         <div className="alert alert-danger" role="alert">
                             {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit}>
+=======
+                        <div className="portal-auth-error" role="alert">
+                            <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <form noValidate onSubmit={handleSubmit}>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         <div className="portal-form-group">
                             <label htmlFor="staff-username">Username</label>
                             <input
@@ -105,9 +128,16 @@ function StaffLogin() {
                                 type="text"
                                 autoComplete="username"
                                 value={username}
+<<<<<<< HEAD
                                 onChange={(event) =>
                                     setUsername(event.target.value)
                                 }
+=======
+                                onChange={(event) => {
+                                    setUsername(event.target.value);
+                                    setError("");
+                                }}
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 placeholder="Enter staff username"
                                 required
                             />
@@ -115,6 +145,7 @@ function StaffLogin() {
 
                         <div className="portal-form-group">
                             <label htmlFor="staff-password">Password</label>
+<<<<<<< HEAD
                             <input
                                 id="staff-password"
                                 name="password"
@@ -127,6 +158,38 @@ function StaffLogin() {
                                 placeholder="Enter your password"
                                 required
                             />
+=======
+                            <div className="portal-form-password">
+                                <input
+                                    id="staff-password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    autoComplete="current-password"
+                                    value={password}
+                                    onChange={(event) => {
+                                        setPassword(event.target.value);
+                                        setError("");
+                                    }}
+                                    placeholder="Enter your password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() =>
+                                        setShowPassword((visible) => !visible)
+                                    }
+                                    aria-label={
+                                        showPassword
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                    aria-pressed={showPassword}
+                                >
+                                    <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`} aria-hidden="true" />
+                                </button>
+                            </div>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </div>
 
                         <button
@@ -134,7 +197,11 @@ function StaffLogin() {
                             className="portal-login-button"
                             disabled={loading}
                         >
+<<<<<<< HEAD
                             {loading ? "Signing in..." : "SIGN IN TO STAFF PORTAL"}
+=======
+                            {loading ? "Signing in..." : "Sign in to staff portal"}
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </button>
                     </form>
 

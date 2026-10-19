@@ -1,0 +1,120 @@
+/* ==========================================================
+   Resident auth page (.auth-page)
+   NOT ROUTED: resident login/register are not in routes/index.jsx yet.
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+
+.auth-page {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background-color: var(--surface);
+}
+
+.auth-card {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    padding: 40px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+.auth-back-arrow {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 1;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--brand-800);
+    font-size: 28px;
+    line-height: 1;
+    text-decoration: none;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.auth-back-arrow:hover {
+    background-color: rgba(22, 101, 52, 0.1);
+    color: var(--brand-900);
+}
+
+.auth-back-arrow:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.auth-card-wide {
+    max-width: 850px;
+}
+
+.auth-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.auth-logo {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 20px;
+    display: block;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.auth-header h1 {
+    margin-bottom: 10px;
+    color: var(--brand-900);
+}
+
+.auth-header p {
+    margin: 0;
+    color: var(--gray-500);
+}
+
+.form-section {
+    margin-bottom: 32px;
+}
+
+.form-section h2 {
+    margin-bottom: 20px;
+    color: var(--brand-900);
+    font-size: 20px;
+}
+
+.auth-footer {
+    margin-top: 24px;
+    text-align: center;
+    color: var(--gray-500);
+}
+
+.auth-footer a {
+    color: var(--brand-800);
+    font-weight: 600;
+}
+
+.page-loading {
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.page-loading p {
+    margin: 0;
+    color: var(--gray-500);
+}
+
+/* Dashboard */

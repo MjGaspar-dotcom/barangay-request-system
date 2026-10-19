@@ -1,0 +1,205 @@
+/* ==========================================================
+   Dashboard shell: .dashboard-layout, base .dashboard-sidebar, .sidebar-user, .sidebar-link
+   Base look. Role colors are layered on top in layouts/role-workspaces.css.
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+
+.dashboard-layout {
+    min-height: 100vh;
+    display: flex;
+    background-color: var(--surface);
+}
+
+.dashboard-sidebar-wrapper {
+    width: 260px;
+    flex-shrink: 0;
+}
+
+.dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    background-color: var(--brand-900);
+    color: var(--white);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-logo {
+    display: flex;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--brand-100);
+    color: var(--brand-900);
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.sidebar-header span {
+    color: var(--brand-200);
+    font-size: 12px;
+}
+
+.sidebar-user {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 20px 8px;
+}
+
+.sidebar-user strong {
+    font-size: 15px;
+}
+
+.sidebar-user span {
+    color: var(--brand-200);
+    font-size: 12px;
+    text-transform: capitalize;
+}
+
+.sidebar-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    color: var(--brand-100);
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: var(--white);
+}
+
+.sidebar-link-icon {
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+}
+
+.sidebar-logout {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border: 0;
+    background: transparent;
+    color: var(--brand-100);
+    text-align: left;
+    border-radius: 8px;
+}
+
+.sidebar-logout:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: var(--white);
+}
+
+.dashboard-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.dashboard-content {
+    padding: 40px;
+}
+
+.dashboard-mobile-header {
+    display: none;
+}
+
+.sidebar-overlay {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 64px 0;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+    }
+
+    .auth-card {
+        padding: 28px 20px;
+    }
+
+    .dashboard-sidebar-wrapper {
+        position: fixed;
+        z-index: 1050;
+        top: 0;
+        bottom: 0;
+        left: -260px;
+        transition: left 0.2s ease;
+    }
+
+    .dashboard-sidebar-wrapper.open {
+        left: 0;
+    }
+
+    .dashboard-mobile-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        height: 64px;
+        align-items: center;
+        gap: 16px;
+        padding: 0 20px;
+        background-color: var(--white);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .dashboard-menu-button {
+        border: 0;
+        background: transparent;
+        font-size: 24px;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        z-index: 1040;
+        inset: 0;
+        display: block;
+        border: 0;
+        background: rgba(0, 0, 0, 0.35);
+    }
+
+    .dashboard-content {
+        padding: 24px 16px;
+    }
+}

@@ -1,4 +1,17 @@
 import { useNavigate } from "react-router-dom";
+import {
+    SectionContainer,
+    SectionDescription,
+    SectionHeading,
+    SectionLabel,
+    SectionTitle,
+} from "./Section.styles";
+import {
+    DocumentCard,
+    DocumentGrid,
+    DocumentRequestButton,
+    DocumentSectionRoot,
+} from "./DocumentSection.styles";
 
 function DocumentSection() {
     const navigate = useNavigate();
@@ -27,40 +40,39 @@ function DocumentSection() {
     ];
 
     return (
-        <section id="services" className="content-section document-section">
-            <div className="container">
-                <div className="section-heading">
-                    <span className="section-label">DOCUMENT SERVICES</span>
+        <DocumentSectionRoot id="services">
+            <SectionContainer>
+                <SectionHeading>
+                    <SectionLabel>DOCUMENT SERVICES</SectionLabel>
 
-                    <h2>Available Documents</h2>
+                    <SectionTitle>Available Documents</SectionTitle>
 
-                    <p>
+                    <SectionDescription>
                         Request common barangay documents through the online
                         document request system.
-                    </p>
-                </div>
+                    </SectionDescription>
+                </SectionHeading>
 
-                <div className="row g-4">
+                <DocumentGrid>
                     {documents.map((document) => (
-                        <div className="col-md-6 col-lg-3" key={document.title}>
-                            <div className="document-card">
-                                <h3>{document.title}</h3>
+                        <DocumentCard key={document.title}>
+                            <h3>{document.title}</h3>
 
-                                <p>{document.description}</p>
+                            <p>{document.description}</p>
 
-                                <button
-                                    type="button"
-                                    className="btn btn-success"
-                                    onClick={() => navigate("/request")}
-                                >
-                                    Request Now
-                                </button>
-                            </div>
-                        </div>
+                            <DocumentRequestButton
+                                type="button"
+                                variant="contained"
+                                color="success"
+                                onClick={() => navigate("/request")}
+                            >
+                                Request Now
+                            </DocumentRequestButton>
+                        </DocumentCard>
                     ))}
-                </div>
-            </div>
-        </section>
+                </DocumentGrid>
+            </SectionContainer>
+        </DocumentSectionRoot>
     );
 }
 

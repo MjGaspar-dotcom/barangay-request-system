@@ -1,0 +1,18 @@
+/* Load order matters: later files can override earlier ones. Do not reorder. */
+@import "./base.css";
+@import "./legacy/public-site.css";
+@import "./legacy/resident-auth.css";
+@import "./layouts/dashboard-shell.css";
+@import "./pages/admin-shared.css";
+@import "./layouts/portal-auth.css";
+@import "./legacy/guest-landing.css";
+@import "./pages/staff-admin-landing.css";
+@import "./legacy/resident-landing.css";
+@import "./pages/staff-landing.css";
+@import "./pages/admin-landing.css";
+@import "./layouts/portal-layout.css";
+@import "./legacy/resident-portal.css";
+@import "./pages/staff-portal.css";
+@import "./pages/admin-portal.css";
+@import "./layouts/role-workspaces.css";
+@import "./components/ui-shared.css";

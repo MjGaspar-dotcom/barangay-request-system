@@ -1,22 +1,30 @@
-import { Link } from "react-router-dom";
+import {
+    BreadcrumbCurrent,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbRoot,
+    BreadcrumbSeparator,
+} from "./BreadCrumb.styles";
 
 function BreadCrumb({ items = [] }) {
     return (
-        <nav className="breadcrumb" aria-label="Breadcrumb">
-            {" "}
-            <Link to="/">Home</Link>
+        <BreadcrumbRoot aria-label="Breadcrumb">
+            <BreadcrumbLink to="/">Home</BreadcrumbLink>
+
             {items.map((item, index) => (
-                <span key={index} className="breadcrumb-item">
-                    <span className="breadcrumb-separator">/</span>
+                <BreadcrumbItem key={index}>
+                    <BreadcrumbSeparator>/</BreadcrumbSeparator>
 
                     {item.path ? (
-                        <Link to={item.path}>{item.label}</Link>
+                        <BreadcrumbLink to={item.path}>
+                            {item.label}
+                        </BreadcrumbLink>
                     ) : (
-                        <span className="breadcrumb-current">{item.label}</span>
+                        <BreadcrumbCurrent>{item.label}</BreadcrumbCurrent>
                     )}
-                </span>
+                </BreadcrumbItem>
             ))}
-        </nav>
+        </BreadcrumbRoot>
     );
 }
 

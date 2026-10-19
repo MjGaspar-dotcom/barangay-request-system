@@ -1,0 +1,128 @@
+/* ==========================================================
+   Staff & Admin entry page (Landing.jsx)
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+.staff-admin-landing {
+    max-width: 960px;
+}
+
+.staff-admin-landing .portal-eyebrow {
+    font-size: 14px;
+}
+
+.staff-admin-landing h1 {
+    font-size: clamp(42px, 5.5vw, 68px);
+}
+
+.staff-admin-description {
+    max-width: 740px;
+    font-size: 19px;
+}
+
+.staff-admin-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 42px;
+    text-align: left;
+}
+
+.staff-admin-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    min-height: 190px;
+    padding: 28px;
+    border: 1px solid rgba(22, 101, 52, 0.18);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 32px rgba(6, 78, 59, 0.1);
+    color: #17201b;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.staff-admin-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 38px rgba(6, 78, 59, 0.16);
+}
+
+.staff-admin-option:focus-visible {
+    outline: 3px solid var(--brand-800);
+    outline-offset: 3px;
+}
+
+.staff-admin-option-icon {
+    display: grid;
+    flex: 0 0 54px;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border-radius: 15px;
+    background: #e9f4ed;
+    color: var(--brand-800);
+    font-size: 27px;
+}
+
+.staff-admin-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.staff-admin-option-title {
+    color: var(--brand-900);
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.staff-admin-option-description {
+    color: #4b5563;
+    font-size: 17px;
+    line-height: 1.55;
+}
+
+.staff-admin-option-action {
+    margin-top: 8px;
+    color: var(--brand-800);
+    font-size: 16px;
+    font-weight: 800;
+}
+
+@media (max-width: 768px) {
+    .staff-admin-description {
+        font-size: 18px;
+    }
+
+    .staff-admin-options {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+        margin: 34px auto 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .staff-admin-landing h1 {
+        font-size: 40px;
+    }
+
+    .staff-admin-option {
+        gap: 15px;
+        min-height: auto;
+        padding: 22px 18px;
+    }
+
+    .staff-admin-option-title {
+        font-size: 22px;
+    }
+
+    .staff-admin-option-description {
+        font-size: 16px;
+    }
+
+    .staff-admin-option-action {
+        font-size: 15px;
+    }
+}

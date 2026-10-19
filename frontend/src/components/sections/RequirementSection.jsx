@@ -1,3 +1,17 @@
+import {
+    SectionContainer,
+    SectionDescription,
+    SectionHeading,
+    SectionLabel,
+    SectionTitle,
+} from "./Section.styles";
+import {
+    RequirementCard,
+    RequirementGrid,
+    RequirementNumber,
+    RequirementSectionRoot,
+} from "./RequirementSection.styles";
+
 function RequirementSection() {
     const requirements = [
         {
@@ -23,38 +37,36 @@ function RequirementSection() {
     ];
 
     return (
-        <section className="content-section requirement-section">
-            <div className="container">
-                <div className="section-heading">
-                    <span className="section-label">REQUIREMENTS</span>
+        <RequirementSectionRoot>
+            <SectionContainer>
+                <SectionHeading>
+                    <SectionLabel>REQUIREMENTS</SectionLabel>
 
-                    <h2>Prepare Before You Request</h2>
+                    <SectionTitle>Prepare Before You Request</SectionTitle>
 
-                    <p>
+                    <SectionDescription>
                         Having the required information and documents ready
                         helps make the request process easier.
-                    </p>
-                </div>
+                    </SectionDescription>
+                </SectionHeading>
 
-                <div className="row g-4">
+                <RequirementGrid>
                     {requirements.map((requirement, index) => (
-                        <div className="col-md-6" key={requirement.title}>
-                            <div className="requirement-card">
-                                <div className="requirement-number">
-                                    {String(index + 1).padStart(2, "0")}
-                                </div>
+                        <RequirementCard key={requirement.title}>
+                            <RequirementNumber>
+                                {String(index + 1).padStart(2, "0")}
+                            </RequirementNumber>
 
-                                <div>
-                                    <h3>{requirement.title}</h3>
+                            <div>
+                                <h3>{requirement.title}</h3>
 
-                                    <p>{requirement.description}</p>
-                                </div>
+                                <p>{requirement.description}</p>
                             </div>
-                        </div>
+                        </RequirementCard>
                     ))}
-                </div>
-            </div>
-        </section>
+                </RequirementGrid>
+            </SectionContainer>
+        </RequirementSectionRoot>
     );
 }
 

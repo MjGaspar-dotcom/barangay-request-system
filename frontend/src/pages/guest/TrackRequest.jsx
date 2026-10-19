@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 
+import { validateForm } from "../../utils/validateForm";
 export default function TrackRequest() {
     const [trackingNumber, setTrackingNumber] = useState("");
     const [result, setResult] = useState(null);
@@ -10,6 +11,11 @@ export default function TrackRequest() {
     const handleTrack = async (e) => {
         e.preventDefault();
 
+<<<<<<< HEAD
+=======
+        if (!validateForm(e.currentTarget)) return;
+
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
         setError("");
         setResult(null);
         setLoading(true);
@@ -50,7 +56,11 @@ export default function TrackRequest() {
 
                         <div className="card-body">
 
+<<<<<<< HEAD
                             <form onSubmit={handleTrack}>
+=======
+                            <form noValidate onSubmit={handleTrack}>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
                                 <label
                                     htmlFor="tracking_number"

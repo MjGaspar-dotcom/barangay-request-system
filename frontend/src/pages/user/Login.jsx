@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+<<<<<<< HEAD
+=======
+import BrandMark from "../../components/ui/BrandMark";
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
+import { validateForm } from "../../utils/validateForm";
 function Login() {
     // Get the shared login function from AuthContext.
     // This sends the username and password to the Laravel API.
@@ -26,6 +31,8 @@ function Login() {
     const handleSubmit = async (event) => {
         // Prevent the browser from refreshing the page.
         event.preventDefault();
+
+        if (!validateForm(event.currentTarget)) return;
 
         // Clear any previous login error.
         setError("");
@@ -76,7 +83,7 @@ function Login() {
                 {/* Authentication page header */}
                 <div className="auth-header">
                     {/* Barangay system logo */}
-                    <div className="auth-logo">B</div>
+                    <BrandMark className="auth-logo" />
 
                     <span className="section-label">
                         BARANGAY DOCUMENT SYSTEM
@@ -98,7 +105,7 @@ function Login() {
                 )}
 
                 {/* User login form */}
-                <form onSubmit={handleSubmit}>
+                <form noValidate onSubmit={handleSubmit}>
                     {/* Username field */}
                     <div className="mb-3">
                         <label

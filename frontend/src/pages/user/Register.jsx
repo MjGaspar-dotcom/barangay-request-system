@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
+import { validateForm } from "../../utils/validateForm";
 function Register() {
     const navigate = useNavigate();
 
@@ -35,6 +36,8 @@ function Register() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        if (!validateForm(event.currentTarget)) return;
 
         setError("");
         setSuccess("");
@@ -111,7 +114,7 @@ function Register() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
+                <form noValidate onSubmit={handleSubmit}>
                     <div className="form-section">
                         <h2>Account Information</h2>
 

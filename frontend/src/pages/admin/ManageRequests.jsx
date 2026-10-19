@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+<<<<<<< HEAD
+=======
+import Table from "react-bootstrap/Table";
+import Button from "../../components/ui/Button";
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -29,9 +34,12 @@ export default function ManageRequests() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
+<<<<<<< HEAD
     const [busyId, setBusyId] = useState(null);
     const [actionMessage, setActionMessage] = useState("");
     const [actionError, setActionError] = useState("");
+=======
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     const fetchRequests = async () => {
         try {
@@ -51,6 +59,7 @@ export default function ManageRequests() {
         fetchRequests();
     }, []);
 
+<<<<<<< HEAD
     const flash = (message, isError = false) => {
         if (isError) {
             setActionError(message);
@@ -65,6 +74,8 @@ export default function ManageRequests() {
         }, 4000);
     };
 
+=======
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
     const getRequesterName = (request) => {
         if (request.request_type === "registered" && request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
@@ -78,6 +89,7 @@ export default function ManageRequests() {
         return "Unknown";
     };
 
+<<<<<<< HEAD
     const handleStatusUpdate = async (request, newStatus) => {
         const confirmAction = window.confirm(
             `Change status of ${request.tracking_number} to "${newStatus}"?`
@@ -130,6 +142,8 @@ export default function ManageRequests() {
         }
     };
 
+=======
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();
 
@@ -189,6 +203,7 @@ export default function ManageRequests() {
     }, [requests]);
 
     const statCards = [
+<<<<<<< HEAD
         { label: "Total", value: counts.total, color: "#14532d" },
         { label: "Pending", value: counts.pending, color: "#f59e0b" },
         { label: "Approved", value: counts.approved, color: "#3b82f6" },
@@ -196,6 +211,15 @@ export default function ManageRequests() {
         { label: "Ready", value: counts.ready, color: "#10b981" },
         { label: "Completed", value: counts.completed, color: "#16a34a" },
         { label: "Rejected", value: counts.rejected, color: "#dc2626" },
+=======
+        { label: "Total", value: counts.total, tone: "total" },
+        { label: "Pending", value: counts.pending, tone: "pending" },
+        { label: "Approved", value: counts.approved, tone: "approved" },
+        { label: "Processing", value: counts.processing, tone: "processing" },
+        { label: "Ready", value: counts.ready, tone: "ready" },
+        { label: "Completed", value: counts.completed, tone: "completed" },
+        { label: "Rejected", value: counts.rejected, tone: "rejected" },
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
     ];
 
     const getValidIdImageUrl = (path) => {
@@ -227,7 +251,11 @@ export default function ManageRequests() {
         return (
             <AdminLayout>
                 <div className="page-loading">
+<<<<<<< HEAD
                     <p>{error}</p>
+=======
+                    <div className="alert alert-danger" role="alert">{error}</div>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 </div>
             </AdminLayout>
         );
@@ -235,7 +263,11 @@ export default function ManageRequests() {
 
     return (
         <AdminLayout>
+<<<<<<< HEAD
             <div className="admin-dashboard">
+=======
+            <div className="admin-dashboard manage-requests-page">
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 <div className="container-fluid">
                     <div className="dashboard-page-header">
                         <div>
@@ -247,9 +279,15 @@ export default function ManageRequests() {
 
                             <p>
                                 Review every document request submitted by
+<<<<<<< HEAD
                                 registered residents and walk-in guests.
                                 Approve, reject, or advance each request
                                 through the processing pipeline.
+=======
+                                registered residents and walk-in guests. Open
+                                a request to review its details and manage its
+                                status.
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </p>
                         </div>
                     </div>
@@ -262,6 +300,7 @@ export default function ManageRequests() {
                                     key={stat.label}
                                 >
                                     <div className="dashboard-stat-card">
+<<<<<<< HEAD
                                         <div
                                             className="dashboard-stat-icon"
                                             style={{
@@ -270,6 +309,10 @@ export default function ManageRequests() {
                                                 color: stat.color,
                                             }}
                                         >
+=======
+                                        <div className={`dashboard-stat-icon dashboard-stat-icon-${stat.tone}`}>
+
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                             {stat.label[0]}
                                         </div>
                                         <div>
@@ -286,6 +329,7 @@ export default function ManageRequests() {
                         </div>
                     </section>
 
+<<<<<<< HEAD
                     {actionMessage && (
                         <div
                             className="alert alert-success"
@@ -314,21 +358,43 @@ export default function ManageRequests() {
                             <input
                                 type="search"
                                 className="form-control"
+=======
+                    <section className="dashboard-section">
+                        <div
+                            className="admin-filters filter-bar filter-row"
+                            
+                        >
+                            <input
+                                type="search"
+                                className="form-control filter-search-380"
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 placeholder="Search by tracking number, name, document, purpose..."
                                 value={search}
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
+<<<<<<< HEAD
                                 style={{ maxWidth: "380px", flex: "1 1 280px" }}
                             />
 
                             <select
                                 className="form-select"
+=======
+                                
+                            />
+
+                            <select
+                                className="form-select filter-select-180"
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 value={statusFilter}
                                 onChange={(event) =>
                                     setStatusFilter(event.target.value)
                                 }
+<<<<<<< HEAD
                                 style={{ maxWidth: "180px" }}
+=======
+                                
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             >
                                 {STATUS_FILTERS.map((filter) => (
                                     <option
@@ -341,12 +407,20 @@ export default function ManageRequests() {
                             </select>
 
                             <select
+<<<<<<< HEAD
                                 className="form-select"
+=======
+                                className="form-select filter-select-180"
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 value={typeFilter}
                                 onChange={(event) =>
                                     setTypeFilter(event.target.value)
                                 }
+<<<<<<< HEAD
                                 style={{ maxWidth: "180px" }}
+=======
+                                
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             >
                                 {TYPE_FILTERS.map((filter) => (
                                     <option
@@ -358,12 +432,17 @@ export default function ManageRequests() {
                                 ))}
                             </select>
 
+<<<<<<< HEAD
                             <div
                                 style={{
                                     marginLeft: "auto",
                                     color: "#6b7280",
                                     fontSize: "14px",
                                 }}
+=======
+                            <div className="filter-count"
+                                
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             >
                                 Showing {filtered.length} of {requests.length}{" "}
                                 request{requests.length === 1 ? "" : "s"}
@@ -374,8 +453,13 @@ export default function ManageRequests() {
                     <section className="dashboard-section">
                         {filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
+<<<<<<< HEAD
                                 <div className="dashboard-empty-icon">
                                     📋
+=======
+                                <div className="dashboard-empty-icon" aria-hidden="true">
+                                    <i className="bi bi-inbox" />
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                                 </div>
                                 <h3>No Requests Found</h3>
                                 <p>
@@ -385,6 +469,7 @@ export default function ManageRequests() {
                                 </p>
                             </div>
                         ) : (
+<<<<<<< HEAD
                             <div className="row g-3">
                                 {filtered.map((request) => {
                                     const reqId =
@@ -676,6 +761,68 @@ export default function ManageRequests() {
                                         </div>
                                     );
                                 })}
+=======
+                            <div className="table-scroll">
+                                <Table className="data-table manage-requests-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Requester</th>
+                                            <th>Request details</th>
+                                            <th>Status</th>
+                                            <th>Purpose and notes</th>
+                                            <th>Submitted</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filtered.map((request) => {
+                                            const reqId = request.request_id || request.guest_request_id;
+                                            const reqType = request.request_type || "registered";
+                                            const idImage = request.guest?.valid_id_image;
+
+                                            return (
+                                                <tr key={`${reqType}-${reqId}`}>
+                                                    <td>
+                                                        <strong>{getRequesterName(request)}</strong>
+                                                        <div className="data-table-subtext">{request.tracking_number}</div>
+                                                        <div className="data-table-subtext text-capitalize">{reqType}</div>
+                                                    </td>
+                                                    <td>
+                                                        <strong>{request.document_type?.document_name || "Unknown"}</strong>
+                                                        {idImage && (
+                                                            <div className="data-table-subtext">
+                                                                <strong>Valid ID:</strong>{" "}
+                                                                <a className="data-table-link" href={getValidIdImageUrl(idImage)} target="_blank" rel="noreferrer">View uploaded ID</a>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td><StatusBadge status={request.status} /></td>
+                                                    <td>
+                                                        <div><strong>Purpose:</strong> {request.purpose || "—"}</div>
+                                                        {request.remarks && <div className="data-table-subtext"><strong>Remarks:</strong> {request.remarks}</div>}
+                                                    </td>
+                                                    <td>{formatDate(request.created_at)}</td>
+                                                    <td>
+                                                        <div className="data-table-actions">
+                                                            <Button
+                                                                type="button"
+                                                                className="btn btn-outline-success btn-sm"
+                                                                onClick={() =>
+                                                                    navigate(
+                                                                        `/admin/requests/${reqType}/${reqId}`,
+                                                                    )
+                                                                }
+                                                            >
+                                                                View Details
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </Table>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                             </div>
                         )}
                     </section>

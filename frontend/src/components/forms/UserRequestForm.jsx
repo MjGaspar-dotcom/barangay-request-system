@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 
+import { validateForm } from "../../utils/validateForm";
 export default function UserRequestForm() {
     const { user } = useAuth();
 
@@ -32,6 +33,8 @@ export default function UserRequestForm() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        if (!validateForm(event.currentTarget)) return;
 
         setError("");
         setSuccess("");
@@ -82,7 +85,7 @@ export default function UserRequestForm() {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form noValidate onSubmit={handleSubmit}>
             <div className="mb-3">
                 <label
                     htmlFor="document_type_id"

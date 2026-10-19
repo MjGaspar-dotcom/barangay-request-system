@@ -1,19 +1,20 @@
-import { Link } from "react-router-dom";
+import { NavigationLink, NavLinksRoot } from "./NavLinks.styles";
 
-function NavLinks({ onLinkClick }) {
+function NavLinks({ onLinkClick, isMobile = false }) {
     return (
-        <nav className="nav-links">
-            {" "}
-            <Link to="/" onClick={onLinkClick}>
-                Home{" "}
-            </Link>
-            <Link to="/services" onClick={onLinkClick}>
+        <NavLinksRoot isMobile={isMobile}>
+            <NavigationLink to="/" onClick={onLinkClick}>
+                Home
+            </NavigationLink>
+
+            <NavigationLink to="/services" onClick={onLinkClick}>
                 Services
-            </Link>
-            <Link to="/about" onClick={onLinkClick}>
+            </NavigationLink>
+
+            <NavigationLink to="/about" onClick={onLinkClick}>
                 About
-            </Link>
-        </nav>
+            </NavigationLink>
+        </NavLinksRoot>
     );
 }
 

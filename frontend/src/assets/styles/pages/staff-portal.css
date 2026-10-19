@@ -1,0 +1,671 @@
+/* ==========================================================
+   Staff portal pages (dashboard, request details)
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+/*
+   STAFF PORTAL
+   ========================================================= */
+
+/*
+|--------------------------------------------------------------------------
+| Staff Portal Container
+|--------------------------------------------------------------------------
+*/
+
+.staff-portal {
+    width: 100%;
+    max-width: 1000px;
+
+    margin: 0 auto;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Welcome Header
+|--------------------------------------------------------------------------
+*/
+
+.staff-welcome {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 22px;
+}
+
+.staff-welcome h1 {
+    margin: 0;
+
+    color: #17201b;
+
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+
+    letter-spacing: -1.3px;
+    line-height: 1.1;
+}
+
+.staff-welcome h1 span {
+    color: var(--brand-800);
+}
+
+.staff-welcome p {
+    max-width: 580px;
+
+    margin: 10px 0 0;
+
+    color: var(--gray-500);
+
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Staff Status
+|--------------------------------------------------------------------------
+*/
+
+.staff-status-badge {
+    display: flex;
+    align-items: center;
+
+    flex: 0 0 auto;
+
+    gap: 6px;
+
+    padding: 7px 10px;
+
+    border: 1px solid rgba(22, 101, 52, 0.12);
+    border-radius: 20px;
+
+    background-color: rgba(255, 255, 255, 0.82);
+
+    color: var(--brand-800);
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.staff-status-dot {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background-color: #22c55e;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Statistics
+|--------------------------------------------------------------------------
+*/
+
+.staff-stat-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
+.staff-stat-card {
+    padding: 16px;
+
+    border: 1px solid rgba(22, 101, 52, 0.1);
+    border-radius: 13px;
+
+    background-color: rgba(255, 255, 255, 0.8);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    box-shadow: 0 5px 20px rgba(20, 83, 45, 0.05);
+}
+
+.staff-stat-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+.staff-stat-label {
+    color: var(--brand-800);
+
+    font-size: 13px;
+    font-weight: 800;
+
+    letter-spacing: 0.9px;
+}
+
+.staff-stat-number {
+    color: #17201b;
+
+    font-size: 23px;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+.staff-stat-card p {
+    margin: 9px 0 0;
+
+    color: #4b5563;
+
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Work Grid
+|--------------------------------------------------------------------------
+*/
+
+.staff-work-grid {
+    display: grid;
+
+    grid-template-columns: 1.25fr 0.75fr;
+
+    gap: 12px;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Work Card
+|--------------------------------------------------------------------------
+*/
+
+.staff-work-card {
+    min-height: 280px;
+
+    padding: 20px;
+
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 15px;
+
+    background-color: rgba(255, 255, 255, 0.76);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    box-shadow: 0 6px 24px rgba(20, 83, 45, 0.06);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Work Card Header
+|--------------------------------------------------------------------------
+*/
+
+.staff-work-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding-bottom: 15px;
+
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.staff-section-label {
+    color: var(--brand-800);
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 1.1px;
+}
+
+.staff-work-header h2 {
+    margin: 5px 0 0;
+
+    color: #17201b;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.staff-work-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 26px;
+    height: 26px;
+
+    padding: 0 7px;
+
+    border-radius: 8px;
+
+    background-color: var(--brand-100);
+
+    color: var(--brand-800);
+
+    font-size: 14px;
+    font-weight: 800;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Empty State
+|--------------------------------------------------------------------------
+*/
+
+.staff-empty-state {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+
+    min-height: 205px;
+
+    text-align: center;
+}
+
+.staff-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    height: 40px;
+
+    margin-bottom: 10px;
+
+    border-radius: 10px;
+
+    background-color: #f0fdf4;
+
+    color: var(--brand-800);
+
+    font-size: 20px;
+}
+
+.staff-empty-state h3 {
+    margin: 0;
+
+    color: var(--gray-700);
+
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.staff-empty-state p {
+    max-width: 260px;
+
+    margin: 7px 0 0;
+
+    color: #4b5563;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.staff-queue-message {
+    margin: 20px 0 0;
+    color: #4b5563;
+    text-align: center;
+}
+
+.staff-request-list {
+    display: flex;
+    flex-direction: column;
+    padding-top: 8px;
+}
+
+.staff-request-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 2px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+    color: #17201b;
+    text-decoration: none;
+}
+
+.staff-request-row:last-child {
+    border-bottom: 0;
+}
+
+.staff-request-row:hover {
+    color: var(--brand-900);
+}
+
+.staff-request-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.staff-request-details strong {
+    overflow: hidden;
+    color: var(--brand-900);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.staff-request-details span {
+    overflow: hidden;
+    color: var(--gray-500);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.staff-request-status {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #f0fdf4;
+    color: var(--brand-800);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.dashboard-notifications {
+    width: 100%;
+    margin-top: 20px;
+    padding: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 6px 24px rgba(20, 83, 45, 0.06);
+}
+
+.dashboard-notifications-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.dashboard-notifications-label {
+    color: var(--brand-800);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.dashboard-notifications-header h2 {
+    margin: 5px 0 0;
+    color: #17201b;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.dashboard-notification-count {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--brand-100);
+    color: var(--brand-800);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-notification-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-notification {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 2px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.08);
+}
+
+.dashboard-notification:last-child {
+    border-bottom: 0;
+}
+
+.dashboard-notification.unread {
+    border-left: 3px solid var(--brand-600);
+    padding-left: 11px;
+}
+
+.dashboard-notification-copy {
+    min-width: 0;
+}
+
+.dashboard-notification-copy strong {
+    color: var(--brand-900);
+    font-size: 14px;
+}
+
+.dashboard-notification-copy p {
+    margin: 4px 0;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+.dashboard-notification-copy time {
+    color: var(--gray-500);
+    font-size: 12px;
+}
+
+.dashboard-notification-read,
+.dashboard-notification-error button {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border: 1px solid rgba(22, 101, 52, 0.25);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--brand-800);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-notification-read:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.dashboard-notification-message,
+.dashboard-notification-error {
+    margin: 16px 0 0;
+    color: var(--gray-500);
+    font-size: 14px;
+}
+
+.dashboard-notification-error {
+    color: #b91c1c;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Workflow
+|--------------------------------------------------------------------------
+*/
+
+.staff-workflow {
+    padding-top: 17px;
+}
+
+.staff-workflow-item {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+}
+
+.staff-workflow-number {
+    flex: 0 0 auto;
+
+    color: var(--brand-800);
+
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.staff-workflow-item strong {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: var(--brand-900);
+
+    font-size: 15px;
+}
+
+.staff-workflow-item p {
+    margin: 0;
+
+    color: var(--gray-500);
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.staff-workflow-line {
+    width: 1px;
+    height: 18px;
+
+    margin: 4px 0 4px 3px;
+
+    background-color: rgba(22, 101, 52, 0.15);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Notice
+|--------------------------------------------------------------------------
+*/
+
+.staff-notice {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 10px;
+
+    margin-top: 12px;
+    padding: 13px 15px;
+
+    border: 1px solid rgba(22, 101, 52, 0.1);
+    border-radius: 12px;
+
+    background-color: rgba(240, 253, 244, 0.76);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.staff-notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    width: 20px;
+    height: 20px;
+
+    border-radius: 50%;
+
+    background-color: var(--brand-100);
+
+    color: var(--brand-800);
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.staff-notice strong {
+    color: var(--brand-900);
+
+    font-size: 14px;
+}
+
+.staff-notice p {
+    margin: 3px 0 0;
+
+    color: #4b5563;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/*
+   STAFF RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .staff-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .staff-work-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .staff-welcome {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .staff-status-badge {
+        margin-top: -8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .staff-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        gap: 8px;
+    }
+
+    .staff-stat-card {
+        padding: 13px;
+    }
+
+    .staff-stat-number {
+        font-size: 20px;
+    }
+
+    .staff-stat-card p {
+        font-size: 13px;
+    }
+
+    .staff-work-card {
+        padding: 16px;
+    }
+
+    .staff-welcome h1 {
+        font-size: 28px;
+    }
+
+    .staff-welcome p {
+        font-size: 14px;
+    }
+
+    .staff-notice {
+        padding: 11px 12px;
+    }
+}

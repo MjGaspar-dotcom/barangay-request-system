@@ -1,80 +1,84 @@
-import { Link } from "react-router-dom";
+import {
+    HeroActions,
+    HeroContainer,
+    HeroDescription,
+    HeroGrid,
+    HeroLabel,
+    HeroPrimaryAction,
+    HeroSecondaryAction,
+    HeroSectionRoot,
+    HeroServiceCard,
+    HeroServiceIcon,
+    HeroServiceItem,
+    HeroServiceList,
+    HeroTitle,
+} from "./HeroSection.styles";
 
 function HeroSection() {
     return (
-        <section className="hero-section">
-            <div className="container">
-                <div className="row align-items-center g-5">
-                    <div className="col-lg-7">
-                        <span className="hero-label">
-                            BARANGAY DIGITAL SERVICES
-                        </span>
+        <HeroSectionRoot>
+            <HeroContainer>
+                <HeroGrid>
+                    <div>
+                        <HeroLabel>BARANGAY DIGITAL SERVICES</HeroLabel>
 
-                        <h1>
+                        <HeroTitle>
                             Request Barangay Documents
                             <span> Online</span>
-                        </h1>
+                        </HeroTitle>
 
-                        <p className="hero-description">
+                        <HeroDescription>
                             A convenient and centralized platform for
                             requesting, processing, and tracking barangay
                             documents.
+                        </HeroDescription>
+
+                        <HeroActions>
+                            <HeroPrimaryAction to="/request">
+                                Request a Document
+                            </HeroPrimaryAction>
+
+                            <HeroSecondaryAction to="/track-request">
+                                Track Request
+                            </HeroSecondaryAction>
+                        </HeroActions>
+                    </div>
+
+                    <HeroServiceCard>
+                        <HeroServiceIcon>📄</HeroServiceIcon>
+
+                        <h2>Online Document Services</h2>
+
+                        <p>
+                            Submit requests and monitor their status through one
+                            integrated system.
                         </p>
 
-                        <div className="hero-actions">
-                            <Link
-                                to="/request"
-                                className="btn btn-success btn-lg"
-                            >
-                                Request a Document
-                            </Link>
+                        <HeroServiceList>
+                            <HeroServiceItem>
+                                <span>✓</span>
+                                Easy online requests
+                            </HeroServiceItem>
 
-                            <Link
-                                to="/track-request"
-                                className="btn btn-outline-success btn-lg"
-                            >
-                                Track Request
-                            </Link>
-                        </div>
-                    </div>
+                            <HeroServiceItem>
+                                <span>✓</span>
+                                Request tracking
+                            </HeroServiceItem>
 
-                    <div className="col-lg-5">
-                        <div className="hero-service-card">
-                            <div className="hero-service-icon">📄</div>
+                            <HeroServiceItem>
+                                <span>✓</span>
+                                Organized processing
+                            </HeroServiceItem>
 
-                            <h2>Online Document Services</h2>
-
-                            <p>
-                                Submit requests and monitor their status through
-                                one integrated system.
-                            </p>
-
-                            <div className="hero-service-list">
-                                <div>
-                                    <span>✓</span>
-                                    Easy online requests
-                                </div>
-
-                                <div>
-                                    <span>✓</span>
-                                    Request tracking
-                                </div>
-
-                                <div>
-                                    <span>✓</span>
-                                    Organized processing
-                                </div>
-
-                                <div>
-                                    <span>✓</span>
-                                    Centralized records
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+                            <HeroServiceItem>
+                                <span>✓</span>
+                                Centralized records
+                            </HeroServiceItem>
+                        </HeroServiceList>
+                    </HeroServiceCard>
+                </HeroGrid>
+            </HeroContainer>
+        </HeroSectionRoot>
     );
 }
 

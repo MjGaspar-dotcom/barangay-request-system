@@ -1,3 +1,4 @@
+import BrandMark from "../components/ui/BrandMark";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
@@ -29,11 +30,19 @@ function PortalLayout({
 
     return (
         <div
-            className={`portal-page ${
-                hasSidebar ? "portal-dashboard-page" : ""
+            className={`portal-page ${hasSidebar ? "portal-dashboard-page" : ""
+<<<<<<< HEAD
+                } ${portalLabel === "STAFF & ADMINISTRATION" ? "portal-staff-admin-page" : ""} ${portalLabel === "STAFF SERVICES" ? "portal-staff-workspace" : ""
+                } ${portalLabel === "ADMINISTRATION" ? "portal-admin-workspace" : ""}`}
+=======
+<<<<<<< HEAD
+            }`}
+=======
             } ${portalLabel === "STAFF & ADMINISTRATION" ? "portal-staff-admin-page" : ""} ${
                 portalLabel === "STAFF SERVICES" ? "portal-staff-workspace" : ""
             } ${portalLabel === "ADMINISTRATION" ? "portal-admin-workspace" : ""}`}
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
+>>>>>>> 40e2d04 (Merge origin/frontend into main and resolve conflicts)
         >
             {/* 
                 Background photograph.
@@ -53,9 +62,8 @@ function PortalLayout({
                 {hasSidebar && (
                     <>
                         <div
-                            className={`portal-dashboard-sidebar ${
-                                sidebarOpen ? "open" : ""
-                            }`}
+                            className={`portal-dashboard-sidebar ${sidebarOpen ? "open" : ""
+                                }`}
                         >
                             <Sidebar
                                 items={sidebarItems}
@@ -74,18 +82,28 @@ function PortalLayout({
                 )}
 
                 <div
-                    className={`portal-content ${
-                        hasSidebar ? "portal-dashboard-main" : ""
-                    }`}
+                    className={`portal-content ${hasSidebar ? "portal-dashboard-main" : ""
+                        }`}
                 >
+<<<<<<< HEAD
+    {
+        !hasSidebar && (
+            <header className="portal-header">
+                <Link to="/" className="portal-brand">
+                    <div className="portal-logo">B</div>
+=======
+<<<<<<< HEAD
+        <header className="portal-header">
+            {hasSidebar && (
+=======
                     {!hasSidebar && (
                         <header className="portal-header">
                             <Link to="/" className="portal-brand">
-                                <div className="portal-logo">B</div>
+                                <BrandMark className="portal-logo" />
 
                                 <div className="portal-brand-text">
                                     <span className="portal-brand-name">
-                                        Barangay System
+                                        Barangay Aurora
                                     </span>
 
                                     <span className="portal-brand-subtitle">
@@ -101,16 +119,74 @@ function PortalLayout({
                     )}
 
                     {hasSidebar && (
-                        <button
-                            type="button"
-                            className="portal-menu-button"
-                            onClick={() => setSidebarOpen(true)}
-                            aria-label="Open navigation"
-                            aria-expanded={sidebarOpen}
-                        >
-                            <i className="bi bi-list" aria-hidden="true" />
-                        </button>
+                        <div className="portal-menu-control">
+                            {portalLabel === "ADMINISTRATION" && (
+                                <span className="portal-menu-label">MENU</span>
+                            )}
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
+                <button
+                    type="button"
+                    className="portal-menu-button"
+                    onClick={() => setSidebarOpen(true)}
+                    aria-label="Open navigation"
+                    aria-expanded={sidebarOpen}
+                >
+<<<<<<< HEAD
+        <i
+            className="bi bi-list"
+            aria-hidden="true"
+        />
+                            </button >
+                        )
+    }
+                        <Link to="/" className="portal-brand">
+                            <div className="portal-logo">B</div>
+>>>>>>> 40e2d04 (Merge origin/frontend into main and resolve conflicts)
+
+                                <div className="portal-brand-text">
+                                    <span className="portal-brand-name">
+                                        Barangay System
+                                    </span>
+
+                                    <span className="portal-brand-subtitle">
+                                        Document Services
+                                    </span>
+                                </div>
+                            </Link>
+
+                            <div className="portal-header-label">
+                                {portalLabel}
+                            </div>
+                        </header >
+                    )
+}
+
+<<<<<<< HEAD
+{
+    hasSidebar && (
+        <button
+            type="button"
+            className="portal-menu-button"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation"
+            aria-expanded={sidebarOpen}
+        >
+            <i className="bi bi-list" aria-hidden="true" />
+        </button>
+    )
+}
+=======
+                        <div className="portal-header-label">
+                            {portalLabel}
+                        </div>
+                    </header>
+=======
+                                <i className="bi bi-list" aria-hidden="true" />
+                            </button>
+                        </div>
                     )}
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
+>>>>>>> 40e2d04 (Merge origin/frontend into main and resolve conflicts)
 
                     <main className="portal-main">{children}</main>
 
@@ -122,9 +198,9 @@ function PortalLayout({
 
                         <span>© 2026</span>
                     </footer>
-                </div>
-            </div>
-        </div>
+                </div >
+            </div >
+        </div >
     );
 }
 

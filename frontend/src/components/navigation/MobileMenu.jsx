@@ -5,7 +5,7 @@ function MobileMenu({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="mobile-menu">
+        <div className="mobile-menu" id="mobile-navigation-menu">
             <NavLinks onLinkClick={onClose} />
 
             <div className="mobile-menu-actions">

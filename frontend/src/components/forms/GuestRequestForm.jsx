@@ -1,5 +1,9 @@
     import { useEffect, useState } from "react";
     import api from "../../services/api";
+<<<<<<< HEAD
+=======
+    import { validateForm } from "../../utils/validateForm";
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     export default function GuestRequestForm() {
         const [documentTypes, setDocumentTypes] = useState([]);
@@ -54,6 +58,11 @@
         const handleSubmit = async (e) => {
             e.preventDefault();
 
+<<<<<<< HEAD
+=======
+        if (!validateForm(e.currentTarget)) return;
+
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
             setError("");
             setSuccess("");
             setTrackingNumber("");
@@ -113,7 +122,11 @@
         }
 
         return (
+<<<<<<< HEAD
             <form onSubmit={handleSubmit}>
+=======
+            <form noValidate onSubmit={handleSubmit}>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
                 {/* Document Type */}
                 <div className="mb-3">

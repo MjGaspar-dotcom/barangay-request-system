@@ -1,0 +1,445 @@
+/* ==========================================================
+   Admin pages shared: page header, stat cards, tables, form cards, detail grid, timeline, activity list, filters
+   Used by every page under pages/admin and staff request details.
+   (split from global.css; rule order is unchanged)
+   ========================================================== */
+/*
+   ADMIN DASHBOARD
+   ========================================================= */
+
+/* Main admin dashboard container */
+.admin-dashboard {
+    min-height: 100vh;
+    background-color: var(--surface);
+    padding: 40px 0;
+}
+
+/* Dashboard page header */
+.dashboard-page-header {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+}
+
+.dashboard-page-header h1 {
+    margin: 8px 0 10px;
+    color: var(--brand-900);
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.dashboard-page-header p {
+    margin: 0;
+    max-width: 700px;
+    color: var(--gray-500);
+}
+
+/* Space between dashboard sections */
+.dashboard-section {
+    margin-bottom: 40px;
+}
+
+.dashboard-section-heading {
+    margin-bottom: 24px;
+}
+
+/*
+   STATISTICS CARDS
+   ========================================================= */
+
+.dashboard-stat-card {
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+}
+
+.dashboard-stat-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--brand-100);
+    border-radius: 10px;
+    font-size: 22px;
+}
+
+.dashboard-stat-label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--gray-500);
+    font-size: 14px;
+}
+
+.dashboard-stat-value {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--brand-900);
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.dashboard-stat-description {
+    display: block;
+    color: var(--gray-400);
+    font-size: 12px;
+}
+
+/* =========================================================
+   ADMIN MANAGEMENT CARDS
+   ========================================================= */
+
+.admin-management-card {
+    height: 100%;
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+}
+
+.admin-management-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--brand-100);
+    border-radius: 12px;
+    font-size: 24px;
+}
+
+.admin-management-content {
+    flex: 1;
+}
+
+.admin-management-content h3 {
+    margin-bottom: 8px;
+    color: var(--gray-800);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.admin-management-content p {
+    margin-bottom: 20px;
+    color: var(--gray-500);
+    line-height: 1.6;
+}
+
+/* =========================================================
+   RECENT ACTIVITY / EMPTY STATE
+   ========================================================= */
+
+.dashboard-empty-state {
+    padding: 48px 24px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    text-align: center;
+}
+
+.dashboard-empty-icon {
+    margin-bottom: 16px;
+    font-size: 36px;
+}
+
+.dashboard-empty-state h3 {
+    margin-bottom: 8px;
+    color: var(--gray-800);
+    font-size: 20px;
+}
+
+.dashboard-empty-state p {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--gray-500);
+}
+
+/* =========================================================
+   ADMIN DASHBOARD RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 24px 0;
+    }
+
+    .dashboard-page-header {
+        padding: 24px;
+    }
+
+    .dashboard-page-header h1 {
+        font-size: 26px;
+    }
+
+    .admin-management-card {
+        flex-direction: column;
+    }
+}
+
+/* =========================================================
+   ADMIN TABLES
+   ========================================================= */
+
+.admin-table-wrapper {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table thead {
+    background-color: var(--gray-50);
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 14px 16px;
+    color: var(--brand-900);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--gray-200);
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 14px 16px;
+    color: var(--gray-800);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-table tbody tr:hover {
+    background-color: var(--gray-50);
+}
+
+.admin-table code {
+    background-color: var(--gray-100);
+    color: var(--gray-800);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: ui-monospace, Consolas, monospace;
+}
+
+@media (max-width: 768px) {
+    .admin-table th,
+    .admin-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+/* =========================================================
+   ADMIN FORM CARD
+   ========================================================= */
+
+.admin-form-card {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.admin-form-card .form-control,
+.admin-form-card .form-select {
+    border-radius: 8px;
+}
+
+.admin-form-card .form-label {
+    font-weight: 600;
+    color: var(--gray-800);
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+/* =========================================================
+   DETAIL GRID (Request Details)
+   ========================================================= */
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.detail-label {
+    display: block;
+    font-size: 12px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    display: block;
+    color: var(--gray-800);
+    font-size: 15px;
+    word-break: break-word;
+}
+
+@media (max-width: 600px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   TIMELINE (Request Processing)
+   ========================================================= */
+
+.timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 11px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background-color: var(--gray-200);
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    position: relative;
+}
+
+.timeline-dot {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--gray-200);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 1px var(--gray-200);
+    margin-top: 2px;
+    z-index: 1;
+}
+
+.timeline-item.done .timeline-dot {
+    background-color: var(--brand-600);
+    box-shadow: 0 0 0 1px var(--brand-600);
+}
+
+.timeline-item.pending strong {
+    color: var(--gray-400);
+}
+
+.timeline-item strong {
+    color: var(--brand-900);
+    display: block;
+}
+
+.timeline-date {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 2px;
+}
+
+/* =========================================================
+   RECENT ACTIVITY LIST
+   ========================================================= */
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    transition: box-shadow 0.15s ease;
+}
+
+.activity-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.activity-item-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--brand-100);
+    color: var(--brand-900);
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.activity-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-item-description {
+    margin: 0 0 6px;
+    color: var(--gray-800);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.activity-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--gray-500);
+    font-size: 12px;
+}
+
+.activity-item-table {
+    font-family: ui-monospace, Consolas, monospace;
+}
+
+/* =========================================================
+   ADMIN FILTERS
+   ========================================================= */
+
+.admin-filters {
+    background-color: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 16px;
+}

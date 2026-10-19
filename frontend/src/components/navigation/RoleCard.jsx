@@ -1,14 +1,22 @@
+import {
+    RoleCardAction,
+    RoleCardDescription,
+    RoleCardIcon,
+    RoleCardRoot,
+    RoleCardTitle,
+} from "./RoleCard.styles";
+
 function RoleCard({ title, description, icon, onClick }) {
     return (
-        <button type="button" className="role-card" onClick={onClick}>
-            {icon && <div className="role-card-icon">{icon} </div>}
+        <RoleCardRoot type="button" onClick={onClick}>
+            {icon && <RoleCardIcon>{icon}</RoleCardIcon>}
 
-            <h3>{title}</h3>
+            <RoleCardTitle>{title}</RoleCardTitle>
 
-            <p>{description}</p>
+            <RoleCardDescription>{description}</RoleCardDescription>
 
-            <span className="role-card-action">Continue →</span>
-        </button>
+            <RoleCardAction>Continue →</RoleCardAction>
+        </RoleCardRoot>
     );
 }
 

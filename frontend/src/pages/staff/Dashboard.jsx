@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
+<<<<<<< HEAD
 import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import { useAuth } from "../../hooks/useAuth";
 import PortalLayout from "../../layouts/PortalLayout";
+=======
+import NotificationCenter from "../../components/dashboard/NotificationCenter";
+import { useAuth } from "../../hooks/useAuth";
+import StaffLayout from "../../layouts/StaffLayout";
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 import api from "../../services/api";
 
 /*
@@ -26,6 +32,7 @@ function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
+<<<<<<< HEAD
     const navigationItems = [
         { label: "Dashboard", to: "/staff/dashboard", icon: "▦" },
         {
@@ -34,16 +41,22 @@ function Dashboard() {
             icon: "📋",
         },
     ];
+=======
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     /*
      * Display the staff member's name when available.
      * Fall back to "Staff" when the backend does not provide a name.
      */
     const staffName =
+<<<<<<< HEAD
         user?.first_name ||
         user?.firstName ||
         user?.name ||
         "Staff";
+=======
+        user?.first_name || user?.firstName || user?.name || "Staff";
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
     const fetchRequests = useCallback(async () => {
         const response = await api.get("/staff/requests");
@@ -68,7 +81,11 @@ function Dashboard() {
             } catch (fetchError) {
                 console.error(
                     "Failed to load staff dashboard requests:",
+<<<<<<< HEAD
                     fetchError
+=======
+                    fetchError,
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 );
                 if (active) {
                     setError("Failed to load requests. Please try again.");
@@ -104,6 +121,7 @@ function Dashboard() {
 
             return result;
         },
+<<<<<<< HEAD
         { total: 0, pending: 0, processing: 0, completed: 0 }
     );
 
@@ -125,6 +143,14 @@ function Dashboard() {
             sidebarItems={navigationItems}
         >
             <section className="staff-portal">
+=======
+        { total: 0, pending: 0, processing: 0, completed: 0 },
+    );
+
+    return (
+        <StaffLayout>
+            <section className="staff-portal staff-dashboard-page">
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                 {error && (
                     <div className="alert alert-danger" role="alert">
                         {error}{" "}
@@ -143,17 +169,26 @@ function Dashboard() {
                 ------------------------------------------------------- */}
                 <div className="staff-welcome">
                     <div>
+<<<<<<< HEAD
                         <span className="portal-eyebrow">
                             STAFF PORTAL
                         </span>
+=======
+                        <span className="portal-eyebrow">STAFF PORTAL</span>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
                         <h1>
                             Welcome, <span>{staffName}</span>
                         </h1>
 
                         <p>
+<<<<<<< HEAD
                             Manage barangay document requests and
                             monitor their processing status.
+=======
+                            Manage barangay document requests and monitor their
+                            processing status.
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                         </p>
                     </div>
 
@@ -169,22 +204,31 @@ function Dashboard() {
                 <div className="staff-stat-grid">
                     <div className="staff-stat-card">
                         <div className="staff-stat-top">
+<<<<<<< HEAD
                             <span className="staff-stat-label">
                                 PENDING
                             </span>
+=======
+                            <span className="staff-stat-label">PENDING</span>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
 
                             <span className="staff-stat-number">
                                 {loading || error ? "—" : counts.pending}
                             </span>
                         </div>
 
+<<<<<<< HEAD
                         <p>
                             Requests waiting for processing
                         </p>
+=======
+                        <p>Requests waiting for processing</p>
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
                     </div>
 
                     <div className="staff-stat-card">
                         <div className="staff-stat-top">
+<<<<<<< HEAD
                             <span className="staff-stat-label">
                                 PROCESSING
                             </span>
@@ -379,3 +423,109 @@ function Dashboard() {
 }
 
 export default Dashboard;
+=======
+                            <span className="staff-stat-label">PROCESSING</span>
+
+                            <span className="staff-stat-number">
+                                {loading || error ? "—" : counts.processing}
+                            </span>
+                        </div>
+
+                        <p>Requests currently being handled</p>
+                    </div>
+
+                    <div className="staff-stat-card">
+                        <div className="staff-stat-top">
+                            <span className="staff-stat-label">COMPLETED</span>
+
+                            <span className="staff-stat-number">
+                                {loading || error ? "—" : counts.completed}
+                            </span>
+                        </div>
+
+                        <p>Requests completed by the office</p>
+                    </div>
+
+                    <div className="staff-stat-card">
+                        <div className="staff-stat-top">
+                            <span className="staff-stat-label">TOTAL</span>
+
+                            <span className="staff-stat-number">
+                                {loading || error ? "—" : counts.total}
+                            </span>
+                        </div>
+
+                        <p>Total requests in the system</p>
+                    </div>
+                </div>
+
+                {/* -------------------------------------------------------
+                    Work Area
+                ------------------------------------------------------- */}
+                <div className="staff-work-grid staff-dashboard-work-grid">
+                    {/* Processing Guide */}
+                    <div className="staff-work-card">
+                        <div className="staff-work-header">
+                            <div>
+                                <span className="staff-section-label">
+                                    WORKFLOW
+                                </span>
+
+                                <h2>Processing Steps</h2>
+                            </div>
+                        </div>
+
+                        <div className="staff-workflow staff-dashboard-workflow">
+                            <div className="staff-workflow-item">
+                                <span className="staff-workflow-number">
+                                    01
+                                </span>
+
+                                <div>
+                                    <strong>Review</strong>
+
+                                    <p>Check submitted request information.</p>
+                                </div>
+                            </div>
+
+                            <div className="staff-workflow-item">
+                                <span className="staff-workflow-number">
+                                    02
+                                </span>
+
+                                <div>
+                                    <strong>Process</strong>
+
+                                    <p>
+                                        Verify and process the requested
+                                        document.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="staff-workflow-item">
+                                <span className="staff-workflow-number">
+                                    03
+                                </span>
+
+                                <div>
+                                    <strong>Complete</strong>
+
+                                    <p>
+                                        Update the request once processing is
+                                        finished.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <NotificationCenter />
+            </section>
+        </StaffLayout>
+    );
+}
+
+export default Dashboard;
+>>>>>>> becddf9375fcfe6dc053cacc68c3bef55ce4808c
