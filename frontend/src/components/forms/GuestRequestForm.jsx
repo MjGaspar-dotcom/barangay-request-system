@@ -65,13 +65,27 @@
             try {
                 const data = new FormData();
 
-                for (const key in formData) {
-                    if (formData[key] !== null && formData[key] !== "") {
-                        data.append(key, formData[key]);
+                const backendFields = {
+                    first_name: "guest_first_name",
+                    middle_name: "guest_middle_name",
+                    last_name: "guest_last_name",
+                    birth_date: "guest_birth_date",
+                    gender: "guest_gender",
+                    civil_status: "guest_civil_status",
+                    address: "guest_address",
+                    contact_number: "guest_contact_number",
+                    email: "guest_email",
+                    valid_id_type: "guest_valid_id_type",
+                    valid_id_image: "guest_valid_id_image",
+                };
+
+                for (const [key, value] of Object.entries(formData)) {
+                    if (value !== null && value !== "") {
+                        data.append(backendFields[key] || key, value);
                     }
                 }
 
-                const response = await api.post("/guest-requests", data, {
+                const response = await api.post("/barangay-requests", data, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
 

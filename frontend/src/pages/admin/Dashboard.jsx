@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import PortalLayout from "../../layouts/PortalLayout";
@@ -32,72 +32,45 @@ const count = (value) =>
 function Dashboard() {
     const { user } = useAuth();
     const [stats, setStats] = useState(null);
-    const [activity, setActivity] = useState([]);
+    const activity = [];
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const fetchDashboard = useCallback(async () => {
-        const [statsResponse, activityResponse] = await Promise.all([
-            api.get("/admin/stats"),
-            api.get("/admin/recent-activity", {
-                params: { per_page: 5 },
-            }),
-        ]);
-        const activityPage = activityResponse.data?.data;
-
-        if (
-            !statsResponse.data?.data ||
-            !Array.isArray(activityPage?.data)
-        ) {
-            throw new Error("Unexpected dashboard response.");
-        }
-
-        return {
-            stats: statsResponse.data.data,
-            activity: activityPage.data,
-        };
-    }, []);
 
     useEffect(() => {
         let active = true;
 
-        const loadDashboard = async () => {
-            try {
-                const data = await fetchDashboard();
-                if (active) {
-                    setStats(data.stats);
-                    setActivity(data.activity);
-                }
-            } catch (fetchError) {
-                console.error(
-                    "Failed to load administrator dashboard:",
-                    fetchError
-                );
-                if (active) {
-                    setError(
-                        "Failed to load dashboard data. Please try again."
-                    );
-                }
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
-            }
-        };
+        Promise.all([api.get("/staff"), api.get("/document-types")])
+            .then(([staffResponse, documentTypesResponse]) => {
+                const staff = staffResponse.data?.data;
+                const documentTypes = documentTypesResponse.data?.data;
 
-        loadDashboard();
+                if (!Array.isArray(staff) || !Array.isArray(documentTypes)) {
+                    throw new Error("Unexpected dashboard data response.");
+                }
+
+                if (active) {
+                    setStats({
+                        total_staff: staff.length,
+                        active_document_types: documentTypes.filter(
+                            (item) => item.is_active,
+                        ).length,
+                    });
+                }
+            })
+            .catch((fetchError) => {
+                console.error("Failed to load administrator overview:", fetchError);
+                if (active) {
+                    setError("Some dashboard data could not be loaded.");
+                }
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
 
         return () => {
             active = false;
         };
-    }, [fetchDashboard, refreshKey]);
-
-    const handleRetry = () => {
-        setLoading(true);
-        setError("");
-        setRefreshKey((current) => current + 1);
-    };
+    }, []);
 
     /*
      * Display the administrator's name when available.
@@ -113,16 +86,14 @@ function Dashboard() {
             <section className="admin-portal">
                 {error && (
                     <div className="alert alert-danger" role="alert">
-                        {error}{" "}
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-outline-danger ms-2"
-                            onClick={handleRetry}
-                        >
-                            Retry
-                        </button>
+                        {error}
                     </div>
                 )}
+                <div className="alert alert-info" role="status">
+                    System-wide request, resident, audit, and notification
+                    totals require API endpoints that are not currently
+                    available.
+                </div>
 
                 {/* -------------------------------------------------------
                     Welcome Header
@@ -376,8 +347,11 @@ function Dashboard() {
                         ) : (
                             <div className="admin-empty-state">
                                 <div className="admin-empty-icon">≡</div>
-                                <h3>No recent activity</h3>
-                                <p>System activity will appear here.</p>
+                                <h3>Activity feed unavailable</h3>
+                                <p>
+                                    The API does not currently provide recent
+                                    audit activity.
+                                </p>
                             </div>
                         )}
                     </div>
@@ -409,12 +383,7 @@ function Dashboard() {
                             </p>
 
                             <span className="admin-analytics-note">
-                                {loading || error || !stats
-                                    ? "LOADING"
-                                    : `${count(
-                                          Number(stats.pending_requests) +
-                                              Number(stats.guest_pending)
-                                      )} REQUESTS PENDING`}
+                                "PENDING COUNT UNAVAILABLE"
                             </span>
                         </div>
                     </div>

@@ -32,33 +32,39 @@ export default function ManageRequests() {
     const [statusFilter, setStatusFilter] = useState("all");
     const [typeFilter, setTypeFilter] = useState("all");
 
-    const fetchRequests = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get("/staff/requests");
-            setRequests(response.data.data || []);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load requests.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchRequests();
+        let active = true;
+
+        const loadRequests = async () => {
+            try {
+                const response = await api.get("/barangay-requests");
+                if (active) {
+                    setRequests(response.data.data || []);
+                    setError("");
+                }
+            } catch (err) {
+                console.error(err);
+                if (active) setError("Failed to load requests.");
+            } finally {
+                if (active) setLoading(false);
+            }
+        };
+
+        loadRequests();
+
+        return () => {
+            active = false;
+        };
     }, []);
 
     const getRequesterName = (request) => {
-        if (request.request_type === "registered" && request.user) {
+        if (request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
         }
-        if (request.request_type === "guest") {
-            const g = request.guest || request;
-            if (g.first_name) {
-                return `${g.first_name} ${g.last_name}`;
-            }
+        const firstName = request.guest_first_name;
+        const lastName = request.guest_last_name;
+        if (firstName || lastName) {
+            return [firstName, lastName].filter(Boolean).join(" ");
         }
         return "Unknown";
     };
@@ -75,7 +81,9 @@ export default function ManageRequests() {
                 return false;
             }
 
-            if (typeFilter !== "all" && request.request_type !== typeFilter) {
+            const requestType =
+                request.request_type || (request.user_id ? "registered" : "guest");
+            if (typeFilter !== "all" && requestType !== typeFilter) {
                 return false;
             }
 
@@ -303,8 +311,11 @@ export default function ManageRequests() {
                                     <tbody>
                                         {filtered.map((request) => {
                                             const reqId = request.request_id || request.guest_request_id;
-                                            const reqType = request.request_type || "registered";
-                                            const idImage = request.guest?.valid_id_image;
+                                            const reqType =
+                                                request.request_type ||
+                                                (request.user_id ? "registered" : "guest");
+                                            const idImage =
+                                                request.guest_valid_id_image;
 
                                             return (
                                                 <tr key={`${reqType}-${reqId}`}>

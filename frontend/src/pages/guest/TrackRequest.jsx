@@ -1,43 +1,4 @@
-import { useState } from "react";
-import api from "../../services/api";
-
-import { validateForm } from "../../utils/validateForm";
 export default function TrackRequest() {
-    const [trackingNumber, setTrackingNumber] = useState("");
-    const [result, setResult] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    const handleTrack = async (e) => {
-        e.preventDefault();
-
-        if (!validateForm(e.currentTarget)) return;
-
-        setError("");
-        setResult(null);
-        setLoading(true);
-
-        try {
-            const response = await api.get(
-                `/guest-requests/track/${trackingNumber.trim()}`
-            );
-
-            setResult(response.data.data);
-        } catch (err) {
-            console.error(err);
-
-            if (err.response?.status === 404) {
-                setError(
-                    "No request found with that tracking number. Please check and try again."
-                );
-            } else {
-                setError("Failed to look up the tracking number. Please try again.");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return (
         <div className="container py-5">
 
@@ -53,7 +14,7 @@ export default function TrackRequest() {
 
                         <div className="card-body">
 
-                            <form noValidate onSubmit={handleTrack}>
+                            <form>
 
                                 <label
                                     htmlFor="tracking_number"
@@ -67,76 +28,24 @@ export default function TrackRequest() {
                                     type="text"
                                     className="form-control mb-3"
                                     placeholder="Example: GR-20260902-ABCDEF"
-                                    value={trackingNumber}
-                                    onChange={(e) =>
-                                        setTrackingNumber(e.target.value)
-                                    }
+                                    disabled
                                     required
                                 />
 
                                 <button
                                     type="submit"
                                     className="btn btn-primary w-100"
-                                    disabled={loading}
+                                    disabled
                                 >
-                                    {loading ? "Searching..." : "Track Request"}
+                                    Tracking unavailable
                                 </button>
 
                             </form>
 
-                            {/* Error */}
-                            {error && (
-                                <p className="text-danger mt-3">{error}</p>
-                            )}
-
-                            {/* Result */}
-                            {result && (
-                                <div className="mt-4">
-                                    <h5 className="fw-bold">Request Status</h5>
-
-                                    <table className="table table-bordered">
-                                        <tbody>
-                                            <tr>
-                                                <th>Tracking Number</th>
-                                                <td className="font-monospace">
-                                                    {result.tracking_number}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Document</th>
-                                                <td>{result.document}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Status</th>
-                                                <td>
-                                                    <span className="badge bg-primary">
-                                                        {result.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Purpose</th>
-                                                <td>{result.purpose}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Submitted</th>
-                                                <td>
-                                                    {new Date(
-                                                        result.submitted_at
-                                                    ).toLocaleString()}
-                                                </td>
-                                            </tr>
-
-                                            {result.remarks && (
-                                                <tr>
-                                                    <th>Remarks</th>
-                                                    <td>{result.remarks}</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                            <div className="alert alert-info mt-3" role="status">
+                                Tracking cannot be looked up because the API
+                                does not provide a public tracking endpoint.
+                            </div>
 
                         </div>
 

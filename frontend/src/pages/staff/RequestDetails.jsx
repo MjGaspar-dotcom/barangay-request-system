@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
@@ -19,29 +19,11 @@ function StaffRequestDetails() {
     const [confirmation, setConfirmation] = useState(null);
     const [actionMessage, setActionMessage] = useState("");
 
-    const fetchRequest = async () => {
-        setLoading(true);
-        setError("");
-
+    const fetchRequest = useCallback(async () => {
         try {
-            let primaryEndpoint = `/barangay-requests/${requestId}`;
-            if (type === "guest") {
-                primaryEndpoint = `/guest-requests/${requestId}`;
-            }
-
-            let response;
-            try {
-                response = await api.get(primaryEndpoint);
-                setRequestType(type || "registered");
-            } catch (err) {
-                // Fallback attempt if type was omitted in route
-                if (!type && err.response?.status === 404) {
-                    response = await api.get(`/guest-requests/${requestId}`);
-                    setRequestType("guest");
-                } else {
-                    throw err;
-                }
-            }
+            const response = await api.get(`/barangay-requests/${requestId}`);
+            setRequestType(type || "registered");
+            setError("");
 
             const data = response.data.data;
             setRequest(data);
@@ -58,11 +40,15 @@ function StaffRequestDetails() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [requestId, type]);
 
     useEffect(() => {
-        fetchRequest();
-    }, [type, requestId]);
+        const loadRequest = async () => {
+            await fetchRequest();
+        };
+
+        loadRequest();
+    }, [fetchRequest]);
 
     const handleStatusUpdate = (newStatus) => {
         setConfirmation({
@@ -75,7 +61,7 @@ function StaffRequestDetails() {
     };
 
     const performStatusUpdate = async (newStatus) => {
-        const endpoint = requestType === "guest" ? `/guest-requests/${requestId}` : `/barangay-requests/${requestId}`;
+        const endpoint = `/barangay-requests/${requestId}`;
         setActionMessage("");
         setSubmitting(true);
         try {
@@ -105,7 +91,7 @@ function StaffRequestDetails() {
     };
 
     const performDelete = async () => {
-        const endpoint = requestType === "guest" ? `/guest-requests/${requestId}` : `/barangay-requests/${requestId}`;
+        const endpoint = `/barangay-requests/${requestId}`;
         setActionMessage("");
         try {
             await api.delete(endpoint);

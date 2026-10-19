@@ -21,7 +21,7 @@ export default function StaffReports() {
     const [retryKey, setRetryKey] = useState(0);
 
     const fetchRequests = useCallback(async () => {
-        const response = await api.get("/staff/requests");
+        const response = await api.get("/barangay-requests");
         const data = response.data?.data;
         if (!Array.isArray(data)) {
             throw new Error("Unexpected staff requests response.");
@@ -61,12 +61,12 @@ export default function StaffReports() {
     }, {});
 
     const requesterName = (request) => {
-        const requester =
-            request.request_type === "guest"
-                ? request.guest || request
-                : request.user;
+        const requester = request.user || request;
         return (
-            [requester?.first_name, requester?.last_name]
+            [
+                requester?.first_name || requester?.guest_first_name,
+                requester?.last_name || requester?.guest_last_name,
+            ]
                 .filter(Boolean)
                 .join(" ") || "Unknown requester"
         );
@@ -190,7 +190,8 @@ export default function StaffReports() {
                                 <tbody>
                                     {requests.map((request) => {
                                         const requestType =
-                                            request.request_type || "registered";
+                                            request.request_type ||
+                                            (request.user_id ? "registered" : "guest");
                                         const requestId =
                                             request.request_id ||
                                             request.guest_request_id;

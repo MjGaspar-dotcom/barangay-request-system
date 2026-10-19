@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "../../components/ui/Button";
-import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
@@ -21,9 +20,10 @@ const VERIFICATION_FILTERS = [
 ];
 
 export default function ManageUsers() {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const users = useMemo(() => [], []);
+    const loading = false;
+    const error =
+        "User management is unavailable because the API does not provide a user-list endpoint.";
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("all");
     const [verificationFilter, setVerificationFilter] = useState("all");
@@ -32,30 +32,6 @@ export default function ManageUsers() {
     const [actionError, setActionError] = useState("");
     const [busyUserId, setBusyUserId] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
-
-    // Initial page load shows the full-page loader. Refreshes after actions
-    // happen silently so the table stays visible and the screen does not flash.
-    const fetchUsers = async ({ background = false } = {}) => {
-        try {
-            if (!background) setLoading(true);
-            const response = await api.get("/admin/users");
-            setUsers(response.data.data || []);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            if (!background) {
-                setError("Failed to load users. Please refresh the page and try again.");
-            } else {
-                flash("The action succeeded, but the user list could not be refreshed. Please refresh the page.", true);
-            }
-        } finally {
-            if (!background) setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
 
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -127,27 +103,12 @@ export default function ManageUsers() {
     };
 
     const runVerificationUpdate = async (user, newStatus) => {
-        try {
-            setBusyUserId(user.user_id);
-            await api.patch(
-                `/admin/users/${user.user_id}/verification`,
-                { verification_status: newStatus }
-            );
-            flash(
-                `Verification for ${fullName(user)} was ${newStatus === "rejected" ? "rejected" : `updated to ${newStatus}`}.`,
-                false,
-                newStatus === "rejected" ? "danger" : "success",
-            );
-            await fetchUsers({ background: true });
-        } catch (err) {
-            console.error(err);
-            const msg =
-                err.response?.data?.message ||
-                "Failed to update verification status.";
-            flash(msg, true);
-        } finally {
-            setBusyUserId(null);
-        }
+        setBusyUserId(user.user_id);
+        flash(
+            `Setting verification to ${newStatus} is unavailable because the API does not provide this operation.`,
+            true,
+        );
+        setBusyUserId(null);
     };
 
     const handleDelete = async (user) => {
@@ -162,24 +123,12 @@ export default function ManageUsers() {
     };
 
     const runDelete = async (user) => {
-        try {
-            setBusyUserId(user.user_id);
-            await api.delete(`/admin/users/${user.user_id}`);
-            flash(
-                `The account for ${fullName(user)} was deleted successfully.`,
-                false,
-                "danger",
-            );
-            await fetchUsers({ background: true });
-        } catch (err) {
-            console.error(err);
-            const msg =
-                err.response?.data?.message ||
-                "Failed to delete the account.";
-            flash(msg, true);
-        } finally {
-            setBusyUserId(null);
-        }
+        setBusyUserId(user.user_id);
+        flash(
+            "Account deletion is unavailable because the API does not provide this operation.",
+            true,
+        );
+        setBusyUserId(null);
     };
 
     const fullName = (user) =>
@@ -211,8 +160,20 @@ export default function ManageUsers() {
     if (error) {
         return (
             <AdminLayout>
-                <div className="page-loading">
-                    <div className="alert alert-danger" role="alert">{error}</div>
+                <div className="admin-dashboard manage-users-page">
+                    <div className="container-fluid">
+                        <div className="dashboard-page-header">
+                            <div>
+                                <span className="section-label">
+                                    USER MANAGEMENT
+                                </span>
+                                <h1>Manage Users</h1>
+                            </div>
+                        </div>
+                        <div className="alert alert-info" role="status">
+                            {error}
+                        </div>
+                    </div>
                 </div>
             </AdminLayout>
         );

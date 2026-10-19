@@ -34,7 +34,7 @@ function Dashboard() {
         user?.first_name || user?.firstName || user?.name || "Staff";
 
     const fetchRequests = useCallback(async () => {
-        const response = await api.get("/staff/requests");
+        const response = await api.get("/barangay-requests");
         const requestData = response.data?.data;
 
         if (!Array.isArray(requestData)) {

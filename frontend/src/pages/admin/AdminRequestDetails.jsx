@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
@@ -20,32 +20,11 @@ export default function AdminRequestDetails() {
     const [confirmation, setConfirmation] = useState(null);
     const [actionMessage, setActionMessage] = useState("");
 
-    const fetchRequest = async ({ showLoading = true } = {}) => {
-        if (showLoading) {
-            setLoading(true);
-            setError("");
-        }
-
+    const fetchRequest = useCallback(async ({ showLoading = true } = {}) => {
         try {
-            let primaryEndpoint = `/barangay-requests/${requestId}`;
-            if (type === "guest") {
-                primaryEndpoint = `/guest-requests/${requestId}`;
-            }
-
-            let response;
-            try {
-                response = await api.get(primaryEndpoint);
-                setRequestType(type || "registered");
-            } catch (err) {
-                if (!type && err.response?.status === 404) {
-                    response = await api.get(
-                        `/guest-requests/${requestId}`
-                    );
-                    setRequestType("guest");
-                } else {
-                    throw err;
-                }
-            }
+            const response = await api.get(`/barangay-requests/${requestId}`);
+            setRequestType(type || "registered");
+            if (showLoading) setError("");
 
             const data = response.data.data;
             setRequest(data);
@@ -70,12 +49,15 @@ export default function AdminRequestDetails() {
                 setLoading(false);
             }
         }
-    };
+    }, [requestId, type]);
 
     useEffect(() => {
-        fetchRequest();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [type, requestId]);
+        const loadRequest = async () => {
+            await fetchRequest();
+        };
+
+        loadRequest();
+    }, [fetchRequest]);
 
     const handleStatusUpdate = (newStatus) => {
         setConfirmation({
@@ -88,7 +70,7 @@ export default function AdminRequestDetails() {
     };
 
     const performStatusUpdate = async (newStatus) => {
-        const endpoint = requestType === "guest" ? `/guest-requests/${requestId}` : `/barangay-requests/${requestId}`;
+        const endpoint = `/barangay-requests/${requestId}`;
         setActionMessage("");
         setSubmitting(true);
         setSubmittingStatus(newStatus);
@@ -128,7 +110,7 @@ export default function AdminRequestDetails() {
     };
 
     const performDelete = async () => {
-        const endpoint = requestType === "guest" ? `/guest-requests/${requestId}` : `/barangay-requests/${requestId}`;
+        const endpoint = `/barangay-requests/${requestId}`;
         setActionMessage("");
         try {
             await api.delete(endpoint);
