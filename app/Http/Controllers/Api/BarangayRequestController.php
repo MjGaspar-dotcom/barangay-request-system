@@ -10,7 +10,6 @@ use App\Services\AuditService;
 use App\Services\RequestStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\Models\GuestRequest;
 use App\Services\QrCodeService;
 
 class BarangayRequestController extends Controller
@@ -48,7 +47,6 @@ class BarangayRequestController extends Controller
     /**
      * Store a newly created barangay request.
      * Only authenticated (registered) users can submit here.
-     * Guests must use POST /api/guest-requests instead.
      *
      * POST /api/barangay-requests
      */
@@ -227,50 +225,29 @@ class BarangayRequestController extends Controller
         ]);
     }
     // Track a barangay request by its tracking number.
-    // Track a barangay or guest request by its tracking number.
     public function track(string $trackingNumber)
     {
-        // Check registered user's request first.
         $request = BarangayRequest::with('documentType')
             ->where('tracking_number', $trackingNumber)
             ->first();
 
-        if ($request) {
+        if (!$request) {
             return response()->json([
-                'success' => true,
-                'data' => [
-                    'tracking_number' => $request->tracking_number,
-                    'status' => $request->status,
-                    'document_type' => $request->documentType?->document_name,
-                    'purpose' => $request->purpose,
-                    'submitted_at' => $request->created_at,
-                    'remarks' => $request->remarks,
-                ],
-            ]);
-        }
-
-        // Check guest request.
-        $guestRequest = GuestRequest::with('documentType')
-            ->where('tracking_number', $trackingNumber)
-            ->first();
-
-        if ($guestRequest) {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'tracking_number' => $guestRequest->tracking_number,
-                    'status' => $guestRequest->status,
-                    'document_type' => $guestRequest->documentType?->document_name,
-                    'purpose' => $guestRequest->purpose,
-                    'submitted_at' => $guestRequest->created_at,
-                    'remarks' => $guestRequest->remarks,
-                ],
-            ]);
+                'success' => false,
+                'message' => 'Request not found.',
+            ], 404);
         }
 
         return response()->json([
-            'success' => false,
-            'message' => 'Request not found.',
-        ], 404);
+            'success' => true,
+            'data' => [
+                'tracking_number' => $request->tracking_number,
+                'status' => $request->status,
+                'document_type' => $request->documentType?->document_name,
+                'purpose' => $request->purpose,
+                'submitted_at' => $request->created_at,
+                'remarks' => $request->remarks,
+            ],
+        ]);
     }
 }

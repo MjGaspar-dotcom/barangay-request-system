@@ -28,11 +28,4 @@ class DocumentType extends Model
         return $this->hasMany(BarangayRequest::class, 'document_type_id', 'document_type_id');
     }
 
-    /**
-     * Guest requests for this document type.
-     */
-    public function guestRequests()
-    {
-        return $this->hasMany(GuestRequest::class, 'document_type_id', 'document_type_id');
-    }
 }

@@ -213,7 +213,7 @@ export default function ManageDocumentTypes() {
                                 <p>
                                     Create, edit, and manage the document
                                     services offered by the barangay to
-                                    residents and walk-in guests.
+                                    registered residents.
                                 </p>
                             </div>
 

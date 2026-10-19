@@ -42,7 +42,7 @@ export default function RecentActivity() {
             const payload = response.data.data;
 
             // Laravel paginate() returns: { data: [...], current_page, last_page, total, ... }
-            // Some endpoints also return the array directly ΓÇö support both.
+            // Some endpoints also return the array directly; support both.
             if (Array.isArray(payload)) {
                 setLogs(payload);
                 setMeta(null);
@@ -89,7 +89,7 @@ export default function RecentActivity() {
     };
 
     const formatDate = (value) => {
-        if (!value) return "ΓÇö";
+        if (!value) return "—";
         return new Date(value).toLocaleString();
     };
 
@@ -111,15 +111,15 @@ export default function RecentActivity() {
     const actionIcon = (action) => {
         switch (action) {
             case "created":
-                return "Γ£Ü";
+                return "bi bi-plus-circle";
             case "deleted":
-                return "Γ£ò";
+                return "bi bi-trash";
             case "status_changed":
-                return "Γƒ│";
+                return "bi bi-arrow-left-right";
             case "verification_updated":
-                return "Γ£ô";
+                return "bi bi-person-check";
             default:
-                return "ΓÇó";
+                return "bi bi-activity";
         }
     };
 
@@ -190,7 +190,7 @@ export default function RecentActivity() {
                             {meta && (
                                 <div className="filter-summary">
                                     Page {meta.current_page} of{" "}
-                                    {meta.last_page} ΓÇó Total{" "}
+                                    {meta.last_page} · Total{" "}
                                     {meta.total} entries
                                 </div>
                             )}
@@ -263,15 +263,18 @@ export default function RecentActivity() {
                                                             style={{ "--activity-bg": color.bg, "--activity-color": color.color }}
                                                             title={entry.action}
                                                         >
-                                                            {actionIcon(
-                                                                entry.action
-                                                            )}
+                                                            <i
+                                                                className={actionIcon(
+                                                                    entry.action
+                                                                )}
+                                                                aria-hidden="true"
+                                                            />
                                                         </span>
                                                     </td>
                                                     <td>
                                                         <strong>
                                                             {entry.description ||
-                                                                "ΓÇö"}
+                                                                "—"}
                                                         </strong>
                                                         <div className="table-meta-text">
                                                             Action:{" "}
@@ -296,7 +299,7 @@ export default function RecentActivity() {
                                                     </td>
                                                     <td>
                                                         {entry.ip_address ||
-                                                            "ΓÇö"}
+                                                            "—"}
                                                     </td>
                                                     <td>
                                                         {formatDate(
@@ -322,7 +325,11 @@ export default function RecentActivity() {
                                         disabled={page <= 1}
                                         onClick={() => goToPage(page - 1)}
                                     >
-                                        ΓåÉ Previous
+                                        <i
+                                            className="bi bi-arrow-left me-1"
+                                            aria-hidden="true"
+                                        />
+                                        Previous
                                     </Button>
                                 </li>
 
@@ -339,7 +346,11 @@ export default function RecentActivity() {
                                         disabled={page >= meta.last_page}
                                         onClick={() => goToPage(page + 1)}
                                     >
-                                        Next ΓåÆ
+                                        Next
+                                        <i
+                                            className="bi bi-arrow-right ms-1"
+                                            aria-hidden="true"
+                                        />
                                     </Button>
                                 </li>
                             </ul>

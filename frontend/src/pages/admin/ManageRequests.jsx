@@ -16,12 +16,6 @@ const STATUS_FILTERS = [
     { value: "Rejected", label: "Rejected" },
 ];
 
-const TYPE_FILTERS = [
-    { value: "all", label: "All" },
-    { value: "registered", label: "Registered" },
-    { value: "guest", label: "Guest" },
-];
-
 export default function ManageRequests() {
     const navigate = useNavigate();
 
@@ -30,7 +24,6 @@ export default function ManageRequests() {
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [typeFilter, setTypeFilter] = useState("all");
 
     const fetchRequests = async () => {
         try {
@@ -51,14 +44,8 @@ export default function ManageRequests() {
     }, []);
 
     const getRequesterName = (request) => {
-        if (request.request_type === "registered" && request.user) {
+        if (request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
-        }
-        if (request.request_type === "guest") {
-            const g = request.guest || request;
-            if (g.first_name) {
-                return `${g.first_name} ${g.last_name}`;
-            }
         }
         return "Unknown";
     };
@@ -72,10 +59,6 @@ export default function ManageRequests() {
                 (request.status || "").toLowerCase() !==
                     statusFilter.toLowerCase()
             ) {
-                return false;
-            }
-
-            if (typeFilter !== "all" && request.request_type !== typeFilter) {
                 return false;
             }
 
@@ -95,7 +78,7 @@ export default function ManageRequests() {
 
             return true;
         });
-    }, [requests, search, statusFilter, typeFilter]);
+    }, [requests, search, statusFilter]);
 
     const counts = useMemo(() => {
         const result = {
@@ -130,12 +113,6 @@ export default function ManageRequests() {
         { label: "Completed", value: counts.completed, tone: "completed" },
         { label: "Rejected", value: counts.rejected, tone: "rejected" },
     ];
-
-    const getValidIdImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith("http")) return path;
-        return `http://127.0.0.1:8000/storage/${path}`;
-    };
 
     const formatDate = (value) =>
         value ? new Date(value).toLocaleString() : "ΓÇö";
@@ -180,9 +157,8 @@ export default function ManageRequests() {
 
                             <p>
                                 Review every document request submitted by
-                                registered residents and walk-in guests. Open
-                                a request to review its details and manage its
-                                status.
+                                registered residents. Open a request to review
+                                its details and manage its status.
                             </p>
                         </div>
                     </div>
@@ -247,24 +223,6 @@ export default function ManageRequests() {
                                 ))}
                             </select>
 
-                            <select
-                                className="form-select filter-select-180"
-                                value={typeFilter}
-                                onChange={(event) =>
-                                    setTypeFilter(event.target.value)
-                                }
-                                
-                            >
-                                {TYPE_FILTERS.map((filter) => (
-                                    <option
-                                        key={filter.value}
-                                        value={filter.value}
-                                    >
-                                        Type: {filter.label}
-                                    </option>
-                                ))}
-                            </select>
-
                             <div className="filter-count"
                                 
                             >
@@ -302,25 +260,16 @@ export default function ManageRequests() {
                                     </thead>
                                     <tbody>
                                         {filtered.map((request) => {
-                                            const reqId = request.request_id || request.guest_request_id;
-                                            const reqType = request.request_type || "registered";
-                                            const idImage = request.guest?.valid_id_image;
+                                            const reqId = request.request_id;
 
                                             return (
-                                                <tr key={`${reqType}-${reqId}`}>
+                                                <tr key={reqId}>
                                                     <td>
                                                         <strong>{getRequesterName(request)}</strong>
                                                         <div className="data-table-subtext">{request.tracking_number}</div>
-                                                        <div className="data-table-subtext text-capitalize">{reqType}</div>
                                                     </td>
                                                     <td>
                                                         <strong>{request.document_type?.document_name || "Unknown"}</strong>
-                                                        {idImage && (
-                                                            <div className="data-table-subtext">
-                                                                <strong>Valid ID:</strong>{" "}
-                                                                <a className="data-table-link" href={getValidIdImageUrl(idImage)} target="_blank" rel="noreferrer">View uploaded ID</a>
-                                                            </div>
-                                                        )}
                                                     </td>
                                                     <td><StatusBadge status={request.status} /></td>
                                                     <td>
@@ -335,7 +284,7 @@ export default function ManageRequests() {
                                                                 className="btn btn-outline-success btn-sm"
                                                                 onClick={() =>
                                                                     navigate(
-                                                                        `/admin/requests/${reqType}/${reqId}`,
+                                                                        `/admin/requests/${reqId}`,
                                                                     )
                                                                 }
                                                             >

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\BarangayRequest;
-use App\Models\GuestRequest;
 use App\Models\Staff;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
@@ -42,7 +41,7 @@ class RequestStatusService
     ];
 
     /**
-     * Allowed status transitions for both BarangayRequest and GuestRequest.
+     * Allowed status transitions for barangay requests.
      *
      * Workflow:
      *   Pending → Approved → Processing → Ready for Pickup → Completed
@@ -128,58 +127,6 @@ class RequestStatusService
         });
     }
 
-    /**
-     * Update a GuestRequest's status.
-     *
-     * Guest requests have no registered user, so the notification is
-     * sent to all staff members instead of an individual user.
-     *
-     * @param  GuestRequest  $request
-     * @param  string        $newStatus
-     * @param  string|null   $remarks
-     * @return GuestRequest  The updated request.
-     *
-     * @throws \InvalidArgumentException  When the transition is invalid.
-     */
-    public static function updateGuestRequestStatus(
-        GuestRequest $request,
-        string $newStatus,
-        ?string $remarks = null
-    ): GuestRequest {
-        $oldStatus = $request->status;
-
-        self::assertTransitionAllowed($oldStatus, $newStatus);
-
-        return DB::transaction(function () use ($request, $oldStatus, $newStatus, $remarks) {
-
-            $updateData = ['status' => $newStatus];
-
-            if ($remarks !== null) {
-                $updateData['remarks'] = $remarks;
-            }
-
-            $updateData = array_merge(
-                $updateData,
-                self::timestampsFor($newStatus)
-            );
-
-            $request->update($updateData);
-
-            // Audit log.
-            AuditService::logStatusChange($request, $oldStatus, $newStatus);
-
-            // Notify all staff — guests don't have accounts.
-            NotificationService::guestRequestStatusChanged(
-                $request,
-                $oldStatus,
-                $newStatus
-            );
-
-            return $request->fresh();
-        });
-    }
-
-
     /*
     |--------------------------------------------------------------------------
     | Atomic Combined Update
@@ -252,66 +199,6 @@ class RequestStatusService
             return $request->fresh();
         });
     }
-
-    /**
-     * Atomically update a GuestRequest's status AND any additional fields
-     * in a single database transaction.
-     *
-     * @param  GuestRequest  $request
-     * @param  string        $newStatus
-     * @param  array         $additionalFields
-     * @param  string|null   $remarks
-     * @return GuestRequest
-     *
-     * @throws \InvalidArgumentException  When the transition is invalid.
-     */
-    public static function updateGuestRequestAtomically(
-        GuestRequest $request,
-        string $newStatus,
-        array $additionalFields = [],
-        ?string $remarks = null
-    ): GuestRequest {
-        $oldStatus = $request->status;
-
-        self::assertTransitionAllowed($oldStatus, $newStatus);
-
-        return DB::transaction(function () use ($request, $oldStatus, $newStatus, $additionalFields, $remarks) {
-
-            $updateData = ['status' => $newStatus];
-
-            if ($remarks !== null) {
-                $updateData['remarks'] = $remarks;
-            }
-
-            $updateData = array_merge(
-                $updateData,
-                self::timestampsFor($newStatus)
-            );
-
-            $request->update($updateData);
-
-            $extras = array_diff_key(
-                $additionalFields,
-                array_flip(['status', 'remarks', 'approved_at', 'ready_for_pickup_at', 'claimed_at'])
-            );
-            if (!empty($extras)) {
-                $request->update($extras);
-            }
-
-            // Audit log.
-            AuditService::logStatusChange($request, $oldStatus, $newStatus);
-
-            // Notify all staff.
-            NotificationService::guestRequestStatusChanged(
-                $request,
-                $oldStatus,
-                $newStatus
-            );
-
-            return $request->fresh();
-        });
-    }
-
 
     /*
     |--------------------------------------------------------------------------

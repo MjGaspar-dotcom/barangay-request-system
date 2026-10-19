@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentTypeController;
-use App\Http\Controllers\Api\GuestRequestController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
@@ -31,8 +30,7 @@ Route::get('/test', function () {
     ]);
 });
 
-// Document types are needed by both guests and authenticated users when
-// submitting a request. Management actions remain protected below.
+// Document types are needed when submitting an authenticated request.
 Route::get(
     '/document-types',
     [DocumentTypeController::class, 'index']
@@ -48,23 +46,7 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::post('/register', [AuthController::class, 'register'])
     ->name('register');
 
-// ==========================
-// GUEST REQUESTS (Public)
-// ==========================
-
-// Submit a new guest request — no login required.
-Route::post(
-    '/guest-requests',
-    [GuestRequestController::class, 'store']
-);
-
-// Track a guest request by tracking number — no login required.
-Route::get(
-    '/guest-requests/track/{trackingNumber}',
-    [GuestRequestController::class, 'track']
-);
-
-// Track any request by tracking number — no login required.
+// Track a barangay request by tracking number — no login required.
 Route::get(
     '/track/{trackingNumber}',
     [BarangayRequestController::class, 'track']
@@ -137,35 +119,6 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 
     Route::get('/staff', [StaffController::class, 'index']);
     Route::get('/staff/requests', [StaffController::class, 'allRequests']);
-
-    // --------------------------------------------------
-    // Guest Requests (Staff/Admin management)
-    // --------------------------------------------------
-
-    Route::get(
-        '/guest-requests',
-        [GuestRequestController::class, 'index']
-    );
-
-    Route::get(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'show']
-    );
-
-    Route::put(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'update']
-    );
-
-    Route::patch(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'update']
-    );
-
-    Route::delete(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'destroy']
-    );
 
     // Delete is staff/admin only — moved out of the registered-user route group.
     Route::delete(

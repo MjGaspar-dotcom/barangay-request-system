@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Staff;
 use App\Models\BarangayRequest;
-use App\Models\GuestRequest;
 use Illuminate\Support\Facades\Auth;
 
 class StaffController extends Controller
@@ -36,7 +35,7 @@ class StaffController extends Controller
 
     public function allRequests()
     {
-        $registeredRequests = BarangayRequest::with([
+        $requests = BarangayRequest::with([
             'user',
             'documentType',
             'verifier',
@@ -45,7 +44,6 @@ class StaffController extends Controller
             ->map(function ($request) {
                 return [
                     'request_id'          => $request->request_id,
-                    'request_type'        => 'registered',
                     'tracking_number'     => $request->tracking_number,
                     'status'              => $request->status,
                     'purpose'             => $request->purpose,
@@ -62,48 +60,7 @@ class StaffController extends Controller
                 ];
             });
 
-        $guestRequests = GuestRequest::with([
-            'documentType',
-            'verifier',
-        ])
-            ->get()
-            ->map(function ($request) {
-                return [
-                    'request_id'          => $request->guest_request_id,
-                    'request_type'        => 'guest',
-                    'tracking_number'     => $request->tracking_number,
-                    'status'              => $request->status,
-                    'purpose'             => $request->purpose,
-                    'remarks'             => $request->remarks,
-                    'guest'               => [
-                        'guest_request_id' => $request->guest_request_id,
-                        'first_name'       => $request->first_name,
-                        'middle_name'      => $request->middle_name,
-                        'last_name'        => $request->last_name,
-                        'birth_date'       => $request->birth_date,
-                        'gender'           => $request->gender,
-                        'civil_status'     => $request->civil_status,
-                        'address'          => $request->address,
-                        'contact_number'   => $request->contact_number,
-                        'email'            => $request->email,
-                        'valid_id_type'    => $request->valid_id_type,
-                        'valid_id_image'   => $request->valid_id_image,
-                    ],
-                    'document_type'       => $request->documentType,
-                    'verified_by'         => $request->verifier,
-                    'verified_at'         => $request->verified_at,
-                    'approved_at'         => $request->approved_at,
-                    'ready_for_pickup_at' => $request->ready_for_pickup_at,
-                    'claimed_at'          => $request->claimed_at,
-                    'created_at'          => $request->created_at,
-                    'updated_at'          => $request->updated_at,
-                ];
-            });
-
-        $requests = $registeredRequests
-            ->concat($guestRequests)
-            ->sortByDesc('created_at')
-            ->values();
+        $requests = $requests->sortByDesc('created_at')->values();
 
         return response()->json([
             'success' => true,

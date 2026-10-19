@@ -72,8 +72,7 @@ class AuditService
         int $userId,
         string $title,
         string $message,
-        ?int $requestId = null,
-        ?int $guestRequestId = null
+        ?int $requestId = null
     ): Notification {
         $user = Auth::user();
 
@@ -82,7 +81,6 @@ class AuditService
             'user_id' => $userId,
             'staff_id' => $user?->staff?->staff_id,
             'request_id' => $requestId,
-            'guest_request_id' => $guestRequestId,
             'title' => $title,
             'message' => $message,
         ]);
@@ -95,8 +93,7 @@ class AuditService
         string $type,
         string $title,
         string $message,
-        ?int $requestId = null,
-        ?int $guestRequestId = null
+        ?int $requestId = null
     ): void {
         $staffMembers = Staff::with('user')->get();
 
@@ -106,7 +103,6 @@ class AuditService
                 'user_id' => $staff->user_id,
                 'staff_id' => $staff->staff_id,
                 'request_id' => $requestId,
-                'guest_request_id' => $guestRequestId,
                 'title' => $title,
                 'message' => $message,
             ]);

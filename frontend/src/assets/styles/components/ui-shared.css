@@ -172,7 +172,6 @@ button, input, textarea, select, a { transition-duration: 150ms; }
 }
 
 .admin-management-icon.request-type-registered { background-color: var(--brand-100); }
-.admin-management-icon.request-type-guest { background-color: var(--warning-bg); }
 .data-table-subtext { margin-top: var(--space-1); color: var(--gray-500); font-size: var(--font-size-xs); overflow-wrap: anywhere; }
 .data-table-link { color: var(--brand-800); font-weight: 600; }
 .data-table-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); min-width: 220px; }

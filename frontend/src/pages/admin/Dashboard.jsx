@@ -16,7 +16,7 @@ const navigationItems = [
 ];
 
 const count = (value) =>
-    Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "ΓÇö";
+    Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
 
 /*
 |--------------------------------------------------------------------------
@@ -168,11 +168,8 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "ΓÇö"
-                                : count(
-                                    Number(stats.total_registered_requests) +
-                                    Number(stats.total_guest_requests)
-                                )}
+                                ? "—"
+                                : count(stats.total_requests)}
                         </strong>
 
                         <p>Total requests</p>
@@ -183,7 +180,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "ΓÇö"
+                                ? "—"
                                 : count(stats.total_residents)}
                         </strong>
 
@@ -195,7 +192,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "ΓÇö"
+                                ? "—"
                                 : count(stats.total_staff)}
                         </strong>
 
@@ -209,7 +206,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "ΓÇö"
+                                ? "—"
                                 : count(stats.active_document_types)}
                         </strong>
 
@@ -223,7 +220,7 @@ function Dashboard() {
 
                         <strong>
                             {loading || error || !stats
-                                ? "ΓÇö"
+                                ? "—"
                                 : count(stats.total_audit_logs)}
                         </strong>
 
@@ -262,7 +259,9 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">ΓåÆ</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Staff */}
@@ -278,7 +277,9 @@ function Dashboard() {
                                 <span>Manage staff accounts and access.</span>
                             </div>
 
-                            <span className="admin-management-arrow">ΓåÆ</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Requests */}
@@ -296,7 +297,9 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">ΓåÆ</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Document Types */}
@@ -314,7 +317,9 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">ΓåÆ</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
                     </div>
                 </div>
@@ -368,14 +373,19 @@ function Dashboard() {
                                                 ? new Date(
                                                     entry.created_at
                                                 ).toLocaleString()
-                                                : "ΓÇö"}
+                                                : "—"}
                                         </span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="admin-empty-state">
-                                <div className="admin-empty-icon">Γëí</div>
+                                <div className="admin-empty-icon">
+                                    <i
+                                        className="bi bi-clock-history"
+                                        aria-hidden="true"
+                                    />
+                                </div>
                                 <h3>No recent activity</h3>
                                 <p>System activity will appear here.</p>
                             </div>
@@ -396,11 +406,8 @@ function Dashboard() {
                         <div className="admin-analytics-content">
                             <div className="admin-analytics-value">
                                 {loading || error || !stats
-                                    ? "ΓÇö"
-                                    : count(
-                                        Number(stats.completed_requests) +
-                                        Number(stats.guest_completed)
-                                    )}
+                                    ? "—"
+                                    : count(stats.completed_requests)}
                             </div>
 
                             <p>
@@ -411,10 +418,7 @@ function Dashboard() {
                             <span className="admin-analytics-note">
                                 {loading || error || !stats
                                     ? "LOADING"
-                                    : `${count(
-                                        Number(stats.pending_requests) +
-                                        Number(stats.guest_pending)
-                                    )} REQUESTS PENDING`}
+                                    : `${count(stats.pending_requests)} REQUESTS PENDING`}
                             </span>
                         </div>
                     </div>

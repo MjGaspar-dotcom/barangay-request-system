@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\GuestRequest;
+use App\Models\BarangayRequest;
 use Illuminate\Support\Str;
 
 class TrackingNumberService
@@ -17,7 +17,7 @@ class TrackingNumberService
             $year = date('Y');
             $random = strtoupper(Str::random(6));
             $trackingNumber = "BRGY-{$year}-{$random}";
-        } while (GuestRequest::where('tracking_number', $trackingNumber)->exists());
+        } while (BarangayRequest::where('tracking_number', $trackingNumber)->exists());
 
         return $trackingNumber;
     }

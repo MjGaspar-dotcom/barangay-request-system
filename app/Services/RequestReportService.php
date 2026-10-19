@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\BarangayRequest;
-use App\Models\GuestRequest;
 use Illuminate\Support\Facades\DB;
 
 class RequestReportService
@@ -18,15 +17,9 @@ class RequestReportService
             ->pluck('count', 'status')
             ->toArray();
 
-        $guest = GuestRequest::select('status', DB::raw('count(*) as count'))
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
-
         return [
             'barangay_requests' => $barangay,
-            'guest_requests'    => $guest,
-            'total'             => array_sum($barangay) + array_sum($guest),
+            'total'             => array_sum($barangay),
         ];
     }
 

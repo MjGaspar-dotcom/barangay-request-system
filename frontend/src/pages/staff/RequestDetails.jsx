@@ -7,11 +7,10 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import StaffLayout from "../../layouts/StaffLayout";
 
 function StaffRequestDetails() {
-    const { type, requestId } = useParams();
+    const { requestId } = useParams();
     const navigate = useNavigate();
 
     const [request, setRequest] = useState(null);
-    const [requestType, setRequestType] = useState(type || "registered");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [remarks, setRemarks] = useState("");
@@ -24,25 +23,7 @@ function StaffRequestDetails() {
         setError("");
 
         try {
-            let primaryEndpoint = `/barangay-requests/${requestId}`;
-            if (type === "guest") {
-                primaryEndpoint = `/guest-requests/${requestId}`;
-            }
-
-            let response;
-            try {
-                response = await api.get(primaryEndpoint);
-                setRequestType(type || "registered");
-            } catch (err) {
-                // Fallback attempt if type was omitted in route
-                if (!type && err.response?.status === 404) {
-                    response = await api.get(`/guest-requests/${requestId}`);
-                    setRequestType("guest");
-                } else {
-                    throw err;
-                }
-            }
-
+            const response = await api.get(`/barangay-requests/${requestId}`);
             const data = response.data.data;
             setRequest(data);
             setRemarks(data.remarks || "");
@@ -62,7 +43,7 @@ function StaffRequestDetails() {
 
     useEffect(() => {
         fetchRequest();
-    }, [type, requestId]);
+    }, [requestId]);
 
     const handleStatusUpdate = (newStatus) => {
         setConfirmation({
@@ -75,11 +56,10 @@ function StaffRequestDetails() {
     };
 
     const performStatusUpdate = async (newStatus) => {
-        const endpoint = requestType === "guest" ? `/guest-requests/${requestId}` : `/barangay-requests/${requestId}`;
         setActionMessage("");
         setSubmitting(true);
         try {
-            await api.put(endpoint, {
+            await api.put(`/barangay-requests/${requestId}`, {
                 status: newStatus,
                 remarks: remarks || null,
             });
@@ -105,10 +85,9 @@ function StaffRequestDetails() {
     };
 
     const performDelete = async () => {
-        const endpoint = requestType === "guest" ? `/guest-requests/${requestId}` : `/barangay-requests/${requestId}`;
         setActionMessage("");
         try {
-            await api.delete(endpoint);
+            await api.delete(`/barangay-requests/${requestId}`);
             navigate("/staff/queue");
         } catch (err) {
             console.error("Failed to delete request:", err);
@@ -140,7 +119,6 @@ function StaffRequestDetails() {
 
     if (!request) return null;
 
-    const isGuest = requestType === "guest";
     const formatDate = (value) => {
         if (!value) return "ΓÇö";
         const date = new Date(value);
@@ -178,11 +156,7 @@ function StaffRequestDetails() {
                             <h1>
                                 {request.tracking_number || "Request Details"}
                             </h1>
-                            <p>
-                                {isGuest
-                                    ? "Guest document request"
-                                    : "Registered resident document request"}
-                            </p>
+                            <p>Registered resident document request</p>
                         </div>
                     </header>
 
@@ -206,9 +180,7 @@ function StaffRequestDetails() {
                                             Request Type
                                         </span>
                                         <span className="detail-value">
-                                            {isGuest
-                                                ? "Guest Request"
-                                                : "Registered Resident Request"}
+                                            Registered Resident Request
                                         </span>
                                     </div>
                                     <div>
@@ -248,7 +220,7 @@ function StaffRequestDetails() {
                                     Requester Details
                                 </h2>
                                 <div className="detail-grid">
-                                    {!isGuest && request.user && (
+                                    {request.user && (
                                         <>
                                             <div>
                                                 <span className="detail-label">
@@ -278,105 +250,11 @@ function StaffRequestDetails() {
                                             </div>
                                         </>
                                     )}
-                                    {!isGuest && !request.user && (
+                                    {!request.user && (
                                         <p className="staff-requester-unavailable detail-grid-full-row">
                                             Resident profile information is
                                             unavailable.
                                         </p>
-                                    )}
-                                    {isGuest && (
-                                        <>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Name
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.first_name}{" "}
-                                                    {request.middle_name
-                                                        ? `${request.middle_name} `
-                                                        : ""}
-                                                    {request.last_name}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Birth Date
-                                                </span>
-                                                <span className="detail-value">
-                                                    {formatDate(
-                                                        request.birth_date,
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Gender
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.gender || "ΓÇö"}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Civil Status
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.civil_status ||
-                                                        "ΓÇö"}
-                                                </span>
-                                            </div>
-                                            <div className="detail-grid-full-row">
-                                                <span className="detail-label">
-                                                    Address
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.address || "ΓÇö"}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Contact Number
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.contact_number ||
-                                                        "ΓÇö"}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Email
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.email || "ΓÇö"}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <span className="detail-label">
-                                                    Valid ID Type
-                                                </span>
-                                                <span className="detail-value">
-                                                    {request.valid_id_type ||
-                                                        "ΓÇö"}
-                                                </span>
-                                            </div>
-                                            {request.valid_id_image && (
-                                                <div>
-                                                    <span className="detail-label">
-                                                        Valid ID Image
-                                                    </span>
-                                                    <span className="detail-value">
-                                                        <a
-                                                            href={`http://127.0.0.1:8000/storage/${request.valid_id_image}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="staff-request-id-link"
-                                                        >
-                                                            View submitted ID
-                                                        </a>
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </>
                                     )}
                                 </div>
                             </div>

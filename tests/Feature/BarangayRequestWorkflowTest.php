@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Admin;
 use App\Models\BarangayRequest;
 use App\Models\DocumentType;
-use App\Models\GuestRequest;
 use App\Models\Staff;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +12,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class BarangayAndGuestRequestWorkflowTest extends TestCase
+class BarangayRequestWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -79,7 +78,7 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
         ]);
     }
 
-    public function test_guest_can_list_document_types(): void
+    public function test_anyone_can_list_document_types(): void
     {
         $response = $this->getJson('/api/document-types');
 
@@ -132,41 +131,6 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
         $this->assertStringStartsWith('resident-valid-ids/', $user->valid_id_back);
         Storage::disk('public')->assertExists($user->valid_id_front);
         Storage::disk('public')->assertExists($user->valid_id_back);
-    }
-
-    public function test_guest_can_submit_request_and_track_it(): void
-    {
-        Storage::fake('public');
-        $file = UploadedFile::fake()->create('id.jpg', 100, 'image/jpeg');
-
-        $response = $this->postJson('/api/guest-requests', [
-            'document_type_id' => $this->documentType->document_type_id,
-            'first_name' => 'Juan',
-            'middle_name' => 'Dela',
-            'last_name' => 'Cruz',
-            'birth_date' => '1995-05-15',
-            'gender' => 'Male',
-            'civil_status' => 'Single',
-            'address' => '123 Main St',
-            'contact_number' => '09123456789',
-            'email' => 'juan@example.com',
-            'valid_id_type' => 'National ID',
-            'valid_id_image' => $file,
-            'purpose' => 'Business Permit Application',
-        ]);
-
-        $response->assertStatus(201)
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('data.request.status', 'Pending');
-
-        $trackingNumber = $response->json('data.request.tracking_number');
-        $this->assertStringStartsWith('GR-', $trackingNumber);
-
-        // Track guest request
-        $trackResponse = $this->getJson("/api/guest-requests/track/{$trackingNumber}");
-        $trackResponse->assertStatus(200)
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('data.status', 'Pending');
     }
 
     public function test_full_status_lifecycle_for_registered_request(): void
@@ -254,7 +218,7 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
         $this->assertNotEquals($fakeTimestamp, $br->approved_at?->format('Y-m-d H:i:s'));
     }
 
-    public function test_unified_staff_requests_endpoint_returns_registered_and_guest(): void
+    public function test_staff_requests_endpoint_returns_registered_requests(): void
     {
         BarangayRequest::create([
             'user_id' => $this->user->user_id,
@@ -264,33 +228,23 @@ class BarangayAndGuestRequestWorkflowTest extends TestCase
             'status' => 'Pending',
         ]);
 
-        GuestRequest::create([
-            'first_name' => 'Maria',
-            'last_name' => 'Clara',
-            'birth_date' => '1998-01-01',
-            'gender' => 'Female',
-            'civil_status' => 'Single',
-            'address' => 'QC',
-            'contact_number' => '09181234567',
-            'valid_id_type' => 'Passport',
-            'valid_id_image' => 'guest-valid-ids/fake.jpg',
-            'document_type_id' => $this->documentType->document_type_id,
-            'purpose' => 'Guest Test',
-            'tracking_number' => 'GR-20260904-UNIQ2',
-            'status' => 'Pending',
-        ]);
-
         $response = $this->actingAs($this->staffUser)->getJson('/api/staff/requests');
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true);
 
         $data = $response->json('data');
-        $this->assertCount(2, $data);
+        $this->assertCount(1, $data);
+        $this->assertSame(
+            BarangayRequest::query()->value('request_id'),
+            $data[0]['request_id']
+        );
+    }
 
-        $types = collect($data)->pluck('request_type')->toArray();
-        $this->assertContains('registered', $types);
-        $this->assertContains('guest', $types);
+    public function test_guest_request_endpoint_is_not_available(): void
+    {
+        $this->postJson('/api/guest-requests')->assertNotFound();
+        $this->getJson('/api/guest-requests/track/GR-20260904-UNIQ2')->assertNotFound();
     }
 
     public function test_authorization_rules(): void

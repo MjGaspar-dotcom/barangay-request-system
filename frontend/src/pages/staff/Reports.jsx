@@ -61,10 +61,7 @@ export default function StaffReports() {
     }, {});
 
     const requesterName = (request) => {
-        const requester =
-            request.request_type === "guest"
-                ? request.guest || request
-                : request.user;
+        const requester = request.user;
         return (
             [requester?.first_name, requester?.last_name]
                 .filter(Boolean)
@@ -189,14 +186,10 @@ export default function StaffReports() {
                                 </thead>
                                 <tbody>
                                     {requests.map((request) => {
-                                        const requestType =
-                                            request.request_type || "registered";
-                                        const requestId =
-                                            request.request_id ||
-                                            request.guest_request_id;
+                                        const requestId = request.request_id;
                                         return (
                                             <tr
-                                                key={`${requestType}-${requestId}`}
+                                                key={requestId}
                                             >
                                                 <td>
                                                     <strong>
@@ -227,7 +220,7 @@ export default function StaffReports() {
                                                 <td>
                                                     <Link
                                                         className="staff-report-link"
-                                                        to={`/staff/requests/${requestType}/${requestId}`}
+                                                        to={`/staff/requests/${requestId}`}
                                                     >
                                                         View
                                                     </Link>
