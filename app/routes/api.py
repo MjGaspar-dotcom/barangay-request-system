@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, date
 from functools import wraps
-import secrets
+import re
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
@@ -8,6 +8,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
 from app.models import User, DocumentType, BarangayRequest, Notification, AuditLog, Staff
+from app.services.tracking_number_service import TrackingNumberService
+from app.services.request_status_service import RequestStatusService
 
 api_bp = Blueprint("api", __name__)
 
@@ -39,6 +41,34 @@ def role_required(*roles):
     return decorator
 
 
+@api_bp.get("/test")
+def api_test():
+    return success({"message": "API is working"})
+
+
+@api_bp.get("/test-qr")
+def test_qr():
+    from flask import Response
+    from app.services.qr_code_service import QrCodeService
+    return Response(QrCodeService.generate("BRGY-2026-TEST01"), mimetype="image/svg+xml")
+
+
+@api_bp.post("/ocr/test")
+def ocr_test():
+    image = request.files.get("image")
+    if image is None:
+        return failure("Validation failed", 422, {"image": ["The image field is required."]})
+    if image.mimetype not in ("image/jpeg", "image/png") or not image.filename:
+        return failure("Validation failed", 422, {"image": ["The file must be an image."]})
+    try:
+        import pytesseract
+        from PIL import Image
+        raw_text = pytesseract.image_to_string(Image.open(image.stream))
+        return success({"text": raw_text.strip()}, "OCR completed")
+    except ImportError:
+        return failure("OCR service is unavailable on this server.", 503)
+
+
 @api_bp.get("/health")
 def health():
     return success({"service": "barangay-request-system"})
@@ -47,39 +77,76 @@ def health():
 @api_bp.post("/register")
 def register():
     data = request.get_json(silent=True) or {}
-    required = ("name", "email", "password")
-    missing = [field for field in required if not data.get(field)]
+    # Preserve support for the original Python API while validating Laravel's resident registration shape.
+    required = ("email", "password")
+    if data.get("username"):
+        required += ("username", "first_name", "last_name", "birth_date", "gender", "civil_status", "address", "contact_number")
+    elif "name" not in data:
+        required += ("username", "first_name", "last_name", "birth_date", "gender", "civil_status", "address", "contact_number")
+    missing = [field for field in required if field not in data or data[field] is None or str(data[field]).strip() == ""]
     if missing:
         return failure("Validation failed", 422, {field: ["This field is required."] for field in missing})
-    if User.query.filter_by(email=data["email"].strip().lower()).first():
-        return failure("Validation failed", 422, {"email": ["The email has already been taken."]})
-
-    user = User(name=data["name"].strip(), email=data["email"].strip().lower(),
-                password_hash=generate_password_hash(data["password"]), phone=data.get("phone"),
-                address=data.get("address"), role="resident")
+    password_confirmation = data.get("password_confirmation")
+    if password_confirmation is not None and password_confirmation != data["password"]:
+        return failure("Validation failed", 422, {"password": ["Password confirmation does not match."]})
+    if len(data["password"]) < 8:
+        return failure("Validation failed", 422, {"password": ["The password must be at least 8 characters."]})
+    if data.get("username") and not re.fullmatch(r"[A-Za-z0-9_-]+", data["username"]):
+        return failure("Validation failed", 422, {"username": ["The username may only contain letters, numbers, dashes and underscores."]})
+    username = data.get("username") or (data.get("name") or data["email"].split("@", 1)[0])
+    email = data["email"].strip().lower()
+    if User.query.filter_by(email=email).first() or User.query.filter_by(username=username).first():
+        errors = {}
+        if User.query.filter_by(email=email).first(): errors["email"] = ["The email has already been taken."]
+        if User.query.filter_by(username=username).first(): errors["username"] = ["The username has already been taken."]
+        return failure("Validation failed", 422, errors)
+    full_name = data.get("name", "")
+    name_parts = full_name.strip().split()
+    first_name = data.get("first_name") or (name_parts[0] if name_parts else full_name or "Resident")
+    last_name = data.get("last_name") or (name_parts[-1] if len(name_parts) > 1 else "User")
+    try:
+        birth_date_value = date.fromisoformat(data["birth_date"]) if data.get("birth_date") else None
+        if birth_date_value and birth_date_value > date.today():
+            return failure("Validation failed", 422, {"birth_date": ["Birth date cannot be in the future."]})
+    except ValueError:
+        return failure("Validation failed", 422, {"birth_date": ["The birth date is invalid."]})
+    user = User(username=username, name=full_name or " ".join(filter(None, [first_name, data.get("middle_name"), last_name])),
+                first_name=first_name, middle_name=data.get("middle_name"), last_name=last_name,
+                birth_date=birth_date_value if data.get("birth_date") else None,
+                gender=data.get("gender"), civil_status=data.get("civil_status"), email=email,
+                password_hash=generate_password_hash(data["password"]), phone=data.get("phone") or data.get("contact_number"),
+                contact_number=data.get("contact_number") or data.get("phone"), address=data.get("address"),
+                verification_status="pending", role="resident")
     db.session.add(user)
     db.session.commit()
-    return success(user.to_dict(), "Registration successful", 201)
+    return success(user.to_dict(), "User registered successfully." if data.get("username") else "Registration successful", 201)
 
 
 @api_bp.post("/login")
 def login():
     data = request.get_json(silent=True) or {}
-    user = User.query.filter_by(email=(data.get("email") or "").strip().lower()).first()
-    if not user or not check_password_hash(user.password_hash, data.get("password", "") ):
-        return failure("Invalid credentials", 401)
+    identifier = (data.get("username") or data.get("email") or "").strip().lower()
+    user = User.query.filter_by(username=identifier).first()
+    if not user and data.get("email"):
+        user = User.query.filter_by(email=identifier).first()
+    if not user or not check_password_hash(user.password_hash, data.get("password", "")):
+        return failure("Invalid username or password." if data.get("username") else "Invalid credentials", 401)
     if not user.is_active:
         return failure("Account is inactive", 403)
-    token = create_access_token(identity=str(user.id), additional_claims={"role": user.role})
-    return jsonify({"status": "success", "message": "Login successful", "token": token,
-                    "data": user.to_dict(), "user": user.to_dict()})
+    role = "admin" if user.role == "admin" else "staff" if user.role == "staff" else "user"
+    token = create_access_token(identity=str(user.id), additional_claims={"role": role})
+    return jsonify({"success": True, "status": "success", "message": "Login successful.", "token": token,
+                    "role": role, "data": user.to_dict(), "user": user.to_dict()})
 
 
 @api_bp.get("/user")
 @jwt_required()
 def current_user():
     user = db.session.get(User, int(get_jwt_identity()))
-    return success(user.to_dict()) if user else failure("User not found", 404)
+    if not user:
+        return failure("User not found", 404)
+    role = "admin" if user.role == "admin" else "staff" if user.role == "staff" else "user"
+    return jsonify({"success": True, "status": "success", "role": role, "data": user.to_dict()})
 
 
 @api_bp.post("/logout")
@@ -111,9 +178,12 @@ def track(tracking_number):
     item = BarangayRequest.query.filter_by(tracking_number=tracking_number).first()
     if not item:
         return failure("Request not found", 404)
-    return success({"tracking_number": item.tracking_number, "status": item.status,
-                    "document_type": item.document_type.name if item.document_type else None,
-                    "submitted_at": item.submitted_at.isoformat() if item.submitted_at else None})
+    return jsonify({"success": True, "data": {
+        "tracking_number": item.tracking_number, "status": item.status,
+        "document_type": item.document_type.name if item.document_type else None,
+        "purpose": item.purpose, "submitted_at": item.created_at.isoformat() if item.created_at else None,
+        "remarks": item.remarks,
+    }})
 
 
 @api_bp.route("/barangay-requests", methods=["GET", "POST"])
@@ -121,18 +191,30 @@ def track(tracking_number):
 def barangay_requests():
     user = db.session.get(User, int(get_jwt_identity()))
     if request.method == "GET":
-        items = BarangayRequest.query.filter_by(user_id=user.id).order_by(BarangayRequest.created_at.desc()).all()
-        return success([item.to_dict() for item in items])
+        query = BarangayRequest.query
+        if user.role not in ("staff", "admin"):
+            query = query.filter_by(user_id=user.id)
+        items = query.order_by(BarangayRequest.created_at.desc()).all()
+        return jsonify({"success": True, "status": "success", "data": [item.to_dict() for item in items]})
+    if user.verification_status != "verified":
+        return failure("Unauthorized. Only verified users can submit a barangay request.", 403)
     data = request.get_json(silent=True) or {}
     document_type = db.session.get(DocumentType, data.get("document_type_id") or data.get("document_type"))
-    if not document_type:
-        return failure("Document type is required", 422)
-    tracking = "BRGY-" + datetime.utcnow().strftime("%Y") + "-" + secrets.token_hex(4).upper()
+    if not document_type or not (data.get("purpose") or "").strip():
+        return failure("Validation failed", 422, {"document_type_id": ["The document type is required."]} if not document_type else {"purpose": ["The purpose is required."]})
+    tracking = TrackingNumberService.generate()
     item = BarangayRequest(tracking_number=tracking, user_id=user.id, document_type_id=document_type.id,
-                           purpose=data.get("purpose", ""), status="Pending")
+                           purpose=data["purpose"].strip(), status="Pending")
     db.session.add(item)
+    db.session.flush()
+    from app.services.notification_service import NotificationService
+    NotificationService.new_request_for_staff(item)
+    from app.services.audit_service import AuditService
+    AuditService.log("created", item, f"New barangay request submitted (Tracking: {item.tracking_number})")
     db.session.commit()
-    return success(item.to_dict(), "Request submitted", 201)
+    from app.services.qr_code_service import QrCodeService
+    return jsonify({"success": True, "message": "Barangay request created successfully.",
+                    "data": {"request": item.to_dict(), "qr_code": QrCodeService.generate(tracking)}}), 201
 
 
 @api_bp.route("/barangay-requests/<int:request_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
@@ -152,15 +234,21 @@ def barangay_request_detail(request_id):
         return success(message="Request deleted")
     if request.method == "GET":
         return success(item.to_dict())
+    if user.role not in ("staff", "admin"):
+        return failure("Unauthorized. Only Staff or Admin can process requests.", 403)
     data = request.get_json(silent=True) or {}
-    for field in ("purpose", "remarks", "status"):
-        if field in data and (field != "status" or user.role in ("staff", "admin")):
-            setattr(item, field, data[field])
-    if "status" in data and user.role in ("staff", "admin"):
-        item.processed_by = user.id
-        item.processed_at = datetime.utcnow()
-    db.session.commit()
-    return success(item.to_dict(), "Request updated")
+    if "status" in data:
+        try:
+            item = RequestStatusService.update_barangay_request_atomically(item, data["status"], data, data.get("remarks"))
+        except ValueError as exc:
+            db.session.rollback()
+            return failure(str(exc), 422)
+    else:
+        for field in ("purpose", "remarks"):
+            if field in data:
+                setattr(item, field, data[field])
+        db.session.commit()
+    return jsonify({"success": True, "message": "Barangay request updated successfully.", "data": item.to_dict()})
 
 
 @api_bp.get("/notifications")
@@ -247,7 +335,19 @@ def verify_user(user, user_id):
     target = db.session.get(User, user_id)
     if not target:
         return failure("User not found", 404)
-    target.is_active = bool((request.get_json(silent=True) or {}).get("is_verified", True))
+    data = request.get_json(silent=True) or {}
+    new_status = data.get("verification_status", "verified" if data.get("is_verified", True) else "rejected")
+    if new_status not in ("pending", "verified", "rejected"):
+        return failure("Validation failed", 422, {"verification_status": ["The selected verification status is invalid."]})
+    if target.role in ("staff", "admin"):
+        return failure("Verification status only applies to resident accounts.", 422)
+    old_status = target.verification_status
+    target.verification_status = new_status
+    target.is_active = new_status != "rejected"
+    if old_status != new_status:
+        from app.services.audit_service import AuditService
+        AuditService.log("verification_updated", target, f"Verification status changed from {old_status} to {new_status}",
+                         {"verification_status": old_status}, {"verification_status": new_status})
     db.session.commit()
     return success(target.to_dict(), "Verification updated")
 

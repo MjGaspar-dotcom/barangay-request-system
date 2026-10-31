@@ -16,7 +16,6 @@ class DocumentType(db.Model):
 
     # Relationships
     barangay_requests = db.relationship("BarangayRequest", backref="document_type", lazy=True)
-    guest_requests = db.relationship("GuestRequest", backref="document_type", lazy=True)
 
     def to_dict(self):
         return {

@@ -13,6 +13,11 @@ class BarangayRequest(db.Model):
     purpose = db.Column(db.Text, nullable=False)
     remarks = db.Column(db.Text, nullable=True)
     processed_by = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    verified_by = db.Column(db.Integer, db.ForeignKey("staff.id", ondelete="SET NULL"), nullable=True)
+    verified_at = db.Column(db.DateTime, nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
+    ready_for_pickup_at = db.Column(db.DateTime, nullable=True)
+    claimed_at = db.Column(db.DateTime, nullable=True)
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     processed_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
@@ -20,6 +25,7 @@ class BarangayRequest(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     processor = db.relationship("User", foreign_keys=[processed_by], lazy=True)
+    verifier = db.relationship("Staff", foreign_keys=[verified_by], lazy=True)
 
     def to_dict(self):
         return {
@@ -31,6 +37,12 @@ class BarangayRequest(db.Model):
             "purpose": self.purpose,
             "remarks": self.remarks,
             "processed_by": self.processed_by,
+            "verified_by": self.verified_by,
+            "verified_at": self.verified_at.isoformat() if self.verified_at else None,
+            "approved_at": self.approved_at.isoformat() if self.approved_at else None,
+            "ready_for_pickup_at": self.ready_for_pickup_at.isoformat() if self.ready_for_pickup_at else None,
+            "claimed_at": self.claimed_at.isoformat() if self.claimed_at else None,
+            "verifier": self.verifier.to_dict() if self.verifier else None,
             "submitted_at": self.submitted_at.isoformat() if self.submitted_at else None,
             "processed_at": self.processed_at.isoformat() if self.processed_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
