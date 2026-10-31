@@ -1,4 +1,4 @@
-﻿from app.extensions import db
+from app.extensions import db
 from app.models.notification import Notification
 from app.models.staff import Staff
 
@@ -6,7 +6,7 @@ from app.models.staff import Staff
 class NotificationService:
     @staticmethod
     def request_status_changed(request, old_status, new_status):
-        document_name = request.document_type.name if request.document_type else "document"
+        document_name = request.document_type.document_name if request.document_type else "document"
         notification = Notification(
             user_id=request.user_id,
             title=f"Request {new_status}",
@@ -17,7 +17,7 @@ class NotificationService:
 
     @staticmethod
     def new_request_for_staff(request):
-        document_name = request.document_type.name if request.document_type else "document"
+        document_name = request.document_type.document_name if request.document_type else "document"
         for staff in Staff.query.all():
             db.session.add(Notification(
                 user_id=staff.user_id,

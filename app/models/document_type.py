@@ -5,9 +5,10 @@ from app.extensions import db
 class DocumentType(db.Model):
     __tablename__ = "document_types"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    document_type_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    document_name = db.Column(db.String(255), unique=True, nullable=False, index=True)
     description = db.Column(db.Text, nullable=True)
+    processing_days = db.Column(db.Integer, default=1, nullable=False)
     fee = db.Column(db.Numeric(10, 2), default=0.00, nullable=False)
     requirements = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
@@ -19,9 +20,12 @@ class DocumentType(db.Model):
 
     def to_dict(self):
         return {
-            "id": self.id,
-            "name": self.name,
+            "id": self.document_type_id,
+            "document_type_id": self.document_type_id,
+            "name": self.document_name,
+            "document_name": self.document_name,
             "description": self.description,
+            "processing_days": self.processing_days,
             "fee": float(self.fee) if self.fee is not None else 0.0,
             "requirements": self.requirements,
             "is_active": self.is_active,
@@ -30,4 +34,4 @@ class DocumentType(db.Model):
         }
 
     def __repr__(self):
-        return f"<DocumentType {self.name}>"
+        return f"<DocumentType {self.document_name}>"

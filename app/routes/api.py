@@ -167,10 +167,95 @@ def update_profile():
     return success(user.to_dict(), "Profile updated")
 
 
-@api_bp.get("/document-types")
+@api_bp.route("/document-types", methods=["GET", "POST"])
+@jwt_required(optional=True)
 def document_types():
-    items = DocumentType.query.filter_by(is_active=True).order_by(DocumentType.name).all()
-    return success([item.to_dict() for item in items])
+    if request.method == "GET":
+        items = DocumentType.query.filter_by(is_active=True).order_by(DocumentType.document_name).all()
+        return success([item.to_dict() for item in items])
+
+    user = get_jwt_identity()
+    if not user:
+        return failure("Unauthenticated", 401)
+    current = db.session.get(User, int(user))
+    if not current or current.role != "admin":
+        return failure("Forbidden", 403)
+
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("document_name", "")).strip()
+    processing_days = data.get("processing_days", 1)
+    errors = {}
+    if not name:
+        errors["document_name"] = ["The document name is required."]
+    elif len(name) > 255:
+        errors["document_name"] = ["The document name may not be greater than 255 characters."]
+    elif DocumentType.query.filter_by(document_name=name).first():
+        errors["document_name"] = ["The document name has already been taken."]
+    try:
+        processing_days = int(processing_days)
+        if processing_days < 1:
+            errors["processing_days"] = ["The processing days must be at least 1."]
+    except (TypeError, ValueError):
+        errors["processing_days"] = ["The processing days must be an integer."]
+    if errors:
+        return failure("Validation failed", 422, errors)
+
+    item = DocumentType(document_name=name, description=data.get("description"),
+                        processing_days=processing_days, is_active=bool(data.get("is_active", True)))
+    db.session.add(item)
+    db.session.commit()
+    return success(item.to_dict(), "Document type created successfully.", 201)
+
+
+@api_bp.route("/document-types/<int:document_type_id>", methods=["GET", "PUT", "PATCH", "DELETE"])
+@jwt_required(optional=True)
+def document_type_detail(document_type_id):
+    item = db.session.get(DocumentType, document_type_id)
+    if not item:
+        return failure("Document type not found", 404)
+
+    if request.method == "GET":
+        return success(item.to_dict())
+
+    identity = get_jwt_identity()
+    if not identity:
+        return failure("Unauthenticated", 401)
+    current = db.session.get(User, int(identity))
+    if not current or current.role != "admin":
+        return failure("Forbidden", 403)
+
+    if request.method == "DELETE":
+        db.session.delete(item)
+        db.session.commit()
+        return success(message="Document type deleted successfully.")
+
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("document_name", item.document_name)).strip()
+    processing_days = data.get("processing_days", item.processing_days)
+    errors = {}
+    if not name:
+        errors["document_name"] = ["The document name is required."]
+    elif len(name) > 255:
+        errors["document_name"] = ["The document name may not be greater than 255 characters."]
+    elif DocumentType.query.filter(DocumentType.document_name == name,
+                                   DocumentType.document_type_id != item.document_type_id).first():
+        errors["document_name"] = ["The document name has already been taken."]
+    try:
+        processing_days = int(processing_days)
+        if processing_days < 1:
+            errors["processing_days"] = ["The processing days must be at least 1."]
+    except (TypeError, ValueError):
+        errors["processing_days"] = ["The processing days must be an integer."]
+    if errors:
+        return failure("Validation failed", 422, errors)
+
+    item.document_name = name
+    item.description = data.get("description", item.description)
+    item.processing_days = processing_days
+    if "is_active" in data:
+        item.is_active = bool(data["is_active"])
+    db.session.commit()
+    return success(item.to_dict(), "Document type updated successfully.")
 
 
 @api_bp.get("/track/<tracking_number>")
@@ -180,7 +265,7 @@ def track(tracking_number):
         return failure("Request not found", 404)
     return jsonify({"success": True, "data": {
         "tracking_number": item.tracking_number, "status": item.status,
-        "document_type": item.document_type.name if item.document_type else None,
+        "document_type": item.document_type.document_name if item.document_type else None,
         "purpose": item.purpose, "submitted_at": item.created_at.isoformat() if item.created_at else None,
         "remarks": item.remarks,
     }})
@@ -203,7 +288,7 @@ def barangay_requests():
     if not document_type or not (data.get("purpose") or "").strip():
         return failure("Validation failed", 422, {"document_type_id": ["The document type is required."]} if not document_type else {"purpose": ["The purpose is required."]})
     tracking = TrackingNumberService.generate()
-    item = BarangayRequest(tracking_number=tracking, user_id=user.id, document_type_id=document_type.id,
+    item = BarangayRequest(tracking_number=tracking, user_id=user.id, document_type_id=document_type.document_type_id,
                            purpose=data["purpose"].strip(), status="Pending")
     db.session.add(item)
     db.session.flush()
@@ -358,16 +443,40 @@ def admin_staff(user):
     if request.method == "GET":
         return success([item.to_dict() for item in Staff.query.all()])
     data = request.get_json(silent=True) or {}
-    target = User.query.filter_by(email=(data.get("email") or "").lower()).first()
-    if not target:
-        return failure("User not found", 404)
-    target.role = "staff"
-    profile = Staff.query.filter_by(user_id=target.id).first()
-    if not profile:
-        profile = Staff(user_id=target.id)
-        db.session.add(profile)
+    required = ("username", "password", "first_name", "last_name", "birth_date", "gender",
+                "civil_status", "address", "contact_number", "email")
+    errors = {field: ["This field is required."] for field in required
+              if field not in data or data[field] is None or str(data[field]).strip() == ""}
+    if errors:
+        return failure("Validation failed", 422, errors)
+    email = str(data["email"]).strip().lower()
+    username = str(data["username"]).strip()
+    if User.query.filter_by(email=email).first():
+        errors.setdefault("email", []).append("The email has already been taken.")
+    if User.query.filter_by(username=username).first():
+        errors.setdefault("username", []).append("The username has already been taken.")
+    if len(str(data["password"])) < 8:
+        errors.setdefault("password", []).append("The password must be at least 8 characters.")
+    if errors:
+        return failure("Validation failed", 422, errors)
+    try:
+        birth_date_value = date.fromisoformat(str(data["birth_date"]))
+    except ValueError:
+        return failure("Validation failed", 422, {"birth_date": ["The birth date is invalid."]})
+
+    target = User(username=username, first_name=data["first_name"].strip(),
+                  middle_name=(data.get("middle_name") or "") or None,
+                  last_name=data["last_name"].strip(), birth_date=birth_date_value,
+                  gender=data["gender"], civil_status=data["civil_status"], address=data["address"],
+                  contact_number=data["contact_number"], phone=data["contact_number"], email=email,
+                  password_hash=generate_password_hash(data["password"]), role="staff",
+                  verification_status="verified", name=" ".join(filter(None, [data["first_name"], data.get("middle_name"), data["last_name"]])))
+    db.session.add(target)
+    db.session.flush()
+    profile = Staff(user_id=target.id, position="Staff")
+    db.session.add(profile)
     db.session.commit()
-    return success(target.to_dict(), "Staff created", 201)
+    return success(profile.to_dict(), "Staff created", 201)
 
 
 @api_bp.delete("/admin/staff/<int:staff_id>")
@@ -375,8 +484,7 @@ def admin_staff(user):
 def delete_staff(user, staff_id):
     profile = db.session.get(Staff, staff_id)
     if profile:
-        profile.user.role = "resident"
-        db.session.delete(profile)
+        db.session.delete(profile.user)
         db.session.commit()
     return success(message="Staff deleted")
 

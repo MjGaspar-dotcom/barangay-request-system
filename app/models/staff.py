@@ -15,6 +15,7 @@ class Staff(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "staff_id": self.id,
             "user_id": self.user_id,
             "position": self.position,
             "employee_id": self.employee_id,

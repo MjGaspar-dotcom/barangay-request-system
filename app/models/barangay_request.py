@@ -8,7 +8,7 @@ class BarangayRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tracking_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    document_type_id = db.Column(db.Integer, db.ForeignKey("document_types.id", ondelete="RESTRICT"), nullable=False)
+    document_type_id = db.Column(db.Integer, db.ForeignKey("document_types.document_type_id", ondelete="RESTRICT"), nullable=False)
     status = db.Column(db.String(30), default="Pending", nullable=False, index=True)  # Pending, Processing, Approved, Ready for Pickup, Completed, Rejected, Cancelled
     purpose = db.Column(db.Text, nullable=False)
     remarks = db.Column(db.Text, nullable=True)
