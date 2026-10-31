@@ -1,0 +1,27 @@
+# Flask & Extensions
+flask
+flask-cors
+flask-migrate
+flask-sqlalchemy
+flask-marshmallow
+marshmallow-sqlalchemy
+
+# Database
+pymysql
+cryptography
+
+# Authentication
+flask-jwt-extended
+werkzeug
+
+# Utilities
+python-dotenv
+qrcode
+pillow
+
+# Testing
+pytest
+pytest-flask
+
+# Development
+flask-debugtoolbar
