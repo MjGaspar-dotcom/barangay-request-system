@@ -1,3 +1,4 @@
+﻿# Debug: Shared Flask application and client test fixtures.
 import pytest
 from app import create_app
 from app.extensions import db

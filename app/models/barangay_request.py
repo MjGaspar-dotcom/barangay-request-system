@@ -1,3 +1,4 @@
+﻿# Debug: Database model for barangay requests.
 from datetime import datetime
 from app.extensions import db
 
@@ -5,27 +6,51 @@ from app.extensions import db
 class BarangayRequest(db.Model):
     __tablename__ = "barangay_requests"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column("request_id", db.Integer, primary_key=True, autoincrement=True)
     tracking_number = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    document_type_id = db.Column(db.Integer, db.ForeignKey("document_types.document_type_id", ondelete="RESTRICT"), nullable=False)
-    status = db.Column(db.String(30), default="Pending", nullable=False, index=True)  # Pending, Processing, Approved, Ready for Pickup, Completed, Rejected, Cancelled
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False
+    )
+    document_type_id = db.Column(
+        db.Integer,
+        db.ForeignKey("document_types.document_type_id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    status = db.Column(
+        db.String(30), default="Pending", nullable=False, index=True
+    )  # Pending, Processing, Approved, Ready for Pickup, Completed, Rejected, Cancelled
     purpose = db.Column(db.Text, nullable=False)
     remarks = db.Column(db.Text, nullable=True)
-    processed_by = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    verified_by = db.Column(db.Integer, db.ForeignKey("staff.id", ondelete="SET NULL"), nullable=True)
+    processed_by = None
+    verified_by = db.Column(
+        db.Integer, db.ForeignKey("staff.staff_id", ondelete="SET NULL"), nullable=True
+    )
     verified_at = db.Column(db.DateTime, nullable=True)
     approved_at = db.Column(db.DateTime, nullable=True)
     ready_for_pickup_at = db.Column(db.DateTime, nullable=True)
     claimed_at = db.Column(db.DateTime, nullable=True)
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    processed_at = db.Column(db.DateTime, nullable=True)
-    completed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
-    processor = db.relationship("User", foreign_keys=[processed_by], lazy=True)
     verifier = db.relationship("Staff", foreign_keys=[verified_by], lazy=True)
+
+    @property
+    def processor(self):
+        return None
+
+    @property
+    def submitted_at(self):
+        return self.created_at
+
+    @property
+    def processed_at(self):
+        return None
+
+    @property
+    def completed_at(self):
+        return self.claimed_at
 
     def to_dict(self):
         return {
@@ -40,15 +65,27 @@ class BarangayRequest(db.Model):
             "verified_by": self.verified_by,
             "verified_at": self.verified_at.isoformat() if self.verified_at else None,
             "approved_at": self.approved_at.isoformat() if self.approved_at else None,
-            "ready_for_pickup_at": self.ready_for_pickup_at.isoformat() if self.ready_for_pickup_at else None,
+            "ready_for_pickup_at": (
+                self.ready_for_pickup_at.isoformat()
+                if self.ready_for_pickup_at
+                else None
+            ),
             "claimed_at": self.claimed_at.isoformat() if self.claimed_at else None,
             "verifier": self.verifier.to_dict() if self.verifier else None,
-            "submitted_at": self.submitted_at.isoformat() if self.submitted_at else None,
-            "processed_at": self.processed_at.isoformat() if self.processed_at else None,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "submitted_at": (
+                self.submitted_at.isoformat() if self.submitted_at else None
+            ),
+            "processed_at": (
+                self.processed_at.isoformat() if self.processed_at else None
+            ),
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "document_type": self.document_type.to_dict() if self.document_type else None,
+            "document_type": (
+                self.document_type.to_dict() if self.document_type else None
+            ),
             "user": self.user.to_dict() if self.user else None,
         }
 

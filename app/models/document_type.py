@@ -1,3 +1,4 @@
+﻿# Debug: Database model for request document types.
 from datetime import datetime
 from app.extensions import db
 
@@ -9,14 +10,32 @@ class DocumentType(db.Model):
     document_name = db.Column(db.String(255), unique=True, nullable=False, index=True)
     description = db.Column(db.Text, nullable=True)
     processing_days = db.Column(db.Integer, default=1, nullable=False)
-    fee = db.Column(db.Numeric(10, 2), default=0.00, nullable=False)
-    requirements = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
     # Relationships
-    barangay_requests = db.relationship("BarangayRequest", backref="document_type", lazy=True)
+    barangay_requests = db.relationship(
+        "BarangayRequest", backref="document_type", lazy=True
+    )
+
+    @property
+    def fee(self):
+        return 0
+
+    @fee.setter
+    def fee(self, value):
+        pass
+
+    @property
+    def requirements(self):
+        return None
+
+    @requirements.setter
+    def requirements(self, value):
+        pass
 
     def to_dict(self):
         return {

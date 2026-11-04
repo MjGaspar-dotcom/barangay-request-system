@@ -1,3 +1,4 @@
+﻿# Debug: Custom API exception classes.
 class APIException(Exception):
     """Base API Exception"""
 

@@ -1,3 +1,4 @@
+﻿# Debug: Application factory and Flask extension setup.
 import os
 from flask import Flask, jsonify
 from config import config_by_name
@@ -14,7 +15,9 @@ def create_app(config_name=None):
         config_name = os.getenv("FLASK_ENV", "development")
 
     flask_app = Flask(__name__)
-    flask_app.config.from_object(config_by_name.get(config_name, config_by_name["default"]))
+    flask_app.config.from_object(
+        config_by_name.get(config_name, config_by_name["default"])
+    )
 
     # Initialize Extensions
     db.init_app(flask_app)
@@ -27,6 +30,7 @@ def create_app(config_name=None):
 
     # Register API routes
     from .routes.api import api_bp
+
     flask_app.register_blueprint(api_bp, url_prefix="/api")
 
     # Register Error Handlers
@@ -35,11 +39,16 @@ def create_app(config_name=None):
     # Health check route
     @flask_app.route("/api/health", methods=["GET"])
     def health_check():
-        return jsonify({
-            "status": "success",
-            "message": "Barangay Request System v2 API is running",
-            "environment": config_name
-        }), 200
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": "Barangay Request System v2 API is running",
+                    "environment": config_name,
+                }
+            ),
+            200,
+        )
 
     return flask_app
 
@@ -52,42 +61,32 @@ def register_error_handlers(flask_app):
     @flask_app.errorhandler(APIException)
     def handle_api_exception(error):
         return error_response(
-            message=error.message,
-            errors=error.errors,
-            status_code=error.status_code
+            message=error.message, errors=error.errors, status_code=error.status_code
         )
 
     @flask_app.errorhandler(404)
     def handle_404(error):
-        return error_response(
-            message="Endpoint not found",
-            status_code=404
-        )
+        return error_response(message="Endpoint not found", status_code=404)
 
     @flask_app.errorhandler(500)
     def handle_500(error):
-        return error_response(
-            message="Internal server error",
-            status_code=500
-        )
+        flask_app.logger.exception("Unhandled internal server error", exc_info=error)
+        return error_response(message="Internal server error", status_code=500)
 
     @jwt.unauthorized_loader
     def unauthorized_callback(callback):
         return error_response(
-            message="Missing or invalid Authorization Token",
-            status_code=401
+            message="Missing or invalid Authorization Token", status_code=401
         )
 
     @jwt.invalid_token_loader
     def invalid_token_callback(callback):
         return error_response(
-            message="Invalid JWT signature or token format",
-            status_code=401
+            message="Invalid JWT signature or token format", status_code=401
         )
 
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
         return error_response(
-            message="JWT Token has expired. Please login again.",
-            status_code=401
+            message="JWT Token has expired. Please login again.", status_code=401
         )

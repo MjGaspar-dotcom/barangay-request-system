@@ -1,5 +1,7 @@
+﻿# Debug: Application configuration for development, testing, and production.
 import os
 from datetime import timedelta
+
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
@@ -11,7 +13,9 @@ class Config:
     """Base Configuration"""
 
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret-key-change-in-production")
+    JWT_SECRET_KEY = os.getenv(
+        "JWT_SECRET_KEY", "dev-jwt-secret-key-change-in-production"
+    )
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 
     # Database Configuration (MariaDB via PyMySQL)

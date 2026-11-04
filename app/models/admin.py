@@ -1,3 +1,4 @@
+﻿# Debug: Database model for administrator accounts.
 from datetime import datetime
 from app.extensions import db
 
@@ -5,11 +6,25 @@ from app.extensions import db
 class Admin(db.Model):
     __tablename__ = "admins"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
-    department = db.Column(db.String(100), default="General Administration", nullable=False)
+    id = db.Column("admin_id", db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.user_id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+    )
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+    @property
+    def department(self):
+        return "General Administration"
+
+    @department.setter
+    def department(self, value):
+        pass
 
     def to_dict(self):
         return {
@@ -22,4 +37,5 @@ class Admin(db.Model):
         }
 
     def __repr__(self):
-        return f"<Admin UserID={self.user_id}>"
+        return f"<Admin UserID={self.user_id}>" # it shows the user_id of the admin instance when printed
+    # sample output: <Admin UserID=1>

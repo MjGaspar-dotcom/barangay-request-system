@@ -1,3 +1,4 @@
+﻿# Debug: Application startup entry point used to run the Flask server.
 import os
 from app import create_app
 

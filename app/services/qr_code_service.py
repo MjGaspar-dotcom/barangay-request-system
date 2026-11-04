@@ -1,3 +1,4 @@
+﻿# Debug: QR code generation and QR-related business logic.
 from io import BytesIO
 import qrcode
 import qrcode.image.svg

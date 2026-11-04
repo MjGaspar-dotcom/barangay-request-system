@@ -11,6 +11,7 @@ cryptography
 # Authentication
 flask-jwt-extended
 werkzeug
+bcrypt
 
 # Utilities
 python-dotenv
