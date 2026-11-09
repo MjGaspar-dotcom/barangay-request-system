@@ -1,3 +1,4 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useCallback, useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useNavigate, useParams } from "react-router-dom";
@@ -72,10 +73,10 @@ export default function StaffRequestDetails() {
     if (error) {
         return (
             <StaffLayout>
-                <div className="alert alert-danger detail-error-state" role="alert">
+                <div className="app-alert app-alert-danger detail-error-state" role="alert">
                     <p>{error}</p>
                     <Button
-                        className="btn btn-outline-secondary"
+                        className="app-button app-button-outline-secondary"
                         onClick={() => navigate("/staff/queue")}
                         type="button"
                     >
@@ -101,11 +102,11 @@ export default function StaffRequestDetails() {
                     <header className="dashboard-page-header staff-request-header">
                         <div className="staff-request-header-top">
                             <Button
-                                className="btn btn-staff-request-back"
+                                className="app-button app-button-staff-request-back"
                                 onClick={() => navigate("/staff/queue")}
                                 type="button"
                             >
-                                <i className="bi bi-arrow-left" aria-hidden="true" />
+                                <Icon name="arrow-left" />
                                 Back to Request Queue
                             </Button>
                             <StatusBadge status={request.status} />
@@ -117,16 +118,16 @@ export default function StaffRequestDetails() {
                         </div>
                     </header>
 
-                    <div className="row g-3">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                         {refreshError && (
-                            <div className="col-12">
-                                <div className="alert alert-warning" role="status">
+                            <div className="col-span-full">
+                                <div className="app-alert app-alert-warning" role="status">
                                     {refreshError}
                                 </div>
                             </div>
                         )}
-                        <div className="col-lg-6">
-                            <section className="d-flex flex-column gap-3">
+                        <div className="lg:col-span-6">
+                            <section className="flex flex-col gap-4">
                                 <div className="admin-form-card staff-detail-card">
                                     <h2 className="form-section-title">
                                         Request Information
@@ -212,7 +213,7 @@ export default function StaffRequestDetails() {
                             </section>
                         </div>
 
-                        <div className="col-lg-6">
+                        <div className="lg:col-span-6">
                             <RequestWorkflowPanel
                                 onRefresh={() =>
                                     refreshRequest()

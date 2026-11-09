@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import Alert from "react-bootstrap/Alert";
-import Badge from "react-bootstrap/Badge";
-import Button from "react-bootstrap/Button";
-import Card from "react-bootstrap/Card";
-import ProgressBar from "react-bootstrap/ProgressBar";
-import Spinner from "react-bootstrap/Spinner";
+import Button from "./ui/Button";
 
 const RECOMMENDATIONS_API = "/api/recommendations";
 const USE_MOCK = true;
@@ -105,38 +100,40 @@ function ForYouRecommendations({ residentId, onSelectDocument }) {
 
     return (
         <section aria-labelledby="for-you-title">
-            <header className="mb-3">
-                <h2 id="for-you-title" className="h4 mb-1">
+            <header className="mb-6">
+                <h2 id="for-you-title" className="mb-1 text-xl font-semibold">
                     Recommended for you
                 </h2>
-                <p className="text-muted mb-0">
+                <p className="mb-0 text-sm text-muted-foreground">
                     Based on your profile and past requests
                 </p>
             </header>
 
             {loading || loadedResidentId !== residentId ? (
-                <div className="d-flex align-items-center gap-2 py-3">
-                    <Spinner
-                        animation="border"
+                <div className="flex items-center gap-2 py-4">
+                    <span
+                        className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent"
                         role="status"
                         aria-label="Loading recommendations"
-                        size="sm"
                     />
                     <span>Loading recommendations...</span>
                 </div>
             ) : error ? (
-                <Alert variant="danger" className="d-flex align-items-center justify-content-between gap-3">
+                <div
+                    className="flex items-center justify-between gap-4 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+                    role="alert"
+                >
                     <span>{error}</span>
                     <Button type="button" variant="outline-danger" onClick={retry}>
                         Retry
                     </Button>
-                </Alert>
+                </div>
             ) : recommendations.length === 0 ? (
-                <p className="text-muted">
+                <p className="text-muted-foreground">
                     No suggestions yet. Make your first request.
                 </p>
             ) : (
-                <div className="d-grid gap-3">
+                <div className="grid gap-4">
                     {recommendations.map((recommendation, index) => {
                         const matchPercent = Math.min(
                             100,
@@ -144,32 +141,40 @@ function ForYouRecommendations({ residentId, onSelectDocument }) {
                         );
 
                         return (
-                            <Card key={`${recommendation.document}-${index}`}>
-                                <Card.Body>
-                                    <div className="d-flex align-items-start gap-3">
-                                        <Badge
-                                            bg="success"
-                                            className="rounded-pill"
+                            <article
+                                key={`${recommendation.document}-${index}`}
+                                className="rounded-lg border bg-card p-5 shadow-sm"
+                            >
+                                    <div className="flex items-start gap-4">
+                                        <span
+                                            className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-primary px-2 text-sm font-semibold text-primary-foreground"
                                             aria-label={`Rank ${index + 1}`}
                                         >
                                             #{index + 1}
-                                        </Badge>
-                                        <div className="flex-grow-1">
-                                            <div className="d-flex justify-content-between align-items-start gap-3 mb-2">
-                                                <Card.Title as="h3" className="h6 mb-0">
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="mb-2 flex items-start justify-between gap-4">
+                                                <h3 className="mb-0 text-base font-semibold">
                                                     {recommendation.document}
-                                                </Card.Title>
-                                                <span className="text-nowrap fw-semibold">
+                                                </h3>
+                                                <span className="whitespace-nowrap font-semibold">
                                                     {matchPercent}% match
                                                 </span>
                                             </div>
-                                            <ProgressBar
-                                                now={matchPercent}
-                                                min={0}
-                                                max={100}
+                                            <div
+                                                className="h-2 overflow-hidden rounded-full bg-muted"
+                                                role="progressbar"
+                                                aria-valuenow={matchPercent}
+                                                aria-valuemin={0}
+                                                aria-valuemax={100}
                                                 aria-label={`${recommendation.document}: ${matchPercent}% match`}
-                                            />
-                                            <p className="text-muted small mt-2 mb-3">
+                                            >
+                                                <div
+                                                    className="h-full w-[var(--progress-width)] rounded-full bg-primary"
+                                                    style={{ "--progress-width": `${matchPercent}%` }}
+                                                />
+                                            </div>
+                                            <p className="mb-6 mt-2 text-sm text-muted-foreground">
                                                 {recommendation.reason}
                                             </p>
                                             <Button
@@ -185,8 +190,7 @@ function ForYouRecommendations({ residentId, onSelectDocument }) {
                                             </Button>
                                         </div>
                                     </div>
-                                </Card.Body>
-                            </Card>
+                            </article>
                         );
                     })}
                 </div>

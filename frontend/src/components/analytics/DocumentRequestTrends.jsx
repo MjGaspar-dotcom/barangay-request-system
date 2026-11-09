@@ -1,3 +1,4 @@
+import Icon from "../ui/Icon.jsx";
 import { useEffect, useMemo, useState } from "react";
 import {
     CartesianGrid,
@@ -51,8 +52,8 @@ function TrendTooltip({ active, payload }) {
             <strong>{point.tooltip_label}</strong>
             {values.map((entry) => (
                 <span key={entry.dataKey}>
-                    <i
-                        className={`document-trends-tooltip-marker ${entry.dataKey === "forecast_count" ? "is-forecast" : ""}`}
+                    <span
+                        className="document-trends-tooltip-marker"
                         aria-hidden="true"
                     />
                     {entry.name}: {entry.value}{" "}
@@ -80,12 +81,7 @@ function TrendSkeleton() {
     );
 }
 
-export default function DocumentRequestTrends({
-    forecast,
-    forecastSeries = [],
-    forecastHorizon = 1,
-    onForecastHorizonChange,
-}) {
+export default function DocumentRequestTrends() {
     const [period, setPeriod] = useState("monthly");
     const [dateRange, setDateRange] = useState(getInitialRange);
     const [result, setResult] = useState(null);
@@ -163,40 +159,12 @@ export default function DocumentRequestTrends({
           : comparison.direction === "same"
             ? "No change"
             : `${comparison.percentage > 0 ? "+" : ""}${comparison.percentage}%`;
-    const forecastHistory = forecastSeries.filter(
-        (point) => point.kind !== "forecast",
-    );
-    const currentForecastPoint = forecastHistory.at(-1);
-    const showForecastLine =
-        period === "monthly" && Boolean(forecast && currentForecastPoint);
-    const chartPoints = result
-        ? [
-              ...result.points.map((point) => ({
-                  ...point,
-                  forecast_count:
-                      showForecastLine &&
-                      point.period.slice(0, 7) === currentForecastPoint.key
-                          ? point.count
-                          : null,
-              })),
-              ...(showForecastLine
-                  ? forecastSeries
-                        .filter((point) => point.kind === "forecast")
-                        .map((point) => ({
-                            period: `${point.key}-01`,
-                            label: point.axisLabel,
-                            tooltip_label: point.label,
-                            count: null,
-                            forecast_count: point.count,
-                        }))
-                  : []),
-          ]
-        : [];
+    const chartPoints = result?.points || [];
 
     return (
         <section
             className="document-trends-panel document-trends-combined"
-            id="predictive-analytics"
+            id="document-request-trends"
             aria-labelledby="document-trends-title"
         >
             <header className="document-trends-header">
@@ -204,9 +172,7 @@ export default function DocumentRequestTrends({
                     <span className="portal-eyebrow">
                         ANALYTICS
                     </span>
-                    <h2 id="document-trends-title">
-                        Request Trends &amp; Forecast
-                    </h2>
+                    <h2 id="document-trends-title">Request Trends</h2>
                 </div>
                 <div
                     className="document-trends-periods"
@@ -314,16 +280,10 @@ export default function DocumentRequestTrends({
                                 className={`document-trends-comparison ${comparison?.direction || ""}`}
                             >
                                 {comparison?.direction === "increase" && (
-                                    <i
-                                        className="bi bi-arrow-up-right"
-                                        aria-hidden="true"
-                                    />
+                                    <Icon name="arrow-up-right" />
                                 )}
                                 {comparison?.direction === "decrease" && (
-                                    <i
-                                        className="bi bi-arrow-down-right"
-                                        aria-hidden="true"
-                                    />
+                                    <Icon name="arrow-down-right" />
                                 )}
                                 {comparisonLabel}
                             </strong>
@@ -335,90 +295,9 @@ export default function DocumentRequestTrends({
                         </article>
                     </div>
 
-                    {forecast && (
-                        <>
-                            <div className="document-trends-forecast-summary">
-                                <strong>
-                                    {
-                                        forecast.predictions[
-                                            forecastHorizon - 1
-                                        ].count
-                                    }
-                                </strong>
-                                <span>
-                                    estimated requests for{" "}
-                                    {
-                                        forecast.predictions[
-                                            forecastHorizon - 1
-                                        ].label
-                                    }
-                                </span>
-                            </div>
-                            <div className="document-trends-chart-toolbar">
-                                <div
-                                    className="document-trends-forecast-range"
-                                    role="group"
-                                    aria-label="Forecast range"
-                                >
-                                    {[1, 3, 6].map((months) => (
-                                        <button
-                                            key={months}
-                                            type="button"
-                                            aria-pressed={
-                                                forecastHorizon === months
-                                            }
-                                            className={
-                                                forecastHorizon === months
-                                                    ? "active"
-                                                    : ""
-                                            }
-                                            onClick={() =>
-                                                onForecastHorizonChange(months)
-                                            }
-                                            aria-label={`Show ${months}-month forecast`}
-                                        >
-                                            {months} mo
-                                        </button>
-                                    ))}
-                                </div>
-                                {showForecastLine && (
-                                    <div
-                                        className="document-trends-legend"
-                                        aria-label="Chart legend"
-                                    >
-                                        <span>
-                                            <i aria-hidden="true" />
-                                            Actual
-                                        </span>
-                                        <span className="is-forecast">
-                                            <i aria-hidden="true" />
-                                            Forecast
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                            <p className="document-trends-forecast-hint">
-                                {period !== "monthly"
-                                    ? "Choose Monthly to show the forecast line."
-                                    : forecast.currentMonthIsPartial
-                                      ? `Current month is paced to ${forecast.currentMonthEstimate} requests; forecast uses the six-month linear trend.`
-                                      : "Forecast uses the six-month linear trend; actual demand may vary."}
-                            </p>
-                        </>
-                    )}
-                    {!forecast && (
-                        <p
-                            className="document-trends-forecast-unavailable"
-                            role="status"
-                        >
-                            Forecast unavailable: at least three of the last
-                            six months need request data.
-                        </p>
-                    )}
-
                     {result.summary.total_requests === 0 ? (
                         <div className="document-trends-empty">
-                            <span className="bi bi-bar-chart-line" aria-hidden="true" />
+                            <Icon name="bar-chart-line" />
                             <strong>No document requests in this period</strong>
                             <p>
                                 Try another time period or choose a different
@@ -429,7 +308,7 @@ export default function DocumentRequestTrends({
                         <div
                             className="document-trends-chart"
                             role="img"
-                            aria-label={`Document requests from ${result.start_date} to ${result.end_date}${showForecastLine ? " with forecast" : ""}`}
+                            aria-label={`Document requests from ${result.start_date} to ${result.end_date}`}
                         >
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart
@@ -481,32 +360,6 @@ export default function DocumentRequestTrends({
                                             strokeDasharray: "4 4",
                                         }}
                                     />
-                                    {showForecastLine && (
-                                        <Line
-                                            type="monotone"
-                                            dataKey="forecast_count"
-                                            name="Forecast"
-                                            stroke="#d28c36"
-                                            strokeWidth={3}
-                                            strokeDasharray="7 5"
-                                            connectNulls
-                                            dot={{
-                                                r: 4,
-                                                fill: "#fff",
-                                                stroke: "#d28c36",
-                                                strokeWidth: 2,
-                                            }}
-                                            activeDot={{
-                                                r: 6,
-                                                fill: "#d28c36",
-                                                stroke: "#fff",
-                                                strokeWidth: 2,
-                                            }}
-                                            isAnimationActive
-                                            animationDuration={400}
-                                            animationEasing="ease-out"
-                                        />
-                                    )}
                                     <Line
                                         type="monotone"
                                         dataKey="count"

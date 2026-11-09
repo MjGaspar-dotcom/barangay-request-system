@@ -20,13 +20,13 @@ body {
 /* Keep common interactions consistent without animating layout dimensions. */
 a,
 button,
-.btn,
+.app-button,
 [role="button"],
 input,
 select,
 textarea,
-.form-control,
-.form-select,
+.app-input,
+.app-select,
 .sidebar-link,
 .nav-links a,
 .desktop-navigation a {
@@ -35,11 +35,11 @@ textarea,
   transition-timing-function: var(--motion-ease-out);
 }
 
-:where(button, .btn, [role="button"]):active {
+:where(button, .app-button, [role="button"]):active {
   transform: translateY(1px);
 }
 
-:where(input, select, textarea, .form-control, .form-select):focus-visible {
+:where(input, select, textarea, .app-input, .app-select):focus-visible {
   outline: 2px solid color-mix(in srgb, var(--brand-700, #166534) 65%, transparent);
   outline-offset: 2px;
 }
@@ -63,7 +63,7 @@ textarea,
     transform: translateY(-2px);
   }
 
-  :where(a:not(.btn), .sidebar-link, .nav-links a):hover {
+  :where(a:not(.app-button), .sidebar-link, .nav-links a):hover {
     text-decoration-thickness: 2px;
   }
 }
@@ -106,13 +106,13 @@ textarea,
 
 /* Keep controls crisp: form fields transition only visual properties, while
    links and buttons may also use transform for tactile feedback. */
-:where(input, select, textarea, .form-control, .form-select) {
+:where(input, select, textarea, .app-input, .app-select) {
   transition-property: color, background-color, border-color, box-shadow;
   transition-duration: var(--motion-fast);
   transition-timing-function: var(--motion-ease-out);
 }
 
-:where(a, button, .btn, [role="button"], .sidebar-link, .nav-links a) {
+:where(a, button, .app-button, [role="button"], .sidebar-link, .nav-links a) {
   -webkit-tap-highlight-color: transparent;
 }
 

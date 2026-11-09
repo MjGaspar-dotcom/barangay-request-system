@@ -14,7 +14,7 @@ export default function Footer() {
             <FooterContainer>
                 <FooterContent>
                     <FooterBrand>
-                        <h3>Barangay Document System</h3>
+                        <h3>BarangayEase</h3>
 
                         <p>
                             An integrated system for requesting, processing,
@@ -33,8 +33,7 @@ export default function Footer() {
 
                 <FooterBottom>
                     <FooterCopyright>
-                        © 2026 Integrated Barangay Document Request, Processing,
-                        and Analytics System
+                        © 2026 BarangayEase
                     </FooterCopyright>
                 </FooterBottom>
             </FooterContainer>

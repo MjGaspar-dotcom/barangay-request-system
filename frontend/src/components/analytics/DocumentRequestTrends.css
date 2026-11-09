@@ -165,99 +165,6 @@
     height: 330px;
 }
 
-.document-trends-chart-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px 16px;
-    margin: 0 0 8px;
-}
-
-.document-trends-forecast-range {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.document-trends-forecast-range button {
-    min-width: 46px;
-    padding: 5px 9px;
-    border: 1px solid rgba(33, 75, 49, 0.18);
-    border-radius: 999px;
-    background: #fff;
-    color: #347b4c;
-    font: inherit;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-.document-trends-forecast-range button:hover,
-.document-trends-forecast-range button.active {
-    border-color: #287c4b;
-    background: #f0f7f1;
-    color: #183d29;
-}
-
-.document-trends-forecast-range button:focus-visible {
-    outline: 3px solid rgba(40, 124, 75, 0.35);
-    outline-offset: 2px;
-}
-
-.document-trends-forecast-summary {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    margin: -2px 0 8px;
-    color: #64746a;
-    font-size: 12px;
-}
-
-.document-trends-forecast-summary strong {
-    color: #287c4b;
-    font-size: 19px;
-    font-weight: 800;
-}
-
-.document-trends-forecast-hint {
-    margin: 0 0 8px;
-    color: #68776e;
-    font-size: 11px;
-}
-
-.document-trends-forecast-unavailable {
-    margin: -2px 0 12px;
-    color: #68776e;
-    font-size: 11px;
-}
-
-.document-trends-legend {
-    display: flex;
-    flex: 1 0 auto;
-    justify-content: flex-end;
-    gap: 12px;
-    margin: 0;
-    color: #64746a;
-    font-size: 11px;
-}
-
-.document-trends-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    white-space: nowrap;
-}
-
-.document-trends-legend i {
-    width: 18px;
-    border-top: 3px solid #287c4b;
-}
-
-.document-trends-legend .is-forecast i {
-    border-color: #d28c36;
-    border-top-style: dashed;
-}
-
 .document-trends-tooltip {
     display: grid;
     gap: 5px;
@@ -279,11 +186,6 @@
 .document-trends-tooltip-marker {
     width: 12px;
     border-top: 3px solid #287c4b;
-}
-
-.document-trends-tooltip-marker.is-forecast {
-    border-color: #d28c36;
-    border-top-style: dashed;
 }
 
 .document-trends-tooltip strong {
@@ -420,14 +322,6 @@
         height: 285px;
     }
 
-    .document-trends-legend {
-        flex-basis: 100%;
-        justify-content: flex-start;
-    }
-
-    .document-trends-chart-toolbar {
-        justify-content: flex-start;
-    }
 }
 
 @media (max-width: 400px) {

@@ -1,3 +1,4 @@
+import Icon from "../components/ui/Icon.jsx";
 import { useEffect, useRef, useState } from "react";
 import BrandMark from "../components/ui/BrandMark";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -98,9 +99,11 @@ function Sidebar({ items = [], onNavigate }) {
             <div className="sidebar-header">
                 <BrandMark className="sidebar-logo" />
 
-                <div>
-                    <h2>Barangay Aurora</h2>
-                    <span>Document System</span>
+                <div className="sidebar-brand-copy">
+                    <h2 className="sidebar-brand-name">BarangayEase</h2>
+                    <span className="sidebar-brand-subtitle">
+                        Barangay Aurora
+                    </span>
                 </div>
             </div>
 
@@ -128,7 +131,7 @@ function Sidebar({ items = [], onNavigate }) {
                         >
                             {item.icon && (
                                 <span className="sidebar-link-icon">
-                                    <i className={`bi ${item.icon}`} aria-hidden="true" />
+                                    <Icon name={item.icon} />
                                 </span>
                             )}
 
@@ -157,10 +160,7 @@ function Sidebar({ items = [], onNavigate }) {
                             aria-busy={loggingOut || undefined}
                             aria-label={loggingOut ? "Logging out" : undefined}
                         >
-                            <i
-                                className="bi bi-box-arrow-right"
-                                aria-hidden="true"
-                            />
+                            <Icon name="box-arrow-right" />
                             Logout
                         </button>
                     </div>
@@ -174,10 +174,7 @@ function Sidebar({ items = [], onNavigate }) {
                         aria-busy={loggingOut || undefined}
                         aria-label={loggingOut ? "Logging out" : undefined}
                     >
-                        <i
-                            className="bi bi-box-arrow-right"
-                            aria-hidden="true"
-                        />
+                        <Icon name="box-arrow-right" />
                         Logout
                     </button>
                 )}

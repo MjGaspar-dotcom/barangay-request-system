@@ -26,9 +26,7 @@ function Navbar() {
                     />
                     <div className="navbar-title">
                         <span className="barangay-name">Barangay Aurora</span>
-                        <span className="system-name">
-                            Document Request System
-                        </span>
+                        <span className="system-name">BarangayEase</span>
                     </div>
                 </Link>
                 <div className="desktop-navigation">

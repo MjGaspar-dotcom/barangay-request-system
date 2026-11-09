@@ -414,7 +414,7 @@
 .admin-activity-card,
 .admin-analytics-card {
     display: flex;
-    height: 275px;
+    height: 344px;
     min-height: 0;
     flex-direction: column;
 

@@ -99,11 +99,11 @@ function Dashboard() {
         <StaffLayout>
             <section className="staff-portal staff-dashboard-page">
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}{" "}
                         <button
                             type="button"
-                            className="btn btn-sm btn-outline-danger ms-2"
+                            className="app-button app-button-sm app-button-outline-danger ms-2"
                             onClick={handleRetry}
                         >
                             Retry

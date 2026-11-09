@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import Icon from "../components/ui/Icon.jsx";
+import { useState } from "react";
 import Sidebar from "./Sidebar";
 
 function AdminLayout({ children }) {
@@ -8,42 +9,42 @@ function AdminLayout({ children }) {
         {
             label: "Dashboard",
             to: "/admin/dashboard",
-            icon: "bi-speedometer2",
+            icon: "speedometer2",
         },
         {
             label: "System Analytics",
             to: "/admin/analytics",
-            icon: "bi-bar-chart-line",
+            icon: "bar-chart-line",
         },
         {
             label: "Manage Users",
             to: "/admin/users",
-            icon: "bi-people",
+            icon: "users",
         },
         {
             label: "Manage Staff",
             to: "/admin/staff",
-            icon: "bi-person-badge",
+            icon: "person-badge",
         },
         {
             label: "Manage Requests",
             to: "/admin/requests",
-            icon: "bi-clipboard-check",
+            icon: "clipboard-check",
         },
         {
             label: "Document Types",
             to: "/admin/document-types",
-            icon: "bi-file-earmark-text",
+            icon: "file-earmark-text",
         },
         {
             label: "Recent Activity",
             to: "/admin/recent-activity",
-            icon: "bi-activity",
+            icon: "activity",
         },
         {
             label: "Workflow Analysis",
             to: "/admin/workflow-analysis",
-            icon: "bi-diagram-3",
+            icon: "diagram-3",
         },
     ];
 
@@ -76,7 +77,7 @@ function AdminLayout({ children }) {
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Open navigation"
                     >
-                        <i className="bi bi-list" aria-hidden="true" />
+                        <Icon name="list" />
                     </button>
 
                     <strong>Admin Panel</strong>

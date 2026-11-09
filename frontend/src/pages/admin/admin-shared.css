@@ -263,12 +263,12 @@
     padding: 24px;
 }
 
-.admin-form-card .form-control,
-.admin-form-card .form-select {
+.admin-form-card .app-input,
+.admin-form-card .app-select {
     border-radius: 8px;
 }
 
-.admin-form-card .form-label {
+.admin-form-card .app-label {
     font-weight: 600;
     color: var(--gray-800);
     font-size: 14px;

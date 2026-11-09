@@ -39,25 +39,25 @@ export default function TrackRequest() {
     };
 
     return (
-        <div className="container py-5">
+        <div className="mx-auto w-full max-w-7xl py-12">
 
-            <h1 className="fw-bold text-center mb-4">
+            <h1 className="font-bold text-center mb-6">
                 Track Your Request
             </h1>
 
-            <div className="row justify-content-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 justify-center">
 
-                <div className="col-md-6">
+                <div className="md:col-span-6">
 
-                    <div className="card shadow-sm border-0">
+                    <div className="app-card shadow-sm border-0">
 
-                        <div className="card-body">
+                        <div className="app-card-body">
 
                             <form noValidate onSubmit={handleTrack}>
 
                                 <label
                                     htmlFor="tracking_number"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Enter Tracking Number
                                 </label>
@@ -65,7 +65,7 @@ export default function TrackRequest() {
                                 <input
                                     id="tracking_number"
                                     type="text"
-                                    className="form-control mb-3"
+                                    className="app-input mb-4"
                                     placeholder="Example: BR-20260902-ABCDEF"
                                     value={trackingNumber}
                                     onChange={(e) =>
@@ -76,7 +76,7 @@ export default function TrackRequest() {
 
                                 <button
                                     type="submit"
-                                    className="btn btn-primary w-100"
+                                    className="app-button app-button-primary w-full"
                                     disabled={loading}
                                     aria-busy={loading || undefined}
                                     aria-label={loading ? "Searching requests" : undefined}
@@ -88,13 +88,13 @@ export default function TrackRequest() {
 
                             {/* Error */}
                             {error && (
-                                <p className="text-danger mt-3">{error}</p>
+                                <p className="text-destructive mt-4">{error}</p>
                             )}
 
                             {/* Result */}
                             {result && (
-                                <div className="mt-4">
-                                    <h5 className="fw-bold">Request Status</h5>
+                                <div className="mt-6">
+                                    <h5 className="font-bold">Request Status</h5>
 
                                     <table className="table table-bordered">
                                         <tbody>
@@ -111,7 +111,7 @@ export default function TrackRequest() {
                                             <tr>
                                                 <th>Status</th>
                                                 <td>
-                                                    <span className="badge bg-primary">
+                                                    <span className="app-badge bg-primary">
                                                         {result.status}
                                                     </span>
                                                 </td>

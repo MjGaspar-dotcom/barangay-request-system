@@ -311,7 +311,7 @@
     margin: 0;
 }
 
-.btn-process-next {
+.app-button-process-next {
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -327,12 +327,12 @@
     box-shadow: 0 3px 12px rgba(79, 70, 229, 0.35);
 }
 
-.btn-process-next:hover:not(:disabled) {
+.app-button-process-next:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
 }
 
-.btn-process-next:disabled {
+.app-button-process-next:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -372,7 +372,7 @@
     letter-spacing: 0.06em;
 }
 
-.badge-urgent {
+.app-badge-urgent {
     padding: 0.15rem 0.5rem;
     border-radius: 6px;
     background: rgba(239, 68, 68, 0.2);

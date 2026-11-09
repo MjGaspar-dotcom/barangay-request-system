@@ -1,9 +1,7 @@
-/* Direction C: clean government look. Loaded LAST in main.jsx so it overrides earlier layers.
-   To roll back, remove its import from main.jsx. */
+/* Direction C: clean government look, layered with the frontend component styles. */
 :root {
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --bs-body-font-family: var(--font-sans);
-  --surface: #f5f5ef;
+  --surface: var(--brand-50);
   --c-green: var(--brand-800);
   --c-green-dark: var(--brand-900);
   --c-green-tint: var(--brand-100);
@@ -212,11 +210,11 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   border-bottom: 1px solid #e5ece6;
   background: #fbfdfb;
 }
-.staff-request-queue-page .staff-queue-toolbar > .form-control {
+.staff-request-queue-page .staff-queue-toolbar > .app-input {
   flex: 1 1 320px;
   max-width: 460px;
 }
-.staff-request-queue-page .staff-queue-toolbar > .form-select {
+.staff-request-queue-page .staff-queue-toolbar > .app-select {
   flex: 0 1 200px;
 }
 .staff-request-queue-page .staff-queue-result-count {
@@ -406,7 +404,7 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 .staff-request-details-page .detail-form-field {
   margin: 18px 0 0;
 }
-.staff-request-details-page .detail-form-field .form-label {
+.staff-request-details-page .detail-form-field .app-label {
   color: #37483e;
   font-size: 12px;
   font-weight: 700;
@@ -431,7 +429,7 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 .staff-request-details-page .staff-request-id-link:hover {
   text-decoration: underline;
 }
-.staff-request-details-page .btn-staff-request-back {
+.staff-request-details-page .app-button-staff-request-back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -445,11 +443,11 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   font-weight: 700;
   text-decoration: none;
 }
-.staff-request-details-page .btn-staff-request-back:hover {
+.staff-request-details-page .app-button-staff-request-back:hover {
   border-color: var(--brand-800);
   background: var(--brand-50);
 }
-.staff-request-details-page .btn:focus-visible {
+.staff-request-details-page .app-button:focus-visible {
   outline: 3px solid rgba(22, 101, 52, .3);
   outline-offset: 2px;
 }
@@ -625,7 +623,7 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   background: #eaf1eb;
   color: #315d40;
 }
-.admin-request-details-page .btn-request-details-back {
+.admin-request-details-page .app-button-request-details-back {
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -640,18 +638,18 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   box-shadow: 0 3px 10px rgba(20, 55, 35, .08);
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
-.admin-request-details-page .btn-request-details-back:hover {
+.admin-request-details-page .app-button-request-details-back:hover {
   border-color: #245d39;
   background: #edf5ef;
   color: #17472b;
   box-shadow: 0 5px 13px rgba(20, 55, 35, .12);
   transform: translateY(-1px);
 }
-.admin-request-details-page .btn-request-details-back:focus-visible {
+.admin-request-details-page .app-button-request-details-back:focus-visible {
   outline: 3px solid rgba(36, 93, 57, .3);
   outline-offset: 2px;
 }
-.admin-request-details-page .btn-request-details-back i {
+.admin-request-details-page .app-button-request-details-back i {
   font-size: 15px;
 }
 .staff-reports-page .staff-report-stats {
@@ -800,10 +798,17 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 .status-badge-user { background: var(--gray-200); color: var(--gray-700); }
 
 /* ---------- Buttons and inputs ---------- */
-.btn { border-radius: 8px; font-weight: 700; }
-.btn-primary, .btn-success { --bs-btn-bg: var(--c-green); --bs-btn-border-color: var(--c-green);
-  --bs-btn-hover-bg: var(--c-green-dark); --bs-btn-hover-border-color: var(--c-green-dark); }
-.form-control, .form-select { border-radius: 8px; border-color: #c9d3cd; padding: .6rem .8rem; }
+.app-button { border-radius: 8px; font-weight: 700; }
+.app-button-primary, .app-button-success {
+  border-color: var(--c-green);
+  background: var(--c-green);
+  color: var(--white);
+}
+.app-button-primary:hover:not(:disabled), .app-button-success:hover:not(:disabled) {
+  border-color: var(--c-green-dark);
+  background: var(--c-green-dark);
+}
+.app-input, .app-select { border-radius: 8px; border-color: #c9d3cd; padding: .6rem .8rem; }
 
 /* ---------- Staff and admin landing ---------- */
 .staff-admin-landing h1 { font-weight: 800; letter-spacing: -.02em; }
@@ -886,7 +891,7 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   font-weight: 600;
   line-height: 1.4;
 }
-.portal-auth-page .portal-validation-message > i {
+.portal-auth-page .portal-validation-message > .validation-icon {
   flex: 0 0 auto;
   margin-right: 2px;
   font-size: 14px;
@@ -907,13 +912,13 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 .portal-auth-error i { margin-top: 2px; }
 .portal-login-button { background: var(--c-green); border-radius: 8px; font-weight: 800; box-shadow: none; }
 .portal-login-button:hover { background: var(--c-green-dark); }
-.auth-page .auth-card .form-label { color: #26352d; }
-.auth-page .auth-card .form-control {
+.auth-page .auth-card .app-label { color: #26352d; }
+.auth-page .auth-card .app-input {
   border-color: #aab7af;
   background: #fff;
   color: #14231c;
 }
-.auth-page .auth-card .form-control::placeholder { color: #66756d; opacity: 1; }
+.auth-page .auth-card .app-input::placeholder { color: #66756d; opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
@@ -924,10 +929,10 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   width: 100%; margin: 0; padding: 0; background: none; border: 0; box-shadow: none;
 }
 .portal-page .dashboard-page-header > .page-header-row > :first-child { flex: 1 1 auto; min-width: 0; }
-.portal-page .dashboard-page-header > .page-header-row > .btn { flex: 0 0 auto; margin-left: auto; white-space: nowrap; }
+.portal-page .dashboard-page-header > .page-header-row > .app-button { flex: 0 0 auto; margin-left: auto; white-space: nowrap; }
 @media (max-width: 767.98px) {
   .portal-page .dashboard-page-header > .page-header-row { flex-direction: column; }
-  .portal-page .dashboard-page-header > .page-header-row > .btn { margin-left: 0; width: 100%; }
+  .portal-page .dashboard-page-header > .page-header-row > .app-button { margin-left: 0; width: 100%; }
 }
 
 /* ---------- Actions column: header and buttons share the left edge ---------- */
@@ -1134,9 +1139,9 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 .admin-management-layout .admin-table tbody tr:hover td:first-child {
   border-left-color: var(--admin-gold);
 }
-.admin-management-layout .admin-table td .btn:focus-visible,
-.admin-management-layout .btn:focus-visible,
-.portal-admin-workspace .btn:focus-visible {
+.admin-management-layout .admin-table td .app-button:focus-visible,
+.admin-management-layout .app-button:focus-visible,
+.portal-admin-workspace .app-button:focus-visible {
   outline: 3px solid rgba(200, 169, 87, .45);
   outline-offset: 2px;
 }
@@ -1461,35 +1466,39 @@ body {
     .admin-management-layout .admin-table tbody tr:hover td:first-child) {
   border-left-color: transparent;
 }
-:where(.form-control, .form-select, input, select, textarea) {
+:where(.app-input, .app-select, input, select, textarea) {
   border-color: var(--gray-300);
   border-radius: var(--radius-sm);
   color: var(--deep-forest);
 }
-:where(.form-control, .form-select, input, select, textarea):focus {
+:where(.app-input, .app-select, input, select, textarea):focus {
   border-color: var(--brand-800);
   box-shadow: 0 0 0 3px rgba(47, 125, 74, .16);
 }
-:where(.btn, button.btn, a.btn) {
+:where(.app-button, button.app-button, a.app-button) {
   border-radius: var(--radius-sm);
   font-weight: 600;
   transition-duration: var(--motion-fast);
 }
-:where(.btn-primary, .btn-success) {
-  --bs-btn-bg: var(--brand-800);
-  --bs-btn-border-color: var(--brand-800);
-  --bs-btn-hover-bg: var(--brand-700);
-  --bs-btn-hover-border-color: var(--brand-700);
+:where(.app-button-primary, .app-button-success) {
+  border-color: var(--brand-800);
+  background: var(--brand-800);
 }
-:where(.btn-outline-secondary, .btn-secondary) {
-  --bs-btn-color: var(--gray-700);
-  --bs-btn-border-color: var(--gray-300);
-  --bs-btn-bg: var(--white);
-  --bs-btn-hover-color: var(--deep-forest);
-  --bs-btn-hover-bg: var(--gray-100);
-  --bs-btn-hover-border-color: var(--gray-300);
+:where(.app-button-primary, .app-button-success):hover:not(:disabled) {
+  border-color: var(--brand-700);
+  background: var(--brand-700);
 }
-:where(.modal-content, .confirm-dialog) {
+:where(.app-button-outline-secondary, .app-button-secondary) {
+  border-color: var(--gray-300);
+  background: var(--white);
+  color: var(--gray-700);
+}
+:where(.app-button-outline-secondary, .app-button-secondary):hover:not(:disabled) {
+  border-color: var(--gray-300);
+  background: var(--gray-100);
+  color: var(--deep-forest);
+}
+.confirm-dialog {
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);

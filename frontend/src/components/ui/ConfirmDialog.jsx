@@ -1,6 +1,13 @@
-import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
-/** Props: isOpen, onClose, onConfirm, title, children, confirmLabel, variant. Accessible confirmation modal. */
+import Button from "./Button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "./dialog";
+
 export default function ConfirmDialog({
     isOpen = false,
     onClose,
@@ -11,29 +18,26 @@ export default function ConfirmDialog({
     variant = "danger",
 }) {
     return (
-        <Modal
-            show={isOpen}
-            onHide={onClose}
-            centered
-            aria-labelledby="confirm-dialog-title"
-            aria-describedby="confirm-dialog-description"
-            keyboard
-        >
-            <Modal.Header closeButton>
-                <Modal.Title id="confirm-dialog-title">{title}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body id="confirm-dialog-description">{children}</Modal.Body>
-            <Modal.Footer>
-                <Button variant="outline-secondary" onClick={onClose}>
-                    Cancel
-                </Button>
-                <Button
-                    variant={variant === "danger" ? "danger" : "primary"}
-                    onClick={onConfirm}
-                >
-                    {confirmLabel}
-                </Button>
-            </Modal.Footer>
-        </Modal>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
+            <DialogContent aria-describedby="confirm-dialog-description">
+                <DialogHeader>
+                    <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
+                </DialogHeader>
+                <DialogDescription id="confirm-dialog-description" asChild>
+                    <div>{children}</div>
+                </DialogDescription>
+                <DialogFooter>
+                    <Button variant="outline-secondary" onClick={onClose}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant={variant === "danger" ? "danger" : "primary"}
+                        onClick={onConfirm}
+                    >
+                        {confirmLabel}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

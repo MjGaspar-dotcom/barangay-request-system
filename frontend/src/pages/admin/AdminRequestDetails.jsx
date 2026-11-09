@@ -1,3 +1,4 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useCallback, useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,6 +8,7 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import RequestWorkflowPanel from "../../components/requests/RequestWorkflowPanel";
+import RequestTimeline from "../../components/requests/RequestTimeline";
 
 export default function AdminRequestDetails() {
     const { requestId } = useParams();
@@ -96,7 +98,7 @@ export default function AdminRequestDetails() {
                 <div className="page-loading">
                     <h3 className="text-danger-token">{error}</h3>
                     <Button
-                        className="btn btn-outline-secondary mt-3"
+                        className="app-button app-button-outline-secondary mt-4"
                         onClick={() => navigate("/admin/requests")}
                         type="button"
                     >
@@ -115,15 +117,15 @@ export default function AdminRequestDetails() {
     return (
         <AdminLayout>
             <div className="admin-dashboard admin-request-details-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <header className="dashboard-page-header">
                         <div className="request-details-header-top">
                             <Button
-                                className="btn btn-request-details-back"
+                                className="app-button app-button-request-details-back"
                                 onClick={() => navigate("/admin/requests")}
                                 type="button"
                             >
-                                <i className="bi bi-arrow-left" aria-hidden="true" />
+                                <Icon name="arrow-left" />
                                 <span>Back to Manage Requests</span>
                             </Button>
                             <StatusBadge status={request.status} />
@@ -136,14 +138,14 @@ export default function AdminRequestDetails() {
                     </header>
 
                     {actionMessage && (
-                        <div className="alert alert-danger" role="alert">
+                        <div className="app-alert app-alert-danger" role="alert">
                             {actionMessage}
                         </div>
                     )}
 
-                    <div className="row g-4">
-                        <div className="col-lg-7">
-                            <section className="d-flex flex-column gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div className="lg:col-span-6">
+                            <section className="flex flex-col gap-4">
                                 <div className="admin-form-card detail-card-spaced">
                                     <h2 className="form-section-title">
                                         Request Information
@@ -242,10 +244,11 @@ export default function AdminRequestDetails() {
                                         </p>
                                     )}
                                 </div>
+                                <RequestTimeline request={request} />
                             </section>
                         </div>
 
-                        <div className="col-lg-5">
+                        <div className="lg:col-span-6">
                             <RequestWorkflowPanel
                                 onDelete={() => setDeleteConfirmation(true)}
                                 onRefresh={refreshRequest}

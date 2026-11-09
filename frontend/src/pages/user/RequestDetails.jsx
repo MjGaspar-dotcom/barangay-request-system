@@ -179,7 +179,7 @@ function RequestDetails() {
                 <RequestDetailsHeader>
                     <div>
                         <h1>Request Details</h1>
-                        <p className="mb-0 mt-2 text-muted">
+                        <p className="mb-0 mt-2 text-muted-foreground">
                             {request.tracking_number}
                         </p>
                     </div>
@@ -187,12 +187,12 @@ function RequestDetails() {
                 </RequestDetailsHeader>
 
                 {actionMessage && (
-                    <div className="alert alert-success" role="status">
+                    <div className="app-alert app-alert-success" role="status">
                         {actionMessage}
                     </div>
                 )}
                 {actionError && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {actionError}
                     </div>
                 )}
@@ -254,13 +254,13 @@ function RequestDetails() {
                         </p>
                         <form onSubmit={submitRequirements}>
                             <label
-                                className="form-label"
+                                className="app-label"
                                 htmlFor="resubmission-notes"
                             >
                                 Notes for the reviewer
                             </label>
                             <textarea
-                                className="form-control mb-3"
+                                className="app-input mb-4"
                                 id="resubmission-notes"
                                 maxLength={2000}
                                 onChange={(event) =>
@@ -271,7 +271,7 @@ function RequestDetails() {
                                 value={notes}
                             />
                             <label
-                                className="form-label"
+                                className="app-label"
                                 htmlFor="resubmission-documents"
                             >
                                 Attach requirements (PDF, JPG, or PNG; up to 5
@@ -279,7 +279,7 @@ function RequestDetails() {
                             </label>
                             <input
                                 accept=".pdf,.jpg,.jpeg,.png"
-                                className="form-control mb-3"
+                                className="app-input mb-4"
                                 id="resubmission-documents"
                                 multiple
                                 onChange={(event) =>
@@ -306,15 +306,15 @@ function RequestDetails() {
                         <RequestDetailsSectionTitle>
                             Submitted Requirements
                         </RequestDetailsSectionTitle>
-                        <ul className="list-group">
+                        <ul className="m-0 list-none p-0">
                             {residentDocuments.map((document) => (
                                 <li
-                                    className="list-group-item d-flex justify-content-between align-items-center gap-2"
+                                    className="app-list-item flex justify-between items-center gap-2"
                                     key={document.request_document_id}
                                 >
                                     <span>
                                         {document.original_name}
-                                        <small className="d-block text-muted">
+                                        <small className="block text-muted-foreground">
                                             Submitted {formatDate(document.created_at)}
                                         </small>
                                     </span>
@@ -336,14 +336,14 @@ function RequestDetails() {
                         <RequestDetailsSectionTitle>
                             Transaction History
                         </RequestDetailsSectionTitle>
-                        <ul className="list-group">
+                        <ul className="m-0 list-none p-0">
                             {request.history.map((event) => (
                                 <li
-                                    className="list-group-item"
+                                    className="app-list-item"
                                     key={event.audit_log_id}
                                 >
                                     <strong>{event.action.replaceAll("_", " ")}</strong>
-                                    <span className="d-block text-muted small">
+                                    <span className="block text-muted-foreground text-sm">
                                         {formatDate(event.created_at)}
                                     </span>
                                     <span>{event.description}</span>

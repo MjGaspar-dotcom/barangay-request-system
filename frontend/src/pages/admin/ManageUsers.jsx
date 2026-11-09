@@ -1,5 +1,6 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useMemo, useState } from "react";
-import Table from "react-bootstrap/Table";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -197,7 +198,7 @@ export default function ManageUsers() {
         return (
             <AdminLayout>
                 <div className="page-loading">
-                    <div className="alert alert-danger" role="alert">{error}</div>
+                    <div className="app-alert app-alert-danger" role="alert">{error}</div>
                 </div>
             </AdminLayout>
         );
@@ -208,7 +209,7 @@ export default function ManageUsers() {
     return (
         <AdminLayout>
             <div className="admin-dashboard manage-users-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div>
                             <span className="section-label">
@@ -227,20 +228,19 @@ export default function ManageUsers() {
 
                     {actionMessage && (
                         <div
-                            className={`alert alert-${actionMessageType} manage-users-feedback`}
+                            className={`app-alert app-alert-${actionMessageType} manage-users-feedback`}
                             role="status"
                             aria-live="polite"
                         >
-                            <i
-                                className={`bi ${actionMessageType === "danger" ? "bi-exclamation-circle-fill" : "bi-check-circle-fill"}`}
-                                aria-hidden="true"
+                            <Icon
+                                name={actionMessageType === "danger" ? "exclamation-circle-fill" : "check-circle-fill"}
                             />
                             <span>{actionMessage}</span>
                         </div>
                     )}
 
                     {actionError && (
-                        <div className="alert alert-danger" role="alert">
+                        <div className="app-alert app-alert-danger" role="alert">
                             {actionError}
                         </div>
                     )}
@@ -252,7 +252,7 @@ export default function ManageUsers() {
                         >
                             <input
                                 type="search"
-                                className="form-control filter-search-360"
+                                className="app-input filter-search-360"
                                 placeholder="Search by name, username, email, contact, address..."
                                 value={search}
                                 onChange={(event) =>
@@ -262,7 +262,7 @@ export default function ManageUsers() {
                             />
 
                             <select
-                                className="form-select filter-select-180"
+                                className="app-select filter-select-180"
                                 value={roleFilter}
                                 onChange={(event) =>
                                     setRoleFilter(event.target.value)
@@ -280,7 +280,7 @@ export default function ManageUsers() {
                             </select>
 
                             <select
-                                className="form-select filter-select-200"
+                                className="app-select filter-select-200"
                                 value={verificationFilter}
                                 onChange={(event) =>
                                     setVerificationFilter(event.target.value)
@@ -320,7 +320,7 @@ export default function ManageUsers() {
                         ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon" aria-hidden="true">
-                                    <i className="bi bi-people" />
+                                    <Icon name="people" />
                                 </div>
                                 <h3>No Users Found</h3>
                                 <p>
@@ -407,7 +407,7 @@ export default function ManageUsers() {
                                                                 "verified" && (
                                                                 <Button
                                                                     type="button"
-                                                                    className="btn btn-success btn-sm"
+                                                                    className="app-button app-button-success app-button-sm"
                                                                     disabled={
                                                                         busyUserId ===
                                                                         user.user_id
@@ -428,7 +428,7 @@ export default function ManageUsers() {
                                                                 "rejected" && (
                                                                 <Button
                                                                     type="button"
-                                                                    className="btn btn-outline-danger btn-sm"
+                                                                    className="app-button app-button-outline-danger app-button-sm"
                                                                     disabled={
                                                                         busyUserId ===
                                                                         user.user_id
@@ -449,7 +449,7 @@ export default function ManageUsers() {
                                                                 "pending" && (
                                                                 <Button
                                                                     type="button"
-                                                                    className="btn btn-outline-secondary btn-sm"
+                                                                    className="app-button app-button-outline-secondary app-button-sm"
                                                                     disabled={
                                                                         busyUserId ===
                                                                         user.user_id
@@ -468,7 +468,7 @@ export default function ManageUsers() {
                                                         {isResident(user) && (
                                                             <Button
                                                                 type="button"
-                                                                className="btn btn-outline-danger btn-sm"
+                                                                className="app-button app-button-outline-danger app-button-sm"
                                                                 disabled={
                                                                     busyUserId ===
                                                                     user.user_id

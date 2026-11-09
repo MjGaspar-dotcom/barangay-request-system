@@ -1,3 +1,4 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
@@ -7,18 +8,18 @@ import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 const navigationItems = [
-    { label: "Dashboard", to: "/admin/dashboard", icon: "bi-speedometer2" },
+    { label: "Dashboard", to: "/admin/dashboard", icon: "speedometer2" },
     {
         label: "System Analytics",
         to: "/admin/analytics",
-        icon: "bi-bar-chart-line",
+        icon: "bar-chart-line",
     },
-    { label: "Manage Users", to: "/admin/users", icon: "bi-people" },
-    { label: "Manage Staff", to: "/admin/staff", icon: "bi-person-badge" },
-    { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
-    { label: "Document Types", to: "/admin/document-types", icon: "bi-file-earmark-text" },
-    { label: "Recent Activity", to: "/admin/recent-activity", icon: "bi-activity" },
-    { label: "Workflow Analysis", to: "/admin/workflow-analysis", icon: "bi-diagram-3" },
+    { label: "Manage Users", to: "/admin/users", icon: "users" },
+    { label: "Manage Staff", to: "/admin/staff", icon: "person-badge" },
+    { label: "Manage Requests", to: "/admin/requests", icon: "clipboard-check" },
+    { label: "Document Types", to: "/admin/document-types", icon: "file-earmark-text" },
+    { label: "Recent Activity", to: "/admin/recent-activity", icon: "activity" },
+    { label: "Workflow Analysis", to: "/admin/workflow-analysis", icon: "diagram-3" },
 ];
 
 const count = (value) =>
@@ -144,11 +145,11 @@ function Dashboard() {
         >
             <section className="admin-portal">
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}{" "}
                         <button
                             type="button"
-                            className="btn btn-sm btn-outline-danger ms-2"
+                            className="app-button app-button-sm app-button-outline-danger ms-2"
                             onClick={handleRetry}
                         >
                             Retry
@@ -259,7 +260,7 @@ function Dashboard() {
                             </div>
 
                             <span className="admin-management-arrow" aria-hidden="true">
-                                <i className="bi bi-arrow-right" />
+                                <Icon name="arrow-right" />
                             </span>
                         </Link>
 
@@ -277,7 +278,7 @@ function Dashboard() {
                             </div>
 
                             <span className="admin-management-arrow" aria-hidden="true">
-                                <i className="bi bi-arrow-right" />
+                                <Icon name="arrow-right" />
                             </span>
                         </Link>
 
@@ -297,7 +298,7 @@ function Dashboard() {
                             </div>
 
                             <span className="admin-management-arrow" aria-hidden="true">
-                                <i className="bi bi-arrow-right" />
+                                <Icon name="arrow-right" />
                             </span>
                         </Link>
 
@@ -317,7 +318,7 @@ function Dashboard() {
                             </div>
 
                             <span className="admin-management-arrow" aria-hidden="true">
-                                <i className="bi bi-arrow-right" />
+                                <Icon name="arrow-right" />
                             </span>
                         </Link>
 
@@ -327,10 +328,7 @@ function Dashboard() {
                             className="admin-management-item"
                         >
                             <div className="admin-management-icon">
-                                <i
-                                    className="bi bi-bar-chart-line"
-                                    aria-hidden="true"
-                                />
+                                <Icon name="bar-chart-line" />
                             </div>
 
                             <div className="admin-management-content">
@@ -416,10 +414,7 @@ function Dashboard() {
                         ) : (
                             <div className="admin-empty-state">
                                 <div className="admin-empty-icon">
-                                    <i
-                                        className="bi bi-clock-history"
-                                        aria-hidden="true"
-                                    />
+                                    <Icon name="clock-history" />
                                 </div>
                                 <h3>No recent activity</h3>
                                 <p>System activity will appear here.</p>

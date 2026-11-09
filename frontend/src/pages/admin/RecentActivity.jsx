@@ -1,5 +1,6 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useState } from "react";
-import Table from "react-bootstrap/Table";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -112,15 +113,15 @@ export default function RecentActivity() {
     const actionIcon = (action) => {
         switch (action) {
             case "created":
-                return "bi bi-plus-circle";
+                return "plus-circle";
             case "deleted":
-                return "bi bi-trash";
+                return "trash";
             case "status_changed":
-                return "bi bi-arrow-left-right";
+                return "arrow-left-right";
             case "verification_updated":
-                return "bi bi-person-check";
+                return "person-check";
             default:
-                return "bi bi-activity";
+                return "activity";
         }
     };
 
@@ -142,7 +143,7 @@ export default function RecentActivity() {
     return (
         <AdminLayout>
             <div className="admin-dashboard recent-activity-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div>
                             <span className="section-label">
@@ -168,7 +169,7 @@ export default function RecentActivity() {
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-                                className="form-control filter-search"
+                                className="app-input filter-search"
                             />
 
                             <select
@@ -176,7 +177,7 @@ export default function RecentActivity() {
                                 onChange={(event) =>
                                     setActionFilter(event.target.value)
                                 }
-                                className="form-select filter-select"
+                                className="app-select filter-select"
                             >
                                 {ACTION_FILTERS.map((filter) => (
                                     <option
@@ -205,13 +206,13 @@ export default function RecentActivity() {
                                 variant="table"
                             />
                         ) : error ? (
-                            <div className="alert alert-danger" role="alert">
+                            <div className="app-alert app-alert-danger" role="alert">
                                 <p>{error}</p>
-                                <Button type="button" className="btn btn-outline-danger btn-sm" onClick={() => fetchActivity(page)}>Retry</Button>
+                                <Button type="button" className="app-button app-button-outline-danger app-button-sm" onClick={() => fetchActivity(page)}>Retry</Button>
                             </div>
                         ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
-                                <div className="dashboard-empty-icon"><i className="bi bi-activity" aria-hidden="true" /></div>
+                                <div className="dashboard-empty-icon"><Icon name="activity" /></div>
                                 <h3>No Activity Found</h3>
                                 <p>
                                     No activity matches your current filters.
@@ -257,11 +258,10 @@ export default function RecentActivity() {
                                                             style={{ "--activity-bg": color.bg, "--activity-color": color.color }}
                                                             title={entry.action}
                                                         >
-                                                            <i
-                                                                className={actionIcon(
+                                                            <Icon
+                                                                name={actionIcon(
                                                                     entry.action
                                                                 )}
-                                                                aria-hidden="true"
                                                             />
                                                         </span>
                                                     </td>
@@ -315,7 +315,7 @@ export default function RecentActivity() {
                                 <li>
                                     <Button
                                         type="button"
-                                        className="btn btn-outline-secondary btn-sm"
+                                        className="app-button app-button-outline-secondary app-button-sm"
                                         disabled={page <= 1}
                                         onClick={() => goToPage(page - 1)}
                                     >
@@ -332,7 +332,7 @@ export default function RecentActivity() {
                                 <li>
                                     <Button
                                         type="button"
-                                        className="btn btn-outline-secondary btn-sm"
+                                        className="app-button app-button-outline-secondary app-button-sm"
                                         disabled={page >= meta.last_page}
                                         onClick={() => goToPage(page + 1)}
                                     >

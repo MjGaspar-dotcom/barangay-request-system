@@ -104,10 +104,10 @@ export default function UserRequestForm({ initialDocument = "" }) {
 
     return (
         <form noValidate onSubmit={handleSubmit}>
-            <div className="mb-3">
+            <div className="mb-4">
                 <label
                     htmlFor="document_type_id"
-                    className="form-label"
+                    className="app-label"
                 >
                     Document Type
                 </label>
@@ -115,7 +115,7 @@ export default function UserRequestForm({ initialDocument = "" }) {
                 <select
                     id="document_type_id"
                     name="document_type_id"
-                    className="form-select"
+                    className="app-select"
                     value={documentTypeId}
                     onChange={(event) =>
                         setDocumentTypeId(event.target.value)
@@ -137,10 +137,10 @@ export default function UserRequestForm({ initialDocument = "" }) {
                 </select>
             </div>
 
-            <div className="mb-3">
+            <div className="mb-4">
                 <label
                     htmlFor="purpose"
-                    className="form-label"
+                    className="app-label"
                 >
                     Purpose
                 </label>
@@ -148,7 +148,7 @@ export default function UserRequestForm({ initialDocument = "" }) {
                 <textarea
                     id="purpose"
                     name="purpose"
-                    className="form-control"
+                    className="app-input"
                     value={purpose}
                     onChange={(event) =>
                         setPurpose(event.target.value)
@@ -158,20 +158,20 @@ export default function UserRequestForm({ initialDocument = "" }) {
             </div>
 
             {verificationStatus !== "verified" && (
-                <div className="alert alert-info" role="status">
+                <div className="app-alert app-alert-info" role="status">
                     Your account must be verified before you can submit a
                     document request.
                 </div>
             )}
 
             {error && (
-                <p className="text-danger">
+                <p className="text-destructive">
                     {error}
                 </p>
             )}
 
             {submittedRequest && (
-                <div className="alert alert-success" role="status">
+                <div className="app-alert app-alert-success" role="status">
                     <p className="mb-2">
                         Request submitted successfully. Tracking number:{" "}
                         <strong>{submittedRequest.trackingNumber}</strong>
@@ -196,7 +196,7 @@ export default function UserRequestForm({ initialDocument = "" }) {
 
             <button
                 type="submit"
-                className="btn btn-primary"
+                className="app-button app-button-primary"
                 disabled={loading || verificationStatus !== "verified"}
             >
                 {loading ? "Submitting..." : "Submit Request"}

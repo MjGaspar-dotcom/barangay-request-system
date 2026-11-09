@@ -13,7 +13,7 @@ export function validateForm(form) {
     let firstInvalid = null;
 
     fields.forEach((field) => {
-        const wrapper = field.closest(".mb-3, .mb-4, .form-group, .portal-form-group, .col-md-6, .col-md-12") || field.parentElement;
+        const wrapper = field.closest(".mb-4, .mb-6, .app-field-group, .portal-form-group, [class*='col-span-']") || field.parentElement;
         let message = "";
 
         if (field.required && !String(field.value || "").trim() &&
@@ -44,19 +44,20 @@ export function validateForm(form) {
             if (wrapper && field.id) {
                 if (!feedback) {
                     feedback = document.createElement("div");
-                    feedback.className = "invalid-feedback d-block portal-validation-message";
+                    feedback.className = "portal-validation-message";
                     feedback.dataset.validationFor = field.id;
                     feedback.id = `${field.id}-validation-message`;
                     feedback.setAttribute("role", "status");
-                    const icon = document.createElement("i");
-                    icon.className = "bi bi-exclamation-circle-fill";
+                    const icon = document.createElement("span");
+                    icon.className = "validation-icon";
                     icon.setAttribute("aria-hidden", "true");
                     const text = document.createElement("span");
+                    text.className = "validation-text";
                     feedback.append(icon, text);
                     (field.closest(".portal-form-password") || field)
                         .insertAdjacentElement("afterend", feedback);
                 }
-                feedback.querySelector("span").textContent = message;
+                feedback.querySelector(".validation-text").textContent = message;
                 field.setAttribute("aria-describedby", feedback.id);
             }
         } else {

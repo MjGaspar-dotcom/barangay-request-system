@@ -1,5 +1,6 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useState } from "react";
-import Table from "react-bootstrap/Table";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -199,7 +200,7 @@ export default function ManageDocumentTypes() {
     return (
         <AdminLayout>
             <div className="admin-dashboard manage-document-types-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div className="page-header-row document-types-header-row">
                             <div>
@@ -218,7 +219,7 @@ export default function ManageDocumentTypes() {
 
                             <Button
                                 type="button"
-                                className="btn btn-success document-type-create-button"
+                                className="app-button app-button-success document-type-create-button"
                                 onClick={() => {
                                     if (showForm && !editingId) {
                                         handleCancel();
@@ -239,7 +240,7 @@ export default function ManageDocumentTypes() {
 
                     {actionMessage && (
                         <div
-                            className={`alert alert-${actionMessageType}`}
+                            className={`app-alert app-alert-${actionMessageType}`}
                             role="alert"
                         >
                             {actionMessage}
@@ -256,29 +257,29 @@ export default function ManageDocumentTypes() {
                                 </h3>
 
                                 <form noValidate onSubmit={handleSubmit}>
-                                    <div className="row g-3">
-                                        <div className="col-md-6">
-                                            <label className="form-label">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div className="md:col-span-6">
+                                            <label className="app-label">
                                                 Document Name *
                                             </label>
                                             <input
                                                 type="text"
                                                 name="document_name"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.document_name}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
 
-                                        <div className="col-md-3">
-                                            <label className="form-label">
+                                        <div className="md:col-span-3">
+                                            <label className="app-label">
                                                 Processing Days *
                                             </label>
                                             <input
                                                 type="number"
                                                 name="processing_days"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.processing_days}
                                                 onChange={handleChange}
                                                 min={1}
@@ -286,21 +287,21 @@ export default function ManageDocumentTypes() {
                                             />
                                         </div>
 
-                                        <div className="col-md-3">
-                                            <label className="form-label">
+                                        <div className="md:col-span-3">
+                                            <label className="app-label">
                                                 Status
                                             </label>
-                                            <div className="form-check form-switch form-switch-spaced">
+                                            <div className="flex items-center gap-2 form-switch form-switch-spaced">
                                                 <input
                                                     type="checkbox"
                                                     name="is_active"
-                                                    className="form-check-input"
+                                                    className="accent-primary"
                                                     checked={form.is_active}
                                                     onChange={handleChange}
                                                     id="is_active"
                                                 />
                                                 <label
-                                                    className="form-check-label"
+                                                    className="text-sm"
                                                     htmlFor="is_active"
                                                 >
                                                     {form.is_active
@@ -310,13 +311,13 @@ export default function ManageDocumentTypes() {
                                             </div>
                                         </div>
 
-                                        <div className="col-12">
-                                            <label className="form-label">
+                                        <div className="col-span-full">
+                                            <label className="app-label">
                                                 Description
                                             </label>
                                             <textarea
                                                 name="description"
-                                                className="form-control"
+                                                className="app-input"
                                                 rows={3}
                                                 value={form.description}
                                                 onChange={handleChange}
@@ -326,7 +327,7 @@ export default function ManageDocumentTypes() {
 
                                     {formError && (
                                         <div
-                                            className="alert alert-danger mt-3"
+                                            className="app-alert app-alert-danger mt-4"
                                             role="alert"
                                         >
                                             {formError}
@@ -336,7 +337,7 @@ export default function ManageDocumentTypes() {
                                     <div className="form-actions-row">
                                         <Button
                                             type="submit"
-                                            className="btn btn-success"
+                                            className="app-button app-button-success"
                                             disabled={submitting}
                                             loading={submitting}
                                             loadingLabel="Saving document type"
@@ -348,7 +349,7 @@ export default function ManageDocumentTypes() {
 
                                         <Button
                                             type="button"
-                                            className="btn btn-outline-secondary"
+                                            className="app-button app-button-outline-secondary"
                                             onClick={handleCancel}
                                             disabled={submitting}
                                         >
@@ -369,7 +370,7 @@ export default function ManageDocumentTypes() {
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-                                className="form-control filter-search"
+                                className="app-input filter-search"
                             />
 
                             <div className="filter-summary">
@@ -384,10 +385,7 @@ export default function ManageDocumentTypes() {
                         {filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon">
-                                    <i
-                                        className="bi bi-file-earmark-text"
-                                        aria-hidden="true"
-                                    />
+                                    <Icon name="file-earmark-text" />
                                 </div>
                                 <h3>No Document Types Found</h3>
                                 <p>
@@ -460,7 +458,7 @@ export default function ManageDocumentTypes() {
                                                     <div className="table-action-group document-type-action-group">
                                                         <Button
                                                             type="button"
-                                                            className="btn btn-outline-success btn-sm"
+                                                            className="app-button app-button-outline-success app-button-sm"
                                                             disabled={
                                                                 busyId ===
                                                                 docType.document_type_id
@@ -476,11 +474,12 @@ export default function ManageDocumentTypes() {
 
                                                         <Button
                                                             type="button"
-                                                            className={`btn btn-sm ${
+                                                            size="sm"
+                                                            variant={
                                                                 docType.is_active
-                                                                    ? "btn-outline-warning"
-                                                                    : "btn-outline-success"
-                                                            }`}
+                                                                    ? "outline-warning"
+                                                                    : "outline-success"
+                                                            }
                                                             disabled={
                                                                 busyId ===
                                                                 docType.document_type_id
@@ -498,7 +497,7 @@ export default function ManageDocumentTypes() {
 
                                                         <Button
                                                             type="button"
-                                                            className="btn btn-outline-danger btn-sm"
+                                                            className="app-button app-button-outline-danger app-button-sm"
                                                             disabled={
                                                                 busyId ===
                                                                 docType.document_type_id

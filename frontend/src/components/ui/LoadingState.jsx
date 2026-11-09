@@ -22,7 +22,7 @@ export default function LoadingState({
                     <div />
                 </div>
             )}
-            <span className="visually-hidden">{label}</span>
+            <span className="sr-only">{label}</span>
         </div>
     );
 }

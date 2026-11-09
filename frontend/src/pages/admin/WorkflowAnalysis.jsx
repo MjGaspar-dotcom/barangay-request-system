@@ -1,3 +1,4 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useState, useEffect, useCallback, useRef } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import "./workflow-analysis.css";
@@ -360,11 +361,11 @@ function ProcessingQueuePanel({ requests }) {
 
                 <button
                     type="button"
-                    className="btn-process-next"
+                    className="app-button-process-next"
                     onClick={processNext}
                     disabled={queue.isEmpty()}
                 >
-                    <i className="bi bi-play-fill" aria-hidden="true" />
+                    <Icon name="play-fill" />
                     Process Next ({queue.size} in queue)
                 </button>
             </div>
@@ -380,7 +381,7 @@ function ProcessingQueuePanel({ requests }) {
             <div className="queue-lists">
                 <div className="queue-list">
                     <h4>
-                        <i className="bi bi-hourglass-split" aria-hidden="true" /> Waiting ({remaining.length})
+                        <Icon name="hourglass-split" /> Waiting ({remaining.length})
                     </h4>
                     {remaining.length === 0 ? (
                         <p className="queue-empty">Queue is empty — all requests processed!</p>
@@ -406,7 +407,7 @@ function ProcessingQueuePanel({ requests }) {
 
                 <div className="queue-list processed">
                     <h4>
-                        <i className="bi bi-check-circle" aria-hidden="true" /> Recently Dequeued ({processed.length})
+                        <Icon name="check-circle" /> Recently Dequeued ({processed.length})
                     </h4>
                     {processed.length === 0 ? (
                         <p className="queue-empty">No requests dequeued yet.</p>
@@ -489,7 +490,7 @@ function StatsPanel({ requests, graph }) {
 
             <div className="stats-detail-grid">
                 <div className="stats-detail-card">
-                    <h4><i className="bi bi-signpost-split" aria-hidden="true" /> BFS Traversal Order</h4>
+                    <h4><Icon name="signpost-split" /> BFS Traversal Order</h4>
                     <div className="path-chain">
                         {bfsOrder.map((nodeId, i) => (
                             <span key={nodeId}>
@@ -503,7 +504,7 @@ function StatsPanel({ requests, graph }) {
                 </div>
 
                 <div className="stats-detail-card">
-                    <h4><i className="bi bi-lightning" aria-hidden="true" /> Shortest Path (Submitted → Completed)</h4>
+                    <h4><Icon name="lightning" /> Shortest Path (Submitted → Completed)</h4>
                     {shortest ? (
                         <div className="path-chain highlight">
                             {shortest.map((nodeId, i) => (
@@ -522,13 +523,13 @@ function StatsPanel({ requests, graph }) {
                 </div>
 
                 <div className="stats-detail-card">
-                    <h4><i className="bi bi-list-ol" aria-hidden="true" /> All Paths to Completion ({allPaths.length})</h4>
+                    <h4><Icon name="list-ol" /> All Paths to Completion ({allPaths.length})</h4>
                     <div className="all-paths">
                         {allPaths.map((path, idx) => (
-                            <div key={idx} className="path-chain small">
+                            <div key={idx} className="path-chain text-sm">
                                 {path.map((nodeId, i) => (
                                     <span key={nodeId}>
-                                        <span className="path-node small" style={{ "--node-color": graph.nodeData.get(nodeId)?.color }}>
+                                        <span className="path-node text-sm" style={{ "--node-color": graph.nodeData.get(nodeId)?.color }}>
                                             {graph.nodeData.get(nodeId)?.label}
                                         </span>
                                         {i < path.length - 1 && <span className="path-arrow">→</span>}
@@ -587,7 +588,7 @@ export default function WorkflowAnalysis() {
     return (
         <AdminLayout>
             <div className="workflow-analysis-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     {/* Header */}
                     <div className="dashboard-page-header">
                         <div>
@@ -599,18 +600,18 @@ export default function WorkflowAnalysis() {
                             </p>
                         </div>
                         <div className="wa-badge-row">
-                            <span className="wa-badge"><i className="bi bi-diagram-3" aria-hidden="true" /> Graph (Adjacency List)</span>
-                            <span className="wa-badge"><i className="bi bi-collection" aria-hidden="true" /> Queue (FIFO)</span>
-                            <span className="wa-badge"><i className="bi bi-database" aria-hidden="true" /> {requests.length} Synthetic Records</span>
+                            <span className="wa-badge"><Icon name="diagram-3" /> Graph (Adjacency List)</span>
+                            <span className="wa-badge"><Icon name="collection" /> Queue (FIFO)</span>
+                            <span className="wa-badge"><Icon name="database" /> {requests.length} Synthetic Records</span>
                         </div>
                     </div>
 
                     {/* Tab bar */}
                     <div className="wa-tabs">
                         {[
-                            { key: "graph", label: "Workflow Graph", icon: "bi-diagram-3" },
-                            { key: "queue", label: "Processing Queue", icon: "bi-collection" },
-                            { key: "stats", label: "Statistics", icon: "bi-bar-chart-line" },
+                            { key: "graph", label: "Workflow Graph", icon: "diagram-3" },
+                            { key: "queue", label: "Processing Queue", icon: "collection" },
+                            { key: "stats", label: "Statistics", icon: "bar-chart-line" },
                         ].map((tab) => (
                             <button
                                 key={tab.key}
@@ -618,7 +619,7 @@ export default function WorkflowAnalysis() {
                                 className={`wa-tab ${activeTab === tab.key ? "active" : ""}`}
                                 onClick={() => setActiveTab(tab.key)}
                             >
-                                <i className={`bi ${tab.icon}`} aria-hidden="true" />
+                                <Icon name={tab.icon} />
                                 {tab.label}
                             </button>
                         ))}

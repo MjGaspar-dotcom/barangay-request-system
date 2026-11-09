@@ -56,7 +56,7 @@
     color: var(--gray-500);
 }
 
-.document-card .btn {
+.document-card .app-button {
     width: 100%;
 }
 

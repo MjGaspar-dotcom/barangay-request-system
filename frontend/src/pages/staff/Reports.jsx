@@ -1,6 +1,19 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Link } from "react-router-dom";
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    LabelList,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 import DataTable from "../../components/ui/DataTable";
 import StatusBadge from "../../components/ui/StatusBadge";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -52,13 +65,11 @@ const renderStatusPercentage = ({
 
 export default function StaffReports({ isAdmin = false }) {
     const Layout = isAdmin ? AdminLayout : StaffLayout;
-    const location = useLocation();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [retryKey, setRetryKey] = useState(0);
     const [requestPage, setRequestPage] = useState(1);
-    const [forecastHorizon, setForecastHorizon] = useState(1);
     const requestPageSize = 10;
 
     const fetchRequests = useCallback(async () => {
@@ -207,104 +218,6 @@ export default function StaffReports({ isAdmin = false }) {
         requestPage * requestPageSize,
     );
 
-    const forecast = useMemo(() => {
-        const observedValues = analytics.months.map((month) => month.count);
-        const today = new Date();
-        const daysInCurrentMonth = new Date(
-            Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0),
-        ).getUTCDate();
-        const currentDayOfMonth = today.getUTCDate();
-        const currentMonthIsPartial =
-            currentDayOfMonth < daysInCurrentMonth;
-        const currentMonthEstimate = currentMonthIsPartial
-            ? Math.round(
-                  (observedValues.at(-1) * daysInCurrentMonth) /
-                      currentDayOfMonth,
-              )
-            : observedValues.at(-1);
-        const values = [...observedValues];
-        values[values.length - 1] = currentMonthEstimate;
-
-        if (values.filter((value) => value > 0).length < 3) return null;
-
-        const meanX = (values.length - 1) / 2;
-        const meanY =
-            values.reduce((sum, value) => sum + value, 0) / values.length;
-        const denominator = values.reduce(
-            (sum, _value, index) => sum + (index - meanX) ** 2,
-            0,
-        );
-        const slope = values.reduce(
-            (sum, value, index) =>
-                sum + (index - meanX) * (value - meanY),
-            0,
-        ) / denominator;
-        const predictions = Array.from({ length: 6 }, (_, index) => {
-            const date = new Date(
-                Date.UTC(
-                    today.getUTCFullYear(),
-                    today.getUTCMonth() + index + 1,
-                    1,
-                ),
-            );
-            const count = Math.max(
-                0,
-                Math.round(meanY + slope * (values.length + index - meanX)),
-            );
-
-            return {
-                count,
-                date,
-                label: date.toLocaleDateString(undefined, {
-                    month: "long",
-                    year: "numeric",
-                    timeZone: "UTC",
-                }),
-                axisLabel: date.toLocaleDateString(undefined, {
-                    month: "short",
-                    year: "numeric",
-                    timeZone: "UTC",
-                }),
-            };
-        });
-
-        return {
-            observedValues,
-            predictions,
-            currentMonthEstimate,
-            currentMonthIsPartial,
-        };
-    }, [analytics.months]);
-    const forecastSeries = useMemo(() => {
-        if (!forecast) return [];
-
-        const history = analytics.months.map((month) => ({
-            key: month.key,
-            count: month.count,
-            label: month.label,
-            kind: "history",
-        }));
-        const predictions = forecast.predictions.slice(0, forecastHorizon).map(
-            (point) => ({
-                ...point,
-                key: `${point.date.getUTCFullYear()}-${String(
-                    point.date.getUTCMonth() + 1,
-                ).padStart(2, "0")}`,
-                kind: "forecast",
-            }),
-        );
-
-        return [...history, ...predictions];
-    }, [analytics.months, forecast, forecastHorizon]);
-
-    useEffect(() => {
-        if (!isAdmin || location.hash !== "#predictive-analytics") return;
-
-        document
-            .getElementById("predictive-analytics")
-            ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, [isAdmin, location.hash]);
-
     const requesterName = (request) => {
         const requester = request.user;
         return (
@@ -340,11 +253,11 @@ export default function StaffReports({ isAdmin = false }) {
                 </header>
 
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}{" "}
                         <button
                             type="button"
-                            className="btn btn-sm btn-outline-danger ms-2"
+                            className="app-button app-button-sm app-button-outline-danger ms-2"
                             onClick={handleRetry}
                         >
                             Retry
@@ -361,12 +274,7 @@ export default function StaffReports({ isAdmin = false }) {
                             />
                         }
                     >
-                        <DocumentRequestTrends
-                            forecast={forecast}
-                            forecastSeries={forecastSeries}
-                            forecastHorizon={forecastHorizon}
-                            onForecastHorizonChange={setForecastHorizon}
-                        />
+                        <DocumentRequestTrends />
                     </Suspense>
                 )}
 
@@ -427,67 +335,6 @@ export default function StaffReports({ isAdmin = false }) {
                 </section>
 
                 <section className="staff-analytics-grid" aria-label="Request analytics">
-                    <article className="staff-analytics-panel staff-analytics-trend">
-                        <div className="staff-analytics-panel-heading">
-                            <div>
-                                <span className="staff-section-label">
-                                    REQUEST ACTIVITY
-                                </span>
-                                <h2>Requests over time</h2>
-                            </div>
-                            <span className="staff-analytics-period">
-                                LAST 6 MONTHS
-                            </span>
-                        </div>
-                        <div
-                            className="staff-month-chart"
-                            role="img"
-                            aria-label={
-                                loading || error
-                                    ? "Request activity is unavailable"
-                                    : `Requests submitted by month: ${analytics.months
-                                          .map(
-                                              (month) =>
-                                                  `${month.label}: ${month.count}`,
-                                          )
-                                          .join(", ")}`
-                            }
-                        >
-                            {analytics.months.map((month) => {
-                                const height = analytics.maxMonthlyCount
-                                    ? Math.max(
-                                          6,
-                                          (month.count /
-                                              analytics.maxMonthlyCount) *
-                                              100,
-                                      )
-                                    : 0;
-                                return (
-                                    <div
-                                        className="staff-month-column"
-                                        key={month.key}
-                                    >
-                                        <span className="staff-month-value">
-                                            {loading || error ? "—" : month.count}
-                                        </span>
-                                        <div className="staff-month-track">
-                                            <span
-                                                className="staff-month-bar"
-                                                style={{ height: `${height}%` }}
-                                            />
-                                        </div>
-                                        <span className="staff-month-label">
-                                            {month.label}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <p className="staff-analytics-note">
-                            Request volume is based on the submission date.
-                        </p>
-                    </article>
-
                     <article className="staff-analytics-panel">
                         <div className="staff-analytics-panel-heading">
                             <div>
@@ -508,34 +355,75 @@ export default function StaffReports({ isAdmin = false }) {
                                 Document request data will appear here.
                             </p>
                         ) : (
-                            <ol className="staff-document-ranking">
-                                {analytics.topDocuments.map(
-                                    (document, index) => (
-                                        <li key={document.name}>
-                                            <span className="staff-document-rank">
-                                                {String(index + 1).padStart(2, "0")}
-                                            </span>
-                                            <span className="staff-document-detail">
-                                                <span className="staff-document-name">
-                                                    {document.name}
-                                                </span>
-                                                <span className="staff-document-track">
-                                                    <span
-                                                        style={{
-                                                            width: `${
-                                                                (document.count /
-                                                                    analytics.maxDocumentCount) *
-                                                                100
-                                                            }%`,
-                                                        }}
-                                                    />
-                                                </span>
-                                            </span>
-                                            <strong>{document.count}</strong>
-                                        </li>
-                                    ),
-                                )}
-                            </ol>
+                            <div
+                                className="staff-document-chart"
+                                role="img"
+                                aria-label={`Most requested document types: ${analytics.topDocuments
+                                    .map(
+                                        (document) =>
+                                            `${document.name}: ${document.count}`,
+                                    )
+                                    .join(", ")}`}
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={analytics.topDocuments}
+                                        layout="vertical"
+                                        margin={{
+                                            top: 4,
+                                            right: 34,
+                                            bottom: 4,
+                                            left: 0,
+                                        }}
+                                    >
+                                        <CartesianGrid
+                                            horizontal={false}
+                                            stroke="#e8eee9"
+                                        />
+                                        <XAxis
+                                            type="number"
+                                            allowDecimals={false}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: "#738078", fontSize: 11 }}
+                                        />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="name"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{
+                                                fill: "#34443a",
+                                                fontSize: 12,
+                                                fontWeight: 650,
+                                            }}
+                                            width={150}
+                                            interval={0}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: "#f4f7f4" }}
+                                            formatter={(value) => [
+                                                value,
+                                                "Requests",
+                                            ]}
+                                        />
+                                        <Bar
+                                            dataKey="count"
+                                            fill="#70a97a"
+                                            radius={[0, 5, 5, 0]}
+                                            maxBarSize={28}
+                                        >
+                                            <LabelList
+                                                dataKey="count"
+                                                position="right"
+                                                fill="#243d2d"
+                                                fontSize={12}
+                                                fontWeight={700}
+                                            />
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
                     </article>
 
@@ -648,10 +536,7 @@ export default function StaffReports({ isAdmin = false }) {
                         ) : requests.length === 0 ? (
                             <div className="staff-empty-state">
                                 <div className="staff-empty-icon">
-                                    <i
-                                        className="bi bi-bar-chart-line"
-                                        aria-hidden="true"
-                                    />
+                                    <Icon name="bar-chart-line" />
                                 </div>
                                 <h3>No request records yet</h3>
                                 <p>

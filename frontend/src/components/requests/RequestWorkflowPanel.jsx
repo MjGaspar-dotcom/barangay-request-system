@@ -150,156 +150,18 @@ export default function RequestWorkflowPanel({
         return [actor.first_name, actor.last_name].filter(Boolean).join(" ");
     };
 
-    const resubmissionEvent = [...history]
-        .reverse()
-        .find((event) => event.action === "requirements_resubmitted");
-    const decisionEvent = [...history]
-        .reverse()
-        .find(
-            (event) =>
-                (!resubmissionEvent ||
-                    new Date(event.created_at) >
-                        new Date(resubmissionEvent.created_at)) &&
-                event.new_values?.status &&
-                ["Approved", "Additional Requirements", "Rejected"].includes(
-                    event.new_values.status,
-                ),
-        );
-    let currentStage = "requirements";
-    if (request.status === "Pending" && request.verified_at) {
-        currentStage = "decision";
-    } else if (request.status === "Additional Requirements") {
-        currentStage = "resubmission";
-    } else if (request.status === "Approved") {
-        currentStage = "processing";
-    } else if (request.status === "Processing") {
-        currentStage = request.document_prepared_at
-            ? request.document_signed_at
-                ? "ready"
-                : "authorization"
-            : "preparation";
-    } else if (request.status === "Ready for Pickup") {
-        currentStage = "release";
-    }
-
-    const timeline = [
-        {
-            key: "submitted",
-            label: "Submitted",
-            completed: true,
-            date: request.created_at,
-        },
-        {
-            key: "requirements",
-            label: "Requirements verified",
-            completed: Boolean(request.verified_at),
-            date: request.verified_at,
-        },
-        {
-            key: "decision",
-            label: "Administrative decision",
-            completed: Boolean(decisionEvent),
-            date: decisionEvent?.created_at,
-        },
-        {
-            key: "resubmission",
-            label: "Resident resubmission",
-            completed: Boolean(resubmissionEvent),
-            date: resubmissionEvent?.created_at,
-            applicable:
-                request.status === "Additional Requirements" ||
-                Boolean(resubmissionEvent),
-        },
-        {
-            key: "processing",
-            label: "Processing started",
-            completed: Boolean(request.processing_started_at),
-            date: request.processing_started_at,
-        },
-        {
-            key: "preparation",
-            label: "Document prepared and checked",
-            completed: Boolean(request.document_prepared_at),
-            date: request.document_prepared_at,
-        },
-        {
-            key: "authorization",
-            label: "Authorized and signed",
-            completed: Boolean(request.document_signed_at),
-            date: request.document_signed_at,
-        },
-        {
-            key: "ready",
-            label: "Ready for Pickup",
-            completed: Boolean(request.ready_for_pickup_at),
-            date: request.ready_for_pickup_at,
-        },
-        {
-            key: "release",
-            label: "Released / Completed",
-            completed: Boolean(request.claimed_at),
-            date: request.claimed_at,
-        },
-    ];
-
     return (
-        <div className="d-flex flex-column gap-3">
+        <div className="flex flex-col gap-4">
             {message && (
-                <div className="alert alert-success mb-0" role="status">
+                <div className="app-alert app-alert-success mb-0" role="status">
                     {message}
                 </div>
             )}
             {error && (
-                <div className="alert alert-danger mb-0" role="alert">
+                <div className="app-alert app-alert-danger mb-0" role="alert">
                     {error}
                 </div>
             )}
-
-            <section className="admin-form-card">
-                <h3 className="form-section-title">Processing Timeline</h3>
-                <ul className="timeline">
-                    {timeline.map((step) => {
-                        const isCurrent =
-                            step.key === currentStage && !step.completed;
-                        const notApplicable =
-                            request.status === "Rejected" &&
-                            [
-                                "resubmission",
-                                "processing",
-                                "preparation",
-                                "authorization",
-                                "ready",
-                                "release",
-                            ].includes(step.key);
-                        const notRequired = step.applicable === false;
-
-                        return (
-                            <li
-                                className={`timeline-item ${
-                                    step.completed ? "done" : "pending"
-                                }`}
-                                key={step.key}
-                            >
-                                <span className="timeline-dot" />
-                                <div>
-                                    <strong>{step.label}</strong>
-                                    <div className="timeline-date">
-                                        {step.completed
-                                            ? formatDate(step.date)
-                                            : notApplicable
-                                              ? "Not applicable — request rejected"
-                                              : notRequired
-                                                ? "Not required"
-                                              : isCurrent
-                                                ? "Current step"
-                                                : "Upcoming"}
-                                    </div>
-                                </div>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </section>
 
             <section className="admin-form-card">
                 <h3 className="form-section-title">Requirements Verification</h3>
@@ -320,7 +182,7 @@ export default function RequestWorkflowPanel({
                     </div>
                 </div>
                 {(request.user?.valid_id_front || request.user?.valid_id_back) && (
-                    <div className="d-flex flex-wrap gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-4">
                         {[
                             ["Front of ID", request.user.valid_id_front],
                             ["Back of ID", request.user.valid_id_back],
@@ -328,7 +190,7 @@ export default function RequestWorkflowPanel({
                             .filter(([, path]) => path)
                             .map(([label, path]) => (
                                 <a
-                                    className="btn btn-sm btn-outline-secondary"
+                                    className="app-button app-button-sm app-button-outline-secondary"
                                     href={`${api.defaults.baseURL.replace(/\/api\/?$/, "")}/storage/${path}`}
                                     key={label}
                                     rel="noreferrer"
@@ -341,17 +203,17 @@ export default function RequestWorkflowPanel({
                 )}
                 {!request.user?.valid_id_front ||
                 !request.user?.valid_id_back ? (
-                    <p className="small text-warning-emphasis mt-2 mb-0">
+                    <p className="text-sm text-warning-foreground mt-2 mb-0">
                         One or more profile ID images are missing. Review any
                         uploaded requirements and record this review as
                         incomplete if documents are still needed.
                     </p>
                 ) : null}
                 {request.status === "Pending" && !request.verified_at && (
-                    <div className="form-check mt-3">
+                    <div className="flex items-center gap-2 mt-4">
                         <input
                             checked={requirementsComplete}
-                            className="form-check-input"
+                            className="accent-primary"
                             id={`requirements-complete-${request.request_id}`}
                             onChange={(event) =>
                                 setRequirementsComplete(event.target.checked)
@@ -359,7 +221,7 @@ export default function RequestWorkflowPanel({
                             type="checkbox"
                         />
                         <label
-                            className="form-check-label"
+                            className="text-sm"
                             htmlFor={`requirements-complete-${request.request_id}`}
                         >
                             I reviewed the submitted information and confirm
@@ -370,7 +232,7 @@ export default function RequestWorkflowPanel({
                 )}
                 {request.status === "Pending" && !request.verified_at && (
                     <Button
-                        className="btn btn-outline-success mt-3"
+                        className="app-button app-button-outline-success mt-4"
                         disabled={busy}
                         loading={busy}
                         loadingLabel="Verifying requirements"
@@ -401,12 +263,12 @@ export default function RequestWorkflowPanel({
                     </Button>
                 )}
                 {!!documents.length && (
-                    <div className="mt-3">
+                    <div className="mt-4">
                         <span className="detail-label">Request documents</span>
-                        <ul className="list-group list-group-flush">
+                        <ul className="m-0 list-none p-0">
                             {documents.map((document) => (
                                 <li
-                                    className="list-group-item px-0 d-flex justify-content-between align-items-center gap-2"
+                                    className="app-list-item px-0 flex justify-between items-center gap-2"
                                     key={document.request_document_id}
                                 >
                                     <span>
@@ -414,13 +276,13 @@ export default function RequestWorkflowPanel({
                                             {documentLabel[document.purpose] ||
                                                 "Request document"}
                                         </strong>
-                                        <small className="d-block text-muted">
+                                        <small className="block text-muted-foreground">
                                             {document.original_name} ·{" "}
                                             {formatDate(document.created_at)}
                                         </small>
                                     </span>
                                     <Button
-                                        className="btn btn-sm btn-outline-primary"
+                                        className="app-button app-button-sm app-button-outline-primary"
                                         onClick={() => openDocument(document)}
                                         type="button"
                                     >
@@ -440,13 +302,13 @@ export default function RequestWorkflowPanel({
                             Administrative Assessment / Remarks
                         </h3>
                         <label
-                            className="form-label fw-semibold"
+                            className="app-label font-semibold"
                             htmlFor={`request-remarks-${request.request_id}`}
                         >
                             Assessment notes
                         </label>
                         <textarea
-                            className="form-control"
+                            className="app-input"
                             disabled={!isAdmin || busy}
                             id={`request-remarks-${request.request_id}`}
                             maxLength={2000}
@@ -467,7 +329,7 @@ export default function RequestWorkflowPanel({
                         {isAdmin ? (
                             <div className="detail-action-footer">
                                 <Button
-                                    className="btn btn-success"
+                                    className="app-button app-button-success"
                                     disabled={
                                         busy ||
                                         !request.verified_at ||
@@ -490,7 +352,7 @@ export default function RequestWorkflowPanel({
                                     Approve Request
                                 </Button>
                                 <Button
-                                    className="btn btn-outline-warning"
+                                    className="app-button app-button-outline-warning"
                                     disabled={
                                         busy ||
                                         !request.verified_at ||
@@ -514,7 +376,7 @@ export default function RequestWorkflowPanel({
                                     Request Additional Requirements
                                 </Button>
                                 <Button
-                                    className="btn btn-danger"
+                                    className="app-button app-button-danger"
                                     disabled={
                                         busy ||
                                         !request.verified_at ||
@@ -538,7 +400,7 @@ export default function RequestWorkflowPanel({
                                 </Button>
                             </div>
                         ) : (
-                            <p className="mb-0 text-muted">
+                            <p className="mb-0 text-muted-foreground">
                                 Only an administrator can record the decision
                                 after requirements are verified.
                             </p>
@@ -568,7 +430,7 @@ export default function RequestWorkflowPanel({
                         request.
                     </p>
                     <Button
-                        className="btn btn-primary"
+                        className="app-button app-button-primary"
                         disabled={busy}
                         loading={busy}
                         loadingLabel="Starting processing"
@@ -598,14 +460,14 @@ export default function RequestWorkflowPanel({
                         upload and authorize the signed copy.
                     </p>
                     <label
-                        className="form-label fw-semibold"
+                        className="app-label font-semibold"
                         htmlFor={`prepared-document-${request.request_id}`}
                     >
                         Prepared document (PDF, JPG, or PNG)
                     </label>
                     <input
                         accept=".pdf,.jpg,.jpeg,.png"
-                        className="form-control mb-2"
+                        className="app-input mb-2"
                         disabled={busy}
                         id={`prepared-document-${request.request_id}`}
                         onChange={(event) =>
@@ -614,7 +476,7 @@ export default function RequestWorkflowPanel({
                         type="file"
                     />
                     <Button
-                        className="btn btn-outline-primary"
+                        className="app-button app-button-outline-primary"
                         disabled={busy || !preparedFile}
                         loading={busy}
                         loadingLabel="Uploading document"
@@ -630,7 +492,7 @@ export default function RequestWorkflowPanel({
                             Prepared document uploaded{" "}
                             {formatDate(request.document_prepared_at)}.{" "}
                             <Button
-                                className="btn btn-link p-0"
+                                className="app-button app-button-link p-0"
                                 onClick={() => openDocument(preparedDocument)}
                                 type="button"
                             >
@@ -639,16 +501,16 @@ export default function RequestWorkflowPanel({
                         </p>
                     )}
                     {isAdmin && request.document_prepared_at && (
-                        <div className="border-top mt-3 pt-3">
+                        <div className="border-t mt-4 pt-3">
                             <label
-                                className="form-label fw-semibold"
+                                className="app-label font-semibold"
                                 htmlFor={`signed-document-${request.request_id}`}
                             >
                                 Authorized signed document
                             </label>
                             <input
                                 accept=".pdf,.jpg,.jpeg,.png"
-                                className="form-control mb-2"
+                                className="app-input mb-2"
                                 disabled={busy || !!request.document_signed_at}
                                 id={`signed-document-${request.request_id}`}
                                 onChange={(event) =>
@@ -659,7 +521,7 @@ export default function RequestWorkflowPanel({
                                 type="file"
                             />
                             <Button
-                                className="btn btn-outline-success"
+                                className="app-button app-button-outline-success"
                                 disabled={
                                     busy ||
                                     !signedFile ||
@@ -677,19 +539,19 @@ export default function RequestWorkflowPanel({
                         </div>
                     )}
                     {!isAdmin && request.document_prepared_at && (
-                        <p className="mt-3 mb-0 text-muted">
+                        <p className="mt-4 mb-0 text-muted-foreground">
                             Waiting for an administrator to authorize the
                             signed document.
                         </p>
                     )}
                     {request.document_signed_at && (
-                        <p className="mt-3">
+                        <p className="mt-4">
                             Authorized {formatDate(request.document_signed_at)}.
                             {signedDocument && (
                                 <>
                                     {" "}
                                     <Button
-                                        className="btn btn-link p-0"
+                                        className="app-button app-button-link p-0"
                                         onClick={() => openDocument(signedDocument)}
                                         type="button"
                                     >
@@ -700,7 +562,7 @@ export default function RequestWorkflowPanel({
                         </p>
                     )}
                     <Button
-                        className="btn btn-info mt-3"
+                        className="app-button app-button-info mt-4"
                         disabled={busy || !request.document_signed_at}
                         loading={busy}
                         loadingLabel="Updating request"
@@ -727,13 +589,13 @@ export default function RequestWorkflowPanel({
                         person who receives it before completing the request.
                     </p>
                     <label
-                        className="form-label fw-semibold"
+                        className="app-label font-semibold"
                         htmlFor={`recipient-name-${request.request_id}`}
                     >
                         Recipient name
                     </label>
                     <input
-                        className="form-control mb-3"
+                        className="app-input mb-4"
                         disabled={busy}
                         id={`recipient-name-${request.request_id}`}
                         maxLength={255}
@@ -743,7 +605,7 @@ export default function RequestWorkflowPanel({
                         value={recipientName}
                     />
                     <Button
-                        className="btn btn-success"
+                        className="app-button app-button-success"
                         disabled={busy || !recipientName.trim()}
                         loading={busy}
                         loadingLabel="Recording release"
@@ -778,7 +640,7 @@ export default function RequestWorkflowPanel({
                             ? request.remarks || "No rejection reason recorded."
                             : `Released to ${request.release_recipient_name || "recipient not recorded"} by ${formatDate(request.claimed_at)}.`}
                     </p>
-                    <p className="mb-0 text-muted">
+                    <p className="mb-0 text-muted-foreground">
                         This request is terminal. Review its transaction history
                         below.
                     </p>
@@ -813,7 +675,7 @@ export default function RequestWorkflowPanel({
                                         {auditActor(event)}
                                     </div>
                                     {event.description && (
-                                        <p className="mb-0 mt-1 small">
+                                        <p className="mb-0 mt-1 text-sm">
                                             {event.description}
                                         </p>
                                     )}
@@ -822,16 +684,16 @@ export default function RequestWorkflowPanel({
                         ))}
                     </ul>
                 ) : (
-                    <p className="mb-0 text-muted">
+                    <p className="mb-0 text-muted-foreground">
                         No transaction events have been recorded.
                     </p>
                 )}
             </section>
 
             {isAdmin && request.status === "Pending" && onDelete && (
-                <div className="d-flex justify-content-end">
+                <div className="flex justify-end">
                     <Button
-                        className="btn btn-outline-danger"
+                        className="app-button app-button-outline-danger"
                         disabled={busy}
                         onClick={onDelete}
                         type="button"
