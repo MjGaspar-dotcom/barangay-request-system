@@ -1,14 +1,13 @@
-const BARANGAY_LOGO = "/assets/images/barangay-aurora-logo.png";
+const BARANGAY_LOGO = "/assets/images/logo.webp";
 
 export default function BrandMark({
-    src = BARANGAY_LOGO,
     className = "",
     alt = "Barangay Aurora, Alicia, Isabela official seal",
 }) {
     return (
         <img
             className={`brand-mark ${className}`.trim()}
-            src={src}
+            src={BARANGAY_LOGO}
             alt={alt}
             decoding="async"
         />

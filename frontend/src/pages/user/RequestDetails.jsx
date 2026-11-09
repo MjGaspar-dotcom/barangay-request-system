@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Button, CircularProgress } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@mui/material";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import { useNavigate, useParams } from "react-router-dom";
 import StatusBadge from "../../components/ui/StatusBadge";
 import api from "../../services/api";
@@ -18,46 +19,135 @@ import {
     RequestPageState,
 } from "../../styles/requestDetails.styles";
 
+const formatDate = (value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+};
+
 function RequestDetails() {
     const { requestId } = useParams();
     const navigate = useNavigate();
-
     const [request, setRequest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [notes, setNotes] = useState("");
+    const [files, setFiles] = useState([]);
+    const [submitting, setSubmitting] = useState(false);
+    const [actionMessage, setActionMessage] = useState("");
+    const [actionError, setActionError] = useState("");
 
     useEffect(() => {
-        const fetchRequest = async () => {
-            try {
-                const response = await api.get(
-                    `/barangay-requests/${requestId}`,
-                );
-
-                setRequest(response.data.data);
-            } catch (error) {
-                console.error(error);
-
-                if (error.response?.status === 403) {
+        let active = true;
+        api.get(`/barangay-requests/${requestId}`)
+            .then((response) => {
+                if (active) setRequest(response.data.data);
+            })
+            .catch((requestError) => {
+                console.error(requestError);
+                if (!active) return;
+                if (requestError.response?.status === 403) {
                     setError("You are not authorized to view this request.");
-                } else if (error.response?.status === 404) {
+                } else if (requestError.response?.status === 404) {
                     setError("Request not found.");
                 } else {
                     setError("Failed to load request details.");
                 }
-            } finally {
-                setLoading(false);
-            }
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
         };
-
-        fetchRequest();
     }, [requestId]);
 
-    if (loading) {
+    const fetchRequest = useCallback(async () => {
+        try {
+            const response = await api.get(
+                `/barangay-requests/${requestId}`,
+            );
+            setRequest(response.data.data);
+        } catch (requestError) {
+            console.error(requestError);
+            setActionError(
+                "Requirements were submitted, but request details could not be refreshed.",
+            );
+        }
+    }, [requestId]);
+
+    const submitRequirements = async (event) => {
+        event.preventDefault();
+        setActionMessage("");
+        setActionError("");
+        if (!notes.trim() || !files.length) {
+            setActionError(
+                "Add a note and attach at least one requested requirement.",
+            );
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("notes", notes.trim());
+        files.forEach((file, index) => {
+            formData.append(`documents[${index}]`, file);
+        });
+
+        setSubmitting(true);
+        try {
+            await api.post(
+                `/barangay-requests/${requestId}/requirements/resubmit`,
+                formData,
+            );
+            setNotes("");
+            setFiles([]);
+            setActionMessage(
+                "Your additional requirements have been submitted for review.",
+            );
+            await fetchRequest();
+        } catch (submitError) {
+            console.error(submitError);
+            setActionError(
+                submitError.response?.data?.message ||
+                    "Unable to submit the additional requirements.",
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const openDocument = async (document) => {
+        setActionError("");
+        try {
+            const response = await api.get(
+                `/barangay-requests/${requestId}/documents/${document.request_document_id}/view`,
+                { responseType: "blob" },
+            );
+            const url = URL.createObjectURL(response.data);
+            const link = window.open(url, "_blank", "noopener,noreferrer");
+            if (!link) {
+                const download = window.document.createElement("a");
+                download.href = url;
+                download.download = document.original_name;
+                download.click();
+            }
+            window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        } catch (openError) {
+            console.error(openError);
+            setActionError(
+                openError.response?.data?.message ||
+                    "The document could not be opened.",
+            );
+        }
+    };
+
+    if (
+        loading ||
+        (!error && request?.request_id !== Number(requestId))
+    ) {
         return (
             <RequestPageState>
-                <CircularProgress color="success" size={32} />
-
-                <span>Loading request details...</span>
+                <SkeletonLoader label="Loading request details" variant="detail" />
             </RequestPageState>
         );
     }
@@ -66,11 +156,10 @@ function RequestDetails() {
         return (
             <RequestPageState>
                 <RequestErrorMessage>{error}</RequestErrorMessage>
-
                 <Button
+                    onClick={() => navigate("/dashboard")}
                     type="button"
                     variant="outlined"
-                    onClick={() => navigate("/dashboard")}
                 >
                     Back to Dashboard
                 </Button>
@@ -80,75 +169,195 @@ function RequestDetails() {
 
     if (!request) return null;
 
+    const residentDocuments = (request.documents || []).filter(
+        (document) => document.purpose === "additional_requirement",
+    );
+
     return (
         <RequestDetailsPage>
             <RequestDetailsCard>
                 <RequestDetailsHeader>
                     <div>
                         <h1>Request Details</h1>
+                        <p className="mb-0 mt-2 text-muted-foreground">
+                            {request.tracking_number}
+                        </p>
                     </div>
-
                     <StatusBadge status={request.status} />
                 </RequestDetailsHeader>
+
+                {actionMessage && (
+                    <div className="app-alert app-alert-success" role="status">
+                        {actionMessage}
+                    </div>
+                )}
+                {actionError && (
+                    <div className="app-alert app-alert-danger" role="alert">
+                        {actionError}
+                    </div>
+                )}
 
                 <RequestDetailsSection>
                     <RequestDetailsSectionTitle>
                         Request Information
                     </RequestDetailsSectionTitle>
-
                     <RequestDetailsGrid>
                         <RequestDetailItem>
-                            <RequestDetailLabel>
-                                Tracking Number
-                            </RequestDetailLabel>
-
-                            <RequestDetailValue>
-                                {request.tracking_number}
-                            </RequestDetailValue>
-                        </RequestDetailItem>
-
-                        <RequestDetailItem>
                             <RequestDetailLabel>Document</RequestDetailLabel>
-
                             <RequestDetailValue>
-                                {request.document_type?.document_name ||
-                                    "Unknown"}
+                                {request.document_type?.document_name || "Unknown"}
                             </RequestDetailValue>
                         </RequestDetailItem>
-
+                        <RequestDetailItem>
+                            <RequestDetailLabel>Status</RequestDetailLabel>
+                            <RequestDetailValue>{request.status}</RequestDetailValue>
+                        </RequestDetailItem>
                         <RequestDetailItem>
                             <RequestDetailLabel>Purpose</RequestDetailLabel>
-
-                            <RequestDetailValue>
-                                {request.purpose}
-                            </RequestDetailValue>
+                            <RequestDetailValue>{request.purpose}</RequestDetailValue>
                         </RequestDetailItem>
-
                         <RequestDetailItem>
                             <RequestDetailLabel>Submitted</RequestDetailLabel>
-
                             <RequestDetailValue>
-                                {new Date(request.created_at).toLocaleString()}
+                                {formatDate(request.created_at)}
                             </RequestDetailValue>
                         </RequestDetailItem>
-
                         {request.remarks && (
                             <RequestDetailItem>
-                                <RequestDetailLabel>Remarks</RequestDetailLabel>
-
+                                <RequestDetailLabel>
+                                    Latest Administrative Remarks
+                                </RequestDetailLabel>
                                 <RequestDetailValue>
                                     {request.remarks}
+                                </RequestDetailValue>
+                            </RequestDetailItem>
+                        )}
+                        {request.status === "Completed" && (
+                            <RequestDetailItem>
+                                <RequestDetailLabel>Released to</RequestDetailLabel>
+                                <RequestDetailValue>
+                                    {request.release_recipient_name || "—"}
                                 </RequestDetailValue>
                             </RequestDetailItem>
                         )}
                     </RequestDetailsGrid>
                 </RequestDetailsSection>
 
+                {request.status === "Additional Requirements" && (
+                    <RequestDetailsSection>
+                        <RequestDetailsSectionTitle>
+                            Submit Additional Requirements
+                        </RequestDetailsSectionTitle>
+                        <p>
+                            Your request needs the following information or
+                            documents: <strong>{request.remarks}</strong>
+                        </p>
+                        <form onSubmit={submitRequirements}>
+                            <label
+                                className="app-label"
+                                htmlFor="resubmission-notes"
+                            >
+                                Notes for the reviewer
+                            </label>
+                            <textarea
+                                className="app-input mb-4"
+                                id="resubmission-notes"
+                                maxLength={2000}
+                                onChange={(event) =>
+                                    setNotes(event.target.value)
+                                }
+                                required
+                                rows={3}
+                                value={notes}
+                            />
+                            <label
+                                className="app-label"
+                                htmlFor="resubmission-documents"
+                            >
+                                Attach requirements (PDF, JPG, or PNG; up to 5
+                                files, 10 MB each)
+                            </label>
+                            <input
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                className="app-input mb-4"
+                                id="resubmission-documents"
+                                multiple
+                                onChange={(event) =>
+                                    setFiles(Array.from(event.target.files || []))
+                                }
+                                required
+                                type="file"
+                            />
+                            <Button
+                                disabled={submitting || !notes.trim() || !files.length}
+                                type="submit"
+                                variant="contained"
+                            >
+                                {submitting
+                                    ? "Submitting requirements..."
+                                    : "Submit for Review"}
+                            </Button>
+                        </form>
+                    </RequestDetailsSection>
+                )}
+
+                {!!residentDocuments.length && (
+                    <RequestDetailsSection>
+                        <RequestDetailsSectionTitle>
+                            Submitted Requirements
+                        </RequestDetailsSectionTitle>
+                        <ul className="m-0 list-none p-0">
+                            {residentDocuments.map((document) => (
+                                <li
+                                    className="app-list-item flex justify-between items-center gap-2"
+                                    key={document.request_document_id}
+                                >
+                                    <span>
+                                        {document.original_name}
+                                        <small className="block text-muted-foreground">
+                                            Submitted {formatDate(document.created_at)}
+                                        </small>
+                                    </span>
+                                    <Button
+                                        onClick={() => openDocument(document)}
+                                        type="button"
+                                        variant="outlined"
+                                    >
+                                        View
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                    </RequestDetailsSection>
+                )}
+
+                {!!request.history?.length && (
+                    <RequestDetailsSection>
+                        <RequestDetailsSectionTitle>
+                            Transaction History
+                        </RequestDetailsSectionTitle>
+                        <ul className="m-0 list-none p-0">
+                            {request.history.map((event) => (
+                                <li
+                                    className="app-list-item"
+                                    key={event.audit_log_id}
+                                >
+                                    <strong>{event.action.replaceAll("_", " ")}</strong>
+                                    <span className="block text-muted-foreground text-sm">
+                                        {formatDate(event.created_at)}
+                                    </span>
+                                    <span>{event.description}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </RequestDetailsSection>
+                )}
+
                 <RequestBackRow>
                     <Button
+                        onClick={() => navigate("/dashboard")}
                         type="button"
                         variant="outlined"
-                        onClick={() => navigate("/dashboard")}
                     >
                         Back to Dashboard
                     </Button>

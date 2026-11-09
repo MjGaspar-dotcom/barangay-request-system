@@ -1,14 +1,28 @@
-import Spinner from "react-bootstrap/Spinner";
-/** Props: label, className, size. Accessible shared loading indicator. */
+import BrandMark from "./BrandMark";
+
 export default function LoadingState({
     label = "Loading...",
     className = "",
-    size = "sm",
 }) {
+    const showLogo = className.split(/\s+/).includes("logo-loading");
+
     return (
-        <div className={`loading-state ${className}`.trim()} role="status">
-            <Spinner animation="border" size={size} aria-hidden="true" />
-            <span>{label}</span>
+        <div
+            className={`loading-state ${className}`.trim()}
+            role="status"
+            aria-label={label}
+        >
+            {showLogo ? (
+                <BrandMark className="loading-state-logo" alt="" />
+            ) : (
+                <div className="loading-state-generic-skeleton" aria-hidden="true">
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                </div>
+            )}
+            <span className="sr-only">{label}</span>
         </div>
     );
 }

@@ -116,9 +116,25 @@ function NotificationCenter() {
             )}
 
             {loading ? (
-                <p className="dashboard-notification-message">
-                    Loading notifications...
-                </p>
+                <div
+                    className="admin-notification-skeleton-list"
+                    role="status"
+                    aria-label="Loading notifications"
+                >
+                    {Array.from({ length: 2 }, (_, index) => (
+                        <div
+                            className="admin-notification-skeleton-row"
+                            key={index}
+                        >
+                            <div>
+                                <span className="admin-skeleton" />
+                                <span className="admin-skeleton" />
+                                <span className="admin-skeleton" />
+                            </div>
+                            <span className="admin-skeleton admin-notification-skeleton-action" />
+                        </div>
+                    ))}
+                </div>
             ) : notifications.length ? (
                 <div className="dashboard-notification-list">
                     {notifications.slice(0, 5).map((notification) => (
@@ -144,6 +160,15 @@ function NotificationCenter() {
                                     type="button"
                                     className="dashboard-notification-read"
                                     disabled={markingId === notification.notification_id}
+                                    aria-busy={
+                                        markingId === notification.notification_id ||
+                                        undefined
+                                    }
+                                    aria-label={
+                                        markingId === notification.notification_id
+                                            ? "Saving notification"
+                                            : undefined
+                                    }
                                     onClick={() => markAsRead(notification)}
                                 >
                                     {markingId === notification.notification_id

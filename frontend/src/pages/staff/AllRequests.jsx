@@ -3,14 +3,15 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import PortalLayout from "../../layouts/PortalLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 /*
 |--------------------------------------------------------------------------
 | Staff — All Requests
 |--------------------------------------------------------------------------
-| Full searchable, filterable list of barangay requests.
-| Staff can approve/reject/advance/delete directly from this list, or
-| click through to the details page for full info.
+| Full searchable, filterable list of registered barangay requests.
+| Staff can start approved requests here or open the details page for
+| requirement verification and the remaining workflow actions.
 |--------------------------------------------------------------------------
 */
 
@@ -22,6 +23,7 @@ const navigationItems = [
 const STATUS_FILTERS = [
     { value: "all", label: "All Statuses" },
     { value: "Pending", label: "Pending" },
+    { value: "Additional Requirements", label: "Additional Requirements" },
     { value: "Approved", label: "Approved" },
     { value: "Processing", label: "Processing" },
     { value: "Ready for Pickup", label: "Ready for Pickup" },
@@ -67,7 +69,6 @@ export default function AllRequests() {
 
     const fetchRequests = useCallback(async () => {
         try {
-            setLoading(true);
             const response = await api.get("/staff/requests");
             setRequests(response.data.data || []);
             setError("");
@@ -80,8 +81,26 @@ export default function AllRequests() {
     }, []);
 
     useEffect(() => {
-        fetchRequests();
-    }, [fetchRequests]);
+        let active = true;
+        api.get("/staff/requests")
+            .then((response) => {
+                if (!active) return;
+                setRequests(response.data.data || []);
+                setError("");
+            })
+            .catch((loadError) => {
+                console.error(loadError);
+                if (active) {
+                    setError("Failed to load requests. Please try again.");
+                }
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleStatusUpdate = async (request, newStatus) => {
         const key = request.request_id;
@@ -103,29 +122,6 @@ export default function AllRequests() {
             console.error(err);
             flash(
                 err.response?.data?.message || "Failed to update status.",
-                true
-            );
-        } finally {
-            setBusyId(null);
-        }
-    };
-
-    const handleDelete = async (request) => {
-        const key = request.request_id;
-        const confirmDelete = window.confirm(
-            `Permanently delete ${request.tracking_number}? This cannot be undone.`
-        );
-        if (!confirmDelete) return;
-
-        try {
-            setBusyId(key);
-            await api.delete(`/barangay-requests/${request.request_id}`);
-            flash(`Request ${request.tracking_number} has been deleted.`);
-            await fetchRequests();
-        } catch (err) {
-            console.error(err);
-            flash(
-                err.response?.data?.message || "Failed to delete request.",
                 true
             );
         } finally {
@@ -277,10 +273,7 @@ export default function AllRequests() {
                     </div>
                 ) : loading ? (
                     <div className="staff-work-card">
-                        <div className="staff-empty-state">
-                            <div className="staff-empty-icon">⏳</div>
-                            <p>Loading requests…</p>
-                        </div>
+                        <SkeletonLoader label="Loading requests" variant="table" />
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="staff-work-card">
@@ -300,10 +293,6 @@ export default function AllRequests() {
                             const key = reqId;
                             const isBusy = busyId === key;
                             const requesterName = getRequesterName(request);
-                            const isFinal =
-                                request.status === "Completed" ||
-                                request.status === "Rejected";
-
                             return (
                                 <div
                                     className="staff-request-card"
@@ -370,42 +359,13 @@ export default function AllRequests() {
                                             View Details
                                         </button>
 
-                                        {!isFinal && request.status === "Pending" && (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    className="staff-btn staff-btn-success"
-                                                    disabled={isBusy}
-                                                    onClick={() =>
-                                                        handleStatusUpdate(
-                                                            request,
-                                                            "Approved"
-                                                        )
-                                                    }
-                                                >
-                                                    ✓ Approve
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="staff-btn staff-btn-danger"
-                                                    disabled={isBusy}
-                                                    onClick={() =>
-                                                        handleStatusUpdate(
-                                                            request,
-                                                            "Rejected"
-                                                        )
-                                                    }
-                                                >
-                                                    ✕ Reject
-                                                </button>
-                                            </>
-                                        )}
-
                                         {request.status === "Approved" && (
                                             <button
                                                 type="button"
                                                 className="staff-btn staff-btn-primary"
                                                 disabled={isBusy}
+                                                aria-busy={isBusy || undefined}
+                                                aria-label={isBusy ? "Updating request" : undefined}
                                                 onClick={() =>
                                                     handleStatusUpdate(
                                                         request,
@@ -417,47 +377,6 @@ export default function AllRequests() {
                                             </button>
                                         )}
 
-                                        {request.status === "Processing" && (
-                                            <button
-                                                type="button"
-                                                className="staff-btn staff-btn-info"
-                                                disabled={isBusy}
-                                                onClick={() =>
-                                                    handleStatusUpdate(
-                                                        request,
-                                                        "Ready for Pickup"
-                                                    )
-                                                }
-                                            >
-                                                📦 Ready for Pickup
-                                            </button>
-                                        )}
-
-                                        {request.status === "Ready for Pickup" && (
-                                            <button
-                                                type="button"
-                                                className="staff-btn staff-btn-success"
-                                                disabled={isBusy}
-                                                onClick={() =>
-                                                    handleStatusUpdate(
-                                                        request,
-                                                        "Completed"
-                                                    )
-                                                }
-                                            >
-                                                ✓ Mark Completed
-                                            </button>
-                                        )}
-
-                                        <button
-                                            type="button"
-                                            className="staff-btn staff-btn-outline-danger"
-                                            disabled={isBusy}
-                                            onClick={() => handleDelete(request)}
-                                            style={{ marginLeft: "auto" }}
-                                        >
-                                            🗑 Delete
-                                        </button>
                                     </div>
                                 </div>
                             );

@@ -1,6 +1,7 @@
-﻿/** Props: status, size. Maps existing status labels to shared semantic badge classes. */
+/** Props: status, size. Maps existing status labels to shared semantic badge classes. */
 const STATUS_CLASSES = {
     Pending: "pending",
+    "Additional Requirements": "additional-requirements",
     Approved: "approved",
     Processing: "processing",
     "Ready for Pickup": "ready-for-pickup",

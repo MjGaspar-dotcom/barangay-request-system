@@ -1,4 +1,5 @@
-﻿import { useNavigate } from "react-router-dom";
+import Icon from "../../components/ui/Icon.jsx";
+import { useNavigate } from "react-router-dom";
 import PortalLayout from "../../layouts/PortalLayout";
 
 function Landing() {
@@ -26,7 +27,7 @@ function Landing() {
                         onClick={() => navigate("/staff/login")}
                     >
                         <span className="staff-admin-option-icon" aria-hidden="true">
-                            <i className="bi bi-person-badge" />
+                            <Icon name="person-badge" />
                         </span>
                         <span className="staff-admin-option-content">
                             <span className="staff-admin-option-title">
@@ -37,7 +38,7 @@ function Landing() {
                             </span>
                             <span className="staff-admin-option-action">
                                 Continue to Staff Login
-                                <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
+                                <Icon name="arrow-right" className="ms-1" />
                             </span>
                         </span>
                     </button>
@@ -48,7 +49,7 @@ function Landing() {
                         onClick={() => navigate("/admin/login")}
                     >
                         <span className="staff-admin-option-icon" aria-hidden="true">
-                            <i className="bi bi-shield-lock" />
+                            <Icon name="shield-lock" />
                         </span>
                         <span className="staff-admin-option-content">
                             <span className="staff-admin-option-title">
@@ -59,7 +60,7 @@ function Landing() {
                             </span>
                             <span className="staff-admin-option-action">
                                 Continue to Admin Login
-                                <i className="bi bi-arrow-right ms-1" aria-hidden="true" />
+                                <Icon name="arrow-right" className="ms-1" />
                             </span>
                         </span>
                     </button>

@@ -1,4 +1,4 @@
-﻿import { Component } from "react";
+import { Component } from "react";
 import { ErrorContainer, ErrorDetails } from "./ErrorBoundary.styles";
 
 class ErrorBoundary extends Component {

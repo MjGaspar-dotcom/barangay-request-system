@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import BrandMark from "../../components/ui/BrandMark";
@@ -71,8 +71,8 @@ function Login() {
                 <Link
                     to="/"
                     className="auth-back-arrow"
-                    aria-label="Back to Barangay Document System"
-                    title="Back to Barangay Document System"
+                    aria-label="Back to BarangayEase"
+                    title="Back to BarangayEase"
                 >
                     ΓåÉ
                 </Link>
@@ -83,7 +83,7 @@ function Login() {
                     <BrandMark className="auth-logo" />
 
                     <span className="section-label">
-                        BARANGAY DOCUMENT SYSTEM
+                        BARANGAYEASE
                     </span>
 
                     <h1>Welcome Back</h1>
@@ -96,7 +96,7 @@ function Login() {
 
                 {/* Display login error when authentication fails */}
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}
                     </div>
                 )}
@@ -104,10 +104,10 @@ function Login() {
                 {/* User login form */}
                 <form noValidate onSubmit={handleSubmit}>
                     {/* Username field */}
-                    <div className="mb-3">
+                    <div className="mb-4">
                         <label
                             htmlFor="username"
-                            className="form-label"
+                            className="app-label"
                         >
                             Username
                         </label>
@@ -116,7 +116,7 @@ function Login() {
                             id="username"
                             name="username"
                             type="text"
-                            className="form-control"
+                            className="app-input"
                             autoComplete="username"
                             value={username}
                             onChange={(event) =>
@@ -128,10 +128,10 @@ function Login() {
                     </div>
 
                     {/* Password field */}
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <label
                             htmlFor="password"
-                            className="form-label"
+                            className="app-label"
                         >
                             Password
                         </label>
@@ -140,7 +140,7 @@ function Login() {
                             id="password"
                             name="password"
                             type="password"
-                            className="form-control"
+                            className="app-input"
                             autoComplete="current-password"
                             value={password}
                             onChange={(event) =>
@@ -154,8 +154,10 @@ function Login() {
                     {/* Submit login button */}
                     <button
                         type="submit"
-                        className="btn btn-success w-100"
+                        className="app-button app-button-success w-full"
                         disabled={loading}
+                        aria-busy={loading || undefined}
+                        aria-label={loading ? "Signing in" : undefined}
                     >
                         {loading ? "Signing in..." : "Sign In"}
                     </button>

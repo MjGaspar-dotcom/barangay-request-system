@@ -1,0 +1,1084 @@
+request_id,resident_id,document,requested_at,status
+Q00021,R008,Barangay Clearance,2024-01-01,released
+Q00535,R149,Certificate of Residency,2024-01-01,released
+Q00019,R007,Certificate of Good Moral Character,2024-01-04,released
+Q00614,R170,Barangay ID,2024-01-05,pending
+Q00708,R198,Barangay Clearance,2024-01-05,released
+Q00245,R075,Certificate of Indigency,2024-01-06,released
+Q00971,R267,Business Clearance,2024-01-06,released
+Q00197,R062,Barangay ID,2024-01-07,released
+Q00388,R110,Certificate of Indigency,2024-01-07,released
+Q00724,R203,Barangay Clearance,2024-01-07,released
+Q00766,R215,Barangay ID,2024-01-07,released
+Q00845,R235,Barangay ID,2024-01-07,released
+Q01050,R292,Business Clearance,2024-01-07,released
+Q00037,R011,Business Clearance,2024-01-08,pending
+Q00798,R223,Certificate of Residency,2024-01-08,released
+Q00300,R089,Certificate of Residency,2024-01-09,pending
+Q00868,R241,Barangay Clearance,2024-01-09,released
+Q00965,R266,Barangay ID,2024-01-09,released
+Q01027,R285,Certificate of Residency,2024-01-09,released
+Q00331,R097,Certificate of Indigency,2024-01-10,pending
+Q00504,R141,Certificate of Residency,2024-01-10,released
+Q00519,R145,Business Clearance,2024-01-12,released
+Q00547,R152,Barangay Clearance,2024-01-12,released
+Q00111,R036,Barangay Clearance,2024-01-13,released
+Q00334,R098,Barangay ID,2024-01-15,released
+Q01046,R291,Business Clearance,2024-01-15,released
+Q00891,R246,Certificate of Good Moral Character,2024-01-16,released
+Q00252,R077,Certificate of Residency,2024-01-17,released
+Q00361,R103,Certificate of Indigency,2024-01-17,released
+Q00380,R108,Barangay ID,2024-01-17,released
+Q00389,R110,Barangay Clearance,2024-01-17,released
+Q00484,R135,Certificate of Indigency,2024-01-18,released
+Q00695,R194,Barangay Clearance,2024-01-18,released
+Q00022,R008,Barangay ID,2024-01-20,released
+Q00246,R075,Certificate of Indigency,2024-01-20,released
+Q00928,R257,Barangay ID,2024-01-20,released
+Q01019,R283,Certificate of Residency,2024-01-20,released
+Q00081,R027,Barangay Clearance,2024-01-21,released
+Q00536,R149,Business Clearance,2024-01-21,released
+Q01069,R297,Certificate of Residency,2024-01-23,released
+Q00352,R101,Certificate of Residency,2024-01-24,released
+Q00938,R260,Certificate of Residency,2024-01-24,released
+Q00693,R193,Barangay ID,2024-01-25,released
+Q00055,R019,Barangay Clearance,2024-01-26,pending
+Q00200,R063,Business Clearance,2024-01-26,released
+Q00090,R031,Certificate of Residency,2024-01-27,released
+Q00558,R155,Barangay Clearance,2024-01-27,released
+Q00241,R074,Certificate of Residency,2024-01-28,released
+Q00588,R163,Barangay ID,2024-01-29,released
+Q00759,R213,Barangay Clearance,2024-01-29,released
+Q00099,R033,Barangay ID,2024-01-30,released
+Q00001,R001,Certificate of Residency,2024-01-31,released
+Q00529,R147,Barangay ID,2024-01-31,released
+Q00951,R263,Barangay ID,2024-01-31,released
+Q00516,R144,Certificate of Residency,2024-02-01,pending
+Q00698,R195,Certificate of Indigency,2024-02-01,released
+Q00002,R001,Certificate of Indigency,2024-02-02,released
+Q00312,R092,Certificate of Indigency,2024-02-02,released
+Q00362,R103,Certificate of Indigency,2024-02-02,released
+Q00171,R055,Business Clearance,2024-02-03,released
+Q01056,R293,Certificate of Residency,2024-02-03,released
+Q00984,R270,Barangay ID,2024-02-06,released
+Q00255,R078,Certificate of Residency,2024-02-07,released
+Q00353,R101,Business Clearance,2024-02-07,released
+Q00712,R200,Barangay Clearance,2024-02-07,pending
+Q00169,R054,Barangay Clearance,2024-02-08,released
+Q00217,R068,Certificate of Residency,2024-02-08,released
+Q00332,R097,Barangay ID,2024-02-08,pending
+Q00615,R170,Certificate of Good Moral Character,2024-02-08,released
+Q00400,R113,Certificate of Residency,2024-02-09,released
+Q00735,R206,Barangay Clearance,2024-02-09,released
+Q00821,R229,Business Clearance,2024-02-10,released
+Q00874,R242,Barangay Clearance,2024-02-10,released
+Q00836,R232,Certificate of Residency,2024-02-11,released
+Q00852,R237,Certificate of Indigency,2024-02-12,released
+Q00263,R080,Certificate of Good Moral Character,2024-02-13,released
+Q00767,R215,Barangay Clearance,2024-02-13,pending
+Q00256,R078,Certificate of Good Moral Character,2024-02-14,released
+Q00862,R239,Barangay Clearance,2024-02-15,released
+Q00170,R054,Barangay ID,2024-02-16,pending
+Q00673,R188,Certificate of Residency,2024-02-18,released
+Q00005,R002,Business Clearance,2024-02-19,released
+Q00623,R173,Certificate of Residency,2024-02-19,released
+Q00589,R163,Barangay Clearance,2024-02-20,released
+Q00833,R231,Certificate of Indigency,2024-02-20,released
+Q00907,R252,Certificate of Indigency,2024-02-20,released
+Q00646,R181,Certificate of Indigency,2024-02-21,released
+Q00944,R261,Certificate of Residency,2024-02-21,released
+Q00193,R061,Certificate of Indigency,2024-02-22,released
+Q01038,R288,Certificate of Good Moral Character,2024-02-23,released
+Q00242,R074,Certificate of Residency,2024-02-24,released
+Q00403,R114,Certificate of Residency,2024-02-24,released
+Q00554,R154,Barangay Clearance,2024-02-24,released
+Q00869,R241,Barangay ID,2024-02-24,pending
+Q00133,R042,Certificate of Residency,2024-02-25,released
+Q00182,R057,Business Clearance,2024-02-25,pending
+Q00853,R237,Barangay Clearance,2024-02-25,released
+Q00945,R261,Business Clearance,2024-02-25,pending
+Q00908,R252,Barangay ID,2024-02-26,released
+Q00639,R179,Business Clearance,2024-02-27,released
+Q00218,R068,Barangay Clearance,2024-02-28,released
+Q00748,R211,Barangay ID,2024-02-28,released
+Q00328,R096,Business Clearance,2024-03-01,released
+Q00460,R128,Certificate of Indigency,2024-03-01,released
+Q00525,R146,Barangay Clearance,2024-03-03,released
+Q00340,R099,Certificate of Residency,2024-03-04,released
+Q00509,R142,Certificate of Indigency,2024-03-04,released
+Q00875,R243,Barangay ID,2024-03-04,released
+Q00466,R129,Barangay ID,2024-03-05,released
+Q01070,R297,Barangay ID,2024-03-05,released
+Q00275,R083,Certificate of Good Moral Character,2024-03-07,released
+Q00912,R253,Barangay Clearance,2024-03-07,released
+Q00952,R263,Barangay Clearance,2024-03-07,released
+Q00569,R158,Certificate of Indigency,2024-03-09,released
+Q00661,R186,Business Clearance,2024-03-09,released
+Q01059,R294,Business Clearance,2024-03-09,released
+Q00913,R253,Barangay ID,2024-03-10,released
+Q00177,R056,Certificate of Indigency,2024-03-11,released
+Q01008,R280,Certificate of Indigency,2024-03-12,released
+Q00122,R038,Certificate of Indigency,2024-03-13,released
+Q00837,R232,Barangay Clearance,2024-03-13,released
+Q00808,R225,Business Clearance,2024-03-15,released
+Q00225,R070,Business Clearance,2024-03-17,released
+Q00510,R142,Barangay ID,2024-03-17,pending
+Q00212,R067,Certificate of Indigency,2024-03-18,released
+Q00404,R114,Certificate of Good Moral Character,2024-03-18,released
+Q00485,R136,Business Clearance,2024-03-19,pending
+Q01065,R296,Certificate of Residency,2024-03-19,released
+Q00146,R046,Business Clearance,2024-03-20,released
+Q00499,R139,Certificate of Residency,2024-03-20,released
+Q00848,R236,Certificate of Residency,2024-03-20,released
+Q00285,R085,Certificate of Good Moral Character,2024-03-21,released
+Q00486,R136,Barangay Clearance,2024-03-21,released
+Q00978,R269,Certificate of Residency,2024-03-21,pending
+Q01028,R285,Business Clearance,2024-03-21,released
+Q00008,R003,Certificate of Residency,2024-03-22,released
+Q00247,R075,Barangay ID,2024-03-22,released
+Q00610,R169,Certificate of Indigency,2024-03-23,released
+Q00201,R063,Barangay ID,2024-03-24,released
+Q00226,R070,Business Clearance,2024-03-24,released
+Q00346,R100,Barangay ID,2024-03-24,released
+Q00470,R131,Barangay ID,2024-03-25,released
+Q00487,R136,Barangay ID,2024-03-26,released
+Q00070,R023,Certificate of Indigency,2024-03-27,released
+Q00221,R069,Business Clearance,2024-03-27,released
+Q00443,R124,Barangay ID,2024-03-27,released
+Q00426,R120,Barangay ID,2024-03-28,released
+Q00431,R121,Certificate of Residency,2024-03-28,released
+Q00564,R156,Business Clearance,2024-03-28,released
+Q00946,R261,Business Clearance,2024-03-29,released
+Q01001,R276,Barangay ID,2024-03-29,released
+Q00526,R146,Certificate of Indigency,2024-03-30,released
+Q00570,R158,Barangay ID,2024-03-30,released
+Q00933,R258,Business Clearance,2024-03-30,released
+Q00329,R096,Barangay ID,2024-04-01,released
+Q00966,R266,Barangay Clearance,2024-04-01,pending
+Q00163,R051,Certificate of Residency,2024-04-02,released
+Q00590,R163,Barangay ID,2024-04-02,released
+Q00409,R115,Barangay Clearance,2024-04-03,released
+Q00003,R001,Barangay ID,2024-04-05,released
+Q00104,R034,Barangay Clearance,2024-04-05,released
+Q00192,R060,Certificate of Residency,2024-04-05,released
+Q00228,R071,Certificate of Residency,2024-04-05,released
+Q00249,R076,Certificate of Residency,2024-04-05,released
+Q00031,R010,Business Clearance,2024-04-06,released
+Q00396,R112,Certificate of Residency,2024-04-07,pending
+Q00461,R128,Barangay ID,2024-04-07,released
+Q00641,R180,Business Clearance,2024-04-07,released
+Q00303,R090,Barangay ID,2024-04-09,released
+Q00559,R155,Certificate of Residency,2024-04-09,released
+Q00405,R114,Barangay Clearance,2024-04-10,released
+Q00705,R197,Certificate of Indigency,2024-04-10,released
+Q00936,R259,Certificate of Indigency,2024-04-10,released
+Q01039,R289,Barangay ID,2024-04-10,released
+Q00172,R055,Certificate of Residency,2024-04-11,released
+Q00187,R059,Barangay ID,2024-04-11,released
+Q00632,R176,Barangay ID,2024-04-12,released
+Q00775,R218,Barangay Clearance,2024-04-12,released
+Q00555,R154,Barangay ID,2024-04-13,released
+Q00624,R174,Certificate of Residency,2024-04-13,released
+Q00112,R036,Barangay ID,2024-04-15,pending
+Q00222,R069,Business Clearance,2024-04-15,pending
+Q00791,R221,Barangay Clearance,2024-04-16,released
+Q00947,R261,Certificate of Residency,2024-04-18,released
+Q00410,R115,Barangay ID,2024-04-19,released
+Q00741,R208,Barangay Clearance,2024-04-19,released
+Q00885,R245,Barangay Clearance,2024-04-19,pending
+Q00301,R089,Barangay ID,2024-04-20,released
+Q00427,R120,Barangay ID,2024-04-21,pending
+Q01066,R296,Barangay Clearance,2024-04-21,released
+Q01040,R289,Certificate of Residency,2024-04-22,released
+Q00363,R103,Barangay ID,2024-04-25,released
+Q00452,R126,Barangay Clearance,2024-04-25,released
+Q00165,R052,Barangay Clearance,2024-04-27,pending
+Q00188,R059,Barangay ID,2024-04-27,released
+Q00687,R191,Barangay ID,2024-04-27,released
+Q00432,R121,Certificate of Indigency,2024-04-28,released
+Q00760,R213,Barangay Clearance,2024-04-29,released
+Q00456,R127,Business Clearance,2024-04-30,released
+Q00736,R206,Certificate of Indigency,2024-04-30,released
+Q00304,R090,Certificate of Good Moral Character,2024-05-01,released
+Q00341,R099,Barangay Clearance,2024-05-01,released
+Q00088,R030,Business Clearance,2024-05-02,released
+Q00105,R035,Barangay ID,2024-05-03,released
+Q00372,R105,Business Clearance,2024-05-04,released
+Q00655,R185,Certificate of Indigency,2024-05-06,released
+Q00414,R117,Business Clearance,2024-05-08,released
+Q00113,R036,Barangay Clearance,2024-05-09,released
+Q00594,R164,Business Clearance,2024-05-09,released
+Q01074,R299,Barangay Clearance,2024-05-09,released
+Q00541,R151,Business Clearance,2024-05-10,released
+Q00305,R090,Barangay Clearance,2024-05-11,released
+Q00520,R145,Barangay ID,2024-05-11,released
+Q00205,R064,Certificate of Residency,2024-05-12,released
+Q00621,R172,Certificate of Indigency,2024-05-14,released
+Q00886,R245,Barangay ID,2024-05-14,released
+Q00987,R271,Barangay Clearance,2024-05-15,released
+Q01051,R292,Barangay Clearance,2024-05-15,released
+Q00476,R132,Certificate of Indigency,2024-05-16,released
+Q00444,R124,Certificate of Indigency,2024-05-17,released
+Q00729,R204,Certificate of Indigency,2024-05-17,released
+Q00822,R229,Certificate of Indigency,2024-05-17,released
+Q00010,R004,Business Clearance,2024-05-18,released
+Q00462,R128,Barangay ID,2024-05-18,released
+Q00448,R125,Certificate of Indigency,2024-05-19,released
+Q00477,R132,Certificate of Indigency,2024-05-20,released
+Q00080,R026,Barangay ID,2024-05-21,released
+Q00880,R244,Business Clearance,2024-05-21,released
+Q00422,R119,Certificate of Residency,2024-05-22,released
+Q00725,R203,Barangay ID,2024-05-22,released
+Q00382,R109,Barangay ID,2024-05-23,released
+Q00479,R133,Certificate of Indigency,2024-05-23,released
+Q01020,R283,Barangay Clearance,2024-05-24,released
+Q00433,R121,Certificate of Indigency,2024-05-25,released
+Q00611,R169,Barangay Clearance,2024-05-26,released
+Q00323,R094,Business Clearance,2024-05-27,released
+Q00747,R210,Certificate of Residency,2024-05-28,released
+Q00990,R272,Certificate of Residency,2024-05-28,released
+Q00138,R043,Business Clearance,2024-05-29,released
+Q00717,R201,Barangay Clearance,2024-05-29,released
+Q00799,R223,Business Clearance,2024-05-29,released
+Q00863,R239,Barangay ID,2024-05-29,released
+Q01079,R300,Business Clearance,2024-05-30,released
+Q00313,R092,Certificate of Good Moral Character,2024-05-31,released
+Q00909,R252,Certificate of Indigency,2024-05-31,released
+Q00903,R250,Certificate of Indigency,2024-06-02,released
+Q00887,R245,Business Clearance,2024-06-04,released
+Q00213,R067,Barangay ID,2024-06-05,released
+Q00556,R154,Barangay ID,2024-06-09,released
+Q00469,R130,Certificate of Indigency,2024-06-10,pending
+Q00493,R138,Business Clearance,2024-06-10,released
+Q00295,R088,Barangay ID,2024-06-12,released
+Q00435,R122,Certificate of Good Moral Character,2024-06-12,released
+Q00827,R230,Business Clearance,2024-06-13,released
+Q00591,R163,Business Clearance,2024-06-15,released
+Q00726,R203,Barangay Clearance,2024-06-18,released
+Q00494,R138,Business Clearance,2024-06-19,released
+Q00841,R233,Barangay ID,2024-06-19,released
+Q00896,R248,Barangay Clearance,2024-06-19,released
+Q00985,R270,Certificate of Indigency,2024-06-20,released
+Q00383,R109,Certificate of Good Moral Character,2024-06-21,released
+Q00709,R198,Barangay ID,2024-06-21,released
+Q00071,R023,Barangay Clearance,2024-06-22,released
+Q00384,R109,Business Clearance,2024-06-22,released
+Q00152,R048,Barangay Clearance,2024-06-23,released
+Q00731,R205,Certificate of Indigency,2024-06-23,released
+Q01071,R298,Barangay ID,2024-06-24,released
+Q00531,R148,Certificate of Indigency,2024-06-26,released
+Q00679,R189,Certificate of Indigency,2024-06-26,released
+Q00517,R144,Certificate of Indigency,2024-06-27,released
+Q01030,R286,Barangay Clearance,2024-06-27,released
+Q00206,R064,Certificate of Good Moral Character,2024-06-28,released
+Q00367,R104,Certificate of Indigency,2024-06-28,pending
+Q00749,R211,Certificate of Good Moral Character,2024-06-28,released
+Q00532,R148,Business Clearance,2024-06-29,pending
+Q01012,R281,Certificate of Indigency,2024-06-29,pending
+Q00214,R067,Certificate of Good Moral Character,2024-06-30,released
+Q00418,R118,Barangay ID,2024-06-30,pending
+Q00542,R151,Certificate of Good Moral Character,2024-06-30,released
+Q01067,R296,Barangay ID,2024-07-02,released
+Q00153,R048,Barangay ID,2024-07-03,released
+Q00612,R169,Barangay ID,2024-07-03,released
+Q00198,R062,Certificate of Residency,2024-07-04,released
+Q00585,R162,Business Clearance,2024-07-07,released
+Q01075,R299,Barangay ID,2024-07-07,pending
+Q00888,R245,Barangay Clearance,2024-07-08,released
+Q00910,R252,Barangay ID,2024-07-08,released
+Q00269,R081,Certificate of Residency,2024-07-09,released
+Q00335,R098,Barangay ID,2024-07-09,pending
+Q00577,R160,Business Clearance,2024-07-09,released
+Q00974,R268,Certificate of Residency,2024-07-09,released
+Q00259,R079,Certificate of Indigency,2024-07-10,released
+Q00134,R042,Barangay ID,2024-07-11,released
+Q00889,R245,Barangay ID,2024-07-11,released
+Q00143,R045,Certificate of Indigency,2024-07-12,released
+Q00543,R151,Certificate of Good Moral Character,2024-07-12,released
+Q00032,R010,Certificate of Residency,2024-07-13,released
+Q00161,R050,Business Clearance,2024-07-13,released
+Q00601,R166,Barangay Clearance,2024-07-13,released
+Q00828,R230,Barangay ID,2024-07-13,released
+Q00449,R125,Business Clearance,2024-07-18,released
+Q00858,R238,Business Clearance,2024-07-19,released
+Q00286,R085,Business Clearance,2024-07-20,released
+Q00440,R123,Barangay Clearance,2024-07-20,released
+Q00521,R145,Barangay Clearance,2024-07-21,pending
+Q00706,R197,Barangay Clearance,2024-07-21,released
+Q00401,R113,Business Clearance,2024-07-22,released
+Q00781,R219,Barangay ID,2024-07-22,released
+Q00560,R155,Barangay ID,2024-07-23,released
+Q00616,R170,Certificate of Indigency,2024-07-23,released
+Q00026,R009,Certificate of Good Moral Character,2024-07-24,released
+Q00257,R078,Barangay Clearance,2024-07-25,released
+Q00899,R249,Certificate of Residency,2024-07-25,released
+Q00881,R244,Barangay Clearance,2024-07-26,pending
+Q01013,R281,Business Clearance,2024-07-26,released
+Q00050,R016,Business Clearance,2024-07-27,released
+Q00373,R105,Barangay Clearance,2024-07-27,released
+Q00866,R240,Certificate of Indigency,2024-07-27,released
+Q00044,R014,Barangay ID,2024-07-28,released
+Q01060,R294,Certificate of Indigency,2024-07-28,released
+Q00178,R056,Certificate of Indigency,2024-07-29,released
+Q00179,R056,Certificate of Good Moral Character,2024-07-31,released
+Q00513,R143,Certificate of Residency,2024-07-31,released
+Q00628,R175,Certificate of Residency,2024-07-31,released
+Q00911,R252,Certificate of Indigency,2024-07-31,released
+Q00812,R226,Certificate of Residency,2024-08-01,released
+Q01034,R287,Barangay Clearance,2024-08-01,released
+Q00457,R127,Business Clearance,2024-08-02,released
+Q00939,R260,Barangay ID,2024-08-02,released
+Q00290,R086,Certificate of Indigency,2024-08-03,released
+Q00376,R106,Certificate of Good Moral Character,2024-08-04,pending
+Q00702,R196,Barangay ID,2024-08-04,released
+Q00012,R005,Certificate of Residency,2024-08-05,pending
+Q00713,R200,Barangay ID,2024-08-05,released
+Q01025,R284,Barangay ID,2024-08-06,released
+Q00272,R082,Certificate of Residency,2024-08-07,pending
+Q00849,R236,Certificate of Indigency,2024-08-10,released
+Q00004,R001,Certificate of Residency,2024-08-11,released
+Q00347,R100,Certificate of Indigency,2024-08-11,released
+Q00763,R214,Barangay Clearance,2024-08-11,released
+Q01052,R292,Barangay ID,2024-08-11,released
+Q00537,R149,Certificate of Residency,2024-08-12,released
+Q00732,R205,Certificate of Indigency,2024-08-12,released
+Q00183,R057,Business Clearance,2024-08-14,released
+Q00834,R231,Certificate of Good Moral Character,2024-08-14,released
+Q00270,R081,Business Clearance,2024-08-15,released
+Q00846,R235,Business Clearance,2024-08-15,released
+Q00892,R246,Barangay ID,2024-08-15,released
+Q00057,R020,Barangay Clearance,2024-08-16,released
+Q00606,R167,Barangay ID,2024-08-16,released
+Q00647,R181,Barangay ID,2024-08-16,released
+Q00622,R172,Barangay ID,2024-08-17,released
+Q00550,R153,Certificate of Indigency,2024-08-18,released
+Q00754,R212,Certificate of Indigency,2024-08-19,released
+Q00975,R268,Certificate of Indigency,2024-08-19,released
+Q01072,R298,Barangay ID,2024-08-20,released
+Q00058,R020,Barangay ID,2024-08-21,released
+Q01041,R289,Certificate of Residency,2024-08-21,released
+Q00776,R218,Certificate of Indigency,2024-08-22,released
+Q01042,R289,Certificate of Good Moral Character,2024-08-23,released
+Q00106,R035,Barangay ID,2024-08-24,pending
+Q00406,R114,Barangay ID,2024-08-25,released
+Q00123,R038,Barangay Clearance,2024-08-27,released
+Q00234,R072,Certificate of Indigency,2024-08-27,released
+Q00342,R099,Certificate of Good Moral Character,2024-08-29,released
+Q00565,R157,Certificate of Indigency,2024-08-29,released
+Q00777,R218,Barangay ID,2024-08-29,released
+Q00033,R010,Business Clearance,2024-08-30,pending
+Q00458,R127,Business Clearance,2024-08-30,released
+Q00533,R148,Barangay Clearance,2024-08-30,released
+Q01043,R289,Certificate of Good Moral Character,2024-08-30,released
+Q01047,R291,Barangay ID,2024-08-30,released
+Q00235,R072,Barangay ID,2024-08-31,released
+Q00818,R227,Business Clearance,2024-08-31,released
+Q00144,R045,Barangay ID,2024-09-01,released
+Q01031,R286,Barangay ID,2024-09-01,pending
+Q00925,R256,Certificate of Residency,2024-09-02,released
+Q00995,R275,Certificate of Residency,2024-09-04,released
+Q00314,R092,Barangay Clearance,2024-09-05,released
+Q00895,R247,Barangay ID,2024-09-08,pending
+Q00348,R100,Barangay Clearance,2024-09-10,released
+Q00296,R088,Barangay Clearance,2024-09-11,pending
+Q00428,R120,Barangay ID,2024-09-11,released
+Q00495,R138,Barangay Clearance,2024-09-12,released
+Q00157,R049,Barangay ID,2024-09-13,released
+Q00287,R085,Barangay Clearance,2024-09-13,released
+Q00471,R131,Barangay ID,2024-09-13,released
+Q00608,R168,Business Clearance,2024-09-13,released
+Q00823,R229,Certificate of Indigency,2024-09-13,released
+Q00107,R035,Business Clearance,2024-09-14,released
+Q00253,R077,Barangay ID,2024-09-16,released
+Q00496,R138,Barangay ID,2024-09-18,released
+Q00876,R243,Barangay ID,2024-09-20,released
+Q00571,R158,Certificate of Good Moral Character,2024-09-21,released
+Q00129,R040,Business Clearance,2024-09-22,released
+Q00916,R254,Certificate of Indigency,2024-09-22,released
+Q00518,R144,Barangay Clearance,2024-09-23,released
+Q00618,R171,Certificate of Residency,2024-09-23,released
+Q01073,R298,Business Clearance,2024-09-23,released
+Q01076,R299,Barangay Clearance,2024-09-23,released
+Q00045,R014,Barangay ID,2024-09-24,released
+Q00381,R108,Certificate of Indigency,2024-09-24,released
+Q00124,R038,Barangay ID,2024-09-27,released
+Q00147,R046,Barangay Clearance,2024-09-28,released
+Q00548,R152,Barangay ID,2024-09-28,released
+Q00809,R225,Barangay Clearance,2024-09-29,released
+Q00838,R232,Barangay ID,2024-09-29,released
+Q00579,R161,Barangay Clearance,2024-10-02,released
+Q00764,R214,Barangay Clearance,2024-10-02,released
+Q00773,R217,Certificate of Good Moral Character,2024-10-02,released
+Q00802,R224,Certificate of Indigency,2024-10-02,released
+Q00778,R218,Certificate of Indigency,2024-10-03,released
+Q00893,R246,Barangay ID,2024-10-03,released
+Q00108,R035,Barangay ID,2024-10-04,released
+Q00500,R139,Certificate of Good Moral Character,2024-10-04,released
+Q00870,R241,Certificate of Residency,2024-10-04,released
+Q00202,R063,Certificate of Indigency,2024-10-05,released
+Q00792,R222,Certificate of Residency,2024-10-05,released
+Q00803,R224,Barangay ID,2024-10-05,released
+Q00139,R043,Certificate of Residency,2024-10-06,released
+Q00890,R245,Barangay Clearance,2024-10-07,released
+Q00877,R243,Barangay ID,2024-10-09,released
+Q00463,R128,Barangay ID,2024-10-10,released
+Q00755,R212,Certificate of Indigency,2024-10-10,released
+Q01035,R287,Barangay ID,2024-10-10,released
+Q01048,R291,Business Clearance,2024-10-12,pending
+Q00173,R055,Certificate of Residency,2024-10-13,pending
+Q00527,R146,Barangay ID,2024-10-13,released
+Q00979,R269,Barangay Clearance,2024-10-13,released
+Q01061,R294,Barangay ID,2024-10-13,released
+Q00530,R147,Certificate of Good Moral Character,2024-10-14,pending
+Q00711,R199,Barangay Clearance,2024-10-14,released
+Q00988,R271,Certificate of Indigency,2024-10-14,pending
+Q00142,R044,Barangay ID,2024-10-16,released
+Q00072,R023,Barangay ID,2024-10-17,released
+Q00288,R085,Barangay ID,2024-10-17,released
+Q00740,R207,Barangay ID,2024-10-17,released
+Q00236,R072,Barangay ID,2024-10-18,released
+Q00592,R163,Barangay ID,2024-10-18,pending
+Q00804,R224,Barangay ID,2024-10-18,released
+Q00039,R012,Business Clearance,2024-10-19,released
+Q00667,R187,Barangay ID,2024-10-19,released
+Q00750,R211,Certificate of Indigency,2024-10-20,released
+Q00194,R061,Certificate of Indigency,2024-10-21,released
+Q00674,R188,Business Clearance,2024-10-21,pending
+Q00917,R254,Certificate of Good Moral Character,2024-10-21,released
+Q01068,R296,Certificate of Good Moral Character,2024-10-22,released
+Q00009,R003,Certificate of Residency,2024-10-23,released
+Q01014,R281,Certificate of Residency,2024-10-23,released
+Q00276,R083,Barangay ID,2024-10-24,pending
+Q00502,R140,Certificate of Residency,2024-10-25,released
+Q00258,R078,Certificate of Residency,2024-10-27,released
+Q00544,R151,Certificate of Good Moral Character,2024-10-28,pending
+Q00066,R022,Certificate of Indigency,2024-10-29,released
+Q00164,R051,Barangay Clearance,2024-10-29,released
+Q00336,R098,Barangay ID,2024-10-29,released
+Q01057,R293,Certificate of Good Moral Character,2024-10-30,released
+Q00117,R037,Certificate of Good Moral Character,2024-10-31,released
+Q00333,R097,Barangay ID,2024-11-01,pending
+Q00619,R171,Business Clearance,2024-11-01,pending
+Q00800,R223,Certificate of Residency,2024-11-01,released
+Q00566,R157,Barangay ID,2024-11-02,released
+Q00847,R235,Certificate of Indigency,2024-11-03,released
+Q00681,R190,Certificate of Residency,2024-11-04,released
+Q00158,R049,Barangay ID,2024-11-05,released
+Q00595,R164,Business Clearance,2024-11-05,released
+Q00839,R232,Certificate of Residency,2024-11-07,released
+Q00967,R266,Barangay ID,2024-11-07,released
+Q00059,R020,Certificate of Good Moral Character,2024-11-08,released
+Q00854,R237,Barangay ID,2024-11-08,released
+Q00109,R035,Certificate of Indigency,2024-11-09,released
+Q00514,R143,Barangay ID,2024-11-11,released
+Q00882,R244,Barangay Clearance,2024-11-12,pending
+Q00488,R136,Business Clearance,2024-11-13,released
+Q00027,R009,Certificate of Residency,2024-11-15,released
+Q00091,R031,Barangay Clearance,2024-11-15,released
+Q00195,R061,Certificate of Indigency,2024-11-15,released
+Q00813,R226,Barangay ID,2024-11-15,released
+Q00940,R260,Barangay ID,2024-11-15,released
+Q00293,R087,Barangay ID,2024-11-16,pending
+Q00445,R124,Certificate of Indigency,2024-11-16,released
+Q00046,R014,Barangay Clearance,2024-11-17,released
+Q00061,R021,Certificate of Residency,2024-11-17,pending
+Q00419,R118,Certificate of Residency,2024-11-17,released
+Q00013,R005,Business Clearance,2024-11-18,released
+Q00480,R133,Barangay ID,2024-11-18,released
+Q00047,R014,Barangay Clearance,2024-11-19,released
+Q00613,R169,Barangay ID,2024-11-19,released
+Q00929,R257,Certificate of Residency,2024-11-19,pending
+Q00411,R115,Barangay Clearance,2024-11-20,released
+Q00918,R254,Certificate of Indigency,2024-11-20,released
+Q00294,R087,Barangay ID,2024-11-22,released
+Q00420,R118,Certificate of Residency,2024-11-22,pending
+Q00572,R158,Business Clearance,2024-11-23,released
+Q00580,R161,Certificate of Residency,2024-11-24,released
+Q00941,R260,Certificate of Indigency,2024-11-24,pending
+Q00186,R058,Certificate of Residency,2024-11-25,released
+Q01026,R284,Certificate of Residency,2024-11-25,released
+Q00814,R226,Certificate of Indigency,2024-11-26,released
+Q00023,R008,Barangay Clearance,2024-11-27,released
+Q00850,R236,Barangay ID,2024-11-28,released
+Q00953,R263,Barangay ID,2024-11-28,released
+Q00441,R123,Barangay ID,2024-11-29,pending
+Q00793,R222,Certificate of Indigency,2024-11-29,released
+Q01044,R289,Certificate of Residency,2024-11-29,released
+Q00067,R022,Business Clearance,2024-11-30,released
+Q00297,R088,Barangay ID,2024-12-01,released
+Q00961,R265,Barangay Clearance,2024-12-01,released
+Q00131,R041,Certificate of Residency,2024-12-03,released
+Q00374,R105,Barangay ID,2024-12-04,released
+Q00436,R122,Barangay Clearance,2024-12-04,released
+Q00629,R175,Barangay Clearance,2024-12-04,released
+Q00954,R263,Certificate of Indigency,2024-12-04,released
+Q00397,R112,Certificate of Good Moral Character,2024-12-05,released
+Q00557,R154,Barangay Clearance,2024-12-05,released
+Q00650,R183,Certificate of Residency,2024-12-05,released
+Q00250,R076,Business Clearance,2024-12-06,pending
+Q00505,R141,Barangay ID,2024-12-09,released
+Q00100,R033,Barangay Clearance,2024-12-10,released
+Q00540,R150,Barangay Clearance,2024-12-10,released
+Q00926,R256,Business Clearance,2024-12-10,released
+Q00337,R098,Barangay Clearance,2024-12-11,released
+Q00148,R046,Barangay ID,2024-12-12,released
+Q00166,R052,Certificate of Good Moral Character,2024-12-12,pending
+Q01080,R300,Certificate of Good Moral Character,2024-12-12,released
+Q00260,R079,Certificate of Good Moral Character,2024-12-13,released
+Q00318,R093,Business Clearance,2024-12-16,released
+Q00957,R264,Barangay Clearance,2024-12-16,released
+Q00051,R016,Certificate of Indigency,2024-12-17,released
+Q00223,R069,Certificate of Indigency,2024-12-17,released
+Q00602,R166,Certificate of Good Moral Character,2024-12-17,released
+Q00006,R002,Barangay ID,2024-12-18,released
+Q00574,R159,Certificate of Residency,2024-12-18,released
+Q00744,R209,Certificate of Residency,2024-12-18,released
+Q00968,R266,Certificate of Indigency,2024-12-18,released
+Q00062,R021,Certificate of Indigency,2024-12-19,released
+Q00991,R273,Barangay Clearance,2024-12-19,released
+Q00324,R094,Barangay Clearance,2024-12-20,released
+Q00407,R114,Certificate of Indigency,2024-12-20,released
+Q00506,R141,Certificate of Indigency,2024-12-20,released
+Q00277,R083,Business Clearance,2024-12-21,released
+Q00491,R137,Barangay ID,2024-12-21,released
+Q00756,R212,Certificate of Indigency,2024-12-21,released
+Q00434,R121,Barangay Clearance,2024-12-22,released
+Q00757,R212,Barangay ID,2024-12-22,pending
+Q00243,R074,Barangay Clearance,2024-12-23,released
+Q00060,R020,Business Clearance,2024-12-24,released
+Q00922,R255,Barangay Clearance,2024-12-24,released
+Q00199,R062,Business Clearance,2024-12-25,released
+Q00264,R080,Certificate of Good Moral Character,2024-12-25,pending
+Q00385,R109,Barangay Clearance,2024-12-26,released
+Q00265,R080,Barangay Clearance,2024-12-27,released
+Q00319,R093,Business Clearance,2024-12-28,released
+Q00534,R148,Certificate of Indigency,2024-12-29,released
+Q00607,R167,Barangay ID,2024-12-29,released
+Q00976,R268,Barangay ID,2024-12-29,released
+Q00820,R228,Business Clearance,2024-12-30,released
+Q00254,R077,Barangay ID,2024-12-31,released
+Q00794,R222,Barangay ID,2024-12-31,released
+Q00054,R018,Barangay Clearance,2025-01-01,released
+Q00824,R229,Certificate of Residency,2025-01-01,released
+Q00718,R201,Barangay ID,2025-01-02,released
+Q01053,R292,Business Clearance,2025-01-02,released
+Q00343,R099,Business Clearance,2025-01-03,released
+Q00412,R115,Barangay ID,2025-01-04,released
+Q00472,R131,Certificate of Indigency,2025-01-04,released
+Q00095,R032,Barangay Clearance,2025-01-05,released
+Q00742,R208,Barangay ID,2025-01-05,released
+Q00787,R220,Certificate of Residency,2025-01-06,released
+Q00835,R231,Certificate of Indigency,2025-01-10,pending
+Q00497,R138,Business Clearance,2025-01-11,released
+Q00578,R160,Business Clearance,2025-01-11,released
+Q00219,R068,Business Clearance,2025-01-12,released
+Q01077,R299,Certificate of Indigency,2025-01-13,released
+Q00473,R131,Certificate of Indigency,2025-01-15,released
+Q00842,R234,Barangay ID,2025-01-15,released
+Q00306,R090,Barangay ID,2025-01-17,released
+Q00652,R184,Barangay Clearance,2025-01-17,released
+Q00355,R102,Barangay Clearance,2025-01-18,pending
+Q00688,R192,Barangay Clearance,2025-01-18,pending
+Q00934,R258,Business Clearance,2025-01-18,released
+Q00092,R031,Barangay ID,2025-01-19,released
+Q00356,R102,Barangay Clearance,2025-01-19,released
+Q00722,R202,Certificate of Residency,2025-01-20,released
+Q00357,R102,Barangay ID,2025-01-21,pending
+Q00825,R229,Barangay ID,2025-01-21,released
+Q00101,R033,Barangay ID,2025-01-23,pending
+Q00082,R027,Barangay ID,2025-01-24,pending
+Q00118,R037,Business Clearance,2025-01-24,released
+Q00207,R064,Barangay ID,2025-01-24,released
+Q00315,R092,Barangay ID,2025-01-24,released
+Q00377,R107,Business Clearance,2025-01-24,released
+Q00675,R188,Barangay Clearance,2025-01-25,released
+Q00358,R102,Certificate of Residency,2025-01-26,released
+Q00478,R132,Business Clearance,2025-01-26,released
+Q00855,R237,Barangay ID,2025-01-26,released
+Q00528,R146,Certificate of Good Moral Character,2025-01-27,released
+Q00948,R261,Certificate of Residency,2025-01-27,released
+Q00450,R125,Barangay ID,2025-01-28,released
+Q00977,R268,Certificate of Good Moral Character,2025-01-28,released
+Q00810,R225,Business Clearance,2025-01-29,released
+Q00261,R079,Barangay ID,2025-01-30,released
+Q00482,R134,Barangay Clearance,2025-01-30,released
+Q00593,R163,Business Clearance,2025-01-30,released
+Q00676,R188,Barangay ID,2025-01-31,released
+Q00829,R230,Business Clearance,2025-01-31,released
+Q00878,R243,Barangay ID,2025-01-31,released
+Q00573,R158,Barangay ID,2025-02-01,released
+Q00696,R194,Barangay Clearance,2025-02-02,released
+Q00815,R226,Certificate of Indigency,2025-02-02,released
+Q00830,R230,Business Clearance,2025-02-02,released
+Q00522,R145,Business Clearance,2025-02-03,released
+Q00996,R275,Barangay ID,2025-02-04,released
+Q00811,R225,Barangay Clearance,2025-02-05,released
+Q00972,R267,Business Clearance,2025-02-06,released
+Q00307,R090,Barangay Clearance,2025-02-07,released
+Q00149,R046,Business Clearance,2025-02-08,pending
+Q00699,R195,Barangay ID,2025-02-08,pending
+Q00014,R005,Barangay Clearance,2025-02-09,released
+Q00271,R081,Business Clearance,2025-02-09,released
+Q00325,R094,Business Clearance,2025-02-10,released
+Q00421,R118,Certificate of Indigency,2025-02-11,released
+Q00467,R129,Barangay ID,2025-02-11,released
+Q00028,R009,Barangay Clearance,2025-02-12,released
+Q00068,R022,Barangay ID,2025-02-16,released
+Q00038,R011,Business Clearance,2025-02-17,released
+Q01009,R280,Certificate of Good Moral Character,2025-02-17,released
+Q00714,R200,Barangay Clearance,2025-02-18,released
+Q00393,R111,Barangay Clearance,2025-02-19,released
+Q00034,R010,Business Clearance,2025-02-20,released
+Q01054,R292,Certificate of Indigency,2025-02-20,pending
+Q00174,R055,Certificate of Residency,2025-02-21,pending
+Q00743,R208,Certificate of Residency,2025-02-22,released
+Q00281,R084,Barangay ID,2025-02-23,released
+Q00282,R084,Barangay ID,2025-02-24,released
+Q00575,R159,Business Clearance,2025-02-24,released
+Q00733,R205,Barangay ID,2025-02-24,released
+Q00132,R041,Barangay ID,2025-02-25,released
+Q00154,R048,Certificate of Indigency,2025-02-25,released
+Q00464,R128,Certificate of Indigency,2025-02-25,released
+Q00056,R019,Certificate of Residency,2025-02-26,released
+Q00662,R186,Business Clearance,2025-02-26,released
+Q00703,R196,Barangay Clearance,2025-02-26,released
+Q00843,R234,Certificate of Indigency,2025-02-26,released
+Q00894,R246,Certificate of Residency,2025-02-26,released
+Q00135,R042,Barangay ID,2025-02-27,released
+Q00935,R258,Certificate of Residency,2025-02-27,released
+Q00244,R074,Barangay ID,2025-02-28,released
+Q00581,R161,Certificate of Indigency,2025-03-02,released
+Q00609,R168,Business Clearance,2025-03-03,released
+Q00668,R187,Barangay Clearance,2025-03-03,released
+Q00298,R088,Certificate of Indigency,2025-03-04,released
+Q00364,R103,Certificate of Indigency,2025-03-05,released
+Q00089,R030,Business Clearance,2025-03-06,released
+Q00359,R102,Certificate of Good Moral Character,2025-03-06,released
+Q00635,R178,Certificate of Good Moral Character,2025-03-07,released
+Q00017,R006,Barangay ID,2025-03-08,released
+Q00669,R187,Barangay ID,2025-03-08,released
+Q00897,R248,Certificate of Residency,2025-03-08,released
+Q00040,R012,Barangay Clearance,2025-03-09,released
+Q00229,R071,Barangay ID,2025-03-09,released
+Q00076,R025,Certificate of Residency,2025-03-12,released
+Q00437,R122,Barangay ID,2025-03-12,released
+Q00663,R186,Barangay ID,2025-03-12,pending
+Q00949,R261,Barangay ID,2025-03-12,released
+Q00368,R104,Certificate of Good Moral Character,2025-03-13,released
+Q00914,R253,Certificate of Indigency,2025-03-13,released
+Q00919,R254,Certificate of Indigency,2025-03-13,released
+Q01002,R277,Barangay ID,2025-03-13,released
+Q00710,R198,Barangay Clearance,2025-03-14,released
+Q00481,R133,Barangay ID,2025-03-15,released
+Q00189,R059,Barangay Clearance,2025-03-16,released
+Q00208,R064,Barangay Clearance,2025-03-16,pending
+Q00779,R218,Barangay Clearance,2025-03-18,released
+Q00642,R180,Certificate of Residency,2025-03-19,released
+Q00063,R021,Barangay Clearance,2025-03-20,pending
+Q00969,R266,Certificate of Residency,2025-03-21,released
+Q00993,R274,Barangay ID,2025-03-21,released
+Q00064,R021,Barangay ID,2025-03-22,released
+Q01010,R280,Certificate of Indigency,2025-03-22,released
+Q00408,R114,Certificate of Indigency,2025-03-23,released
+Q00262,R079,Barangay Clearance,2025-03-26,released
+Q00727,R203,Business Clearance,2025-03-26,released
+Q00864,R239,Certificate of Indigency,2025-03-27,released
+Q01078,R299,Barangay Clearance,2025-03-27,pending
+Q00052,R017,Business Clearance,2025-03-28,released
+Q00326,R094,Barangay Clearance,2025-03-28,released
+Q01081,R300,Certificate of Indigency,2025-03-28,released
+Q00119,R037,Barangay ID,2025-03-29,pending
+Q00203,R063,Business Clearance,2025-03-29,released
+Q00582,R161,Barangay Clearance,2025-03-29,released
+Q00237,R072,Certificate of Good Moral Character,2025-03-30,pending
+Q00266,R080,Barangay ID,2025-03-30,released
+Q00523,R145,Certificate of Indigency,2025-03-30,released
+Q00273,R082,Barangay Clearance,2025-04-01,pending
+Q00689,R192,Barangay ID,2025-04-01,released
+Q00267,R080,Business Clearance,2025-04-02,pending
+Q00549,R152,Barangay ID,2025-04-02,released
+Q00238,R072,Certificate of Residency,2025-04-04,released
+Q00360,R102,Barangay ID,2025-04-04,pending
+Q01016,R282,Barangay Clearance,2025-04-05,released
+Q00120,R037,Barangay Clearance,2025-04-06,released
+Q00656,R185,Certificate of Good Moral Character,2025-04-06,released
+Q00788,R220,Barangay Clearance,2025-04-06,released
+Q00220,R068,Certificate of Residency,2025-04-07,released
+Q00515,R143,Barangay ID,2025-04-07,released
+Q00020,R007,Barangay Clearance,2025-04-09,released
+Q00110,R035,Certificate of Indigency,2025-04-09,pending
+Q00125,R038,Barangay Clearance,2025-04-09,released
+Q00955,R263,Barangay ID,2025-04-09,released
+Q00651,R183,Business Clearance,2025-04-10,released
+Q00900,R249,Certificate of Residency,2025-04-10,released
+Q00950,R262,Barangay Clearance,2025-04-11,released
+Q00159,R049,Barangay ID,2025-04-12,released
+Q00442,R123,Barangay Clearance,2025-04-13,released
+Q00657,R185,Barangay ID,2025-04-13,released
+Q00096,R032,Barangay ID,2025-04-15,released
+Q00394,R111,Barangay ID,2025-04-15,released
+Q00694,R193,Barangay Clearance,2025-04-15,released
+Q00209,R065,Barangay ID,2025-04-16,pending
+Q00386,R109,Business Clearance,2025-04-16,released
+Q00898,R248,Barangay Clearance,2025-04-17,released
+Q00997,R275,Barangay Clearance,2025-04-17,released
+Q00136,R042,Certificate of Indigency,2025-04-18,pending
+Q00438,R122,Certificate of Good Moral Character,2025-04-18,released
+Q00871,R241,Barangay Clearance,2025-04-21,pending
+Q00980,R269,Certificate of Good Moral Character,2025-04-21,released
+Q01045,R290,Certificate of Residency,2025-04-21,released
+Q00378,R107,Certificate of Residency,2025-04-22,pending
+Q00596,R164,Business Clearance,2025-04-22,released
+Q00795,R222,Barangay ID,2025-04-23,pending
+Q00167,R052,Certificate of Residency,2025-04-24,released
+Q00150,R046,Certificate of Good Moral Character,2025-04-25,released
+Q00087,R029,Barangay Clearance,2025-04-26,released
+Q01064,R295,Business Clearance,2025-04-26,released
+Q00774,R217,Barangay Clearance,2025-04-27,released
+Q01021,R283,Barangay ID,2025-04-27,released
+Q00035,R010,Certificate of Residency,2025-04-29,released
+Q00801,R223,Business Clearance,2025-04-29,released
+Q00816,R226,Certificate of Residency,2025-04-29,released
+Q00700,R195,Barangay ID,2025-04-30,pending
+Q00567,R157,Certificate of Indigency,2025-05-02,pending
+Q00796,R222,Certificate of Indigency,2025-05-02,released
+Q00083,R027,Barangay Clearance,2025-05-03,released
+Q00538,R149,Barangay ID,2025-05-04,released
+Q00636,R178,Barangay Clearance,2025-05-04,released
+Q01011,R280,Certificate of Good Moral Character,2025-05-04,released
+Q00036,R010,Business Clearance,2025-05-05,released
+Q00561,R155,Barangay Clearance,2025-05-06,released
+Q00415,R117,Business Clearance,2025-05-07,released
+Q00630,R175,Barangay ID,2025-05-07,released
+Q00734,R205,Barangay ID,2025-05-08,released
+Q00761,R213,Certificate of Residency,2025-05-08,released
+Q00390,R110,Barangay ID,2025-05-09,released
+Q00719,R201,Barangay Clearance,2025-05-10,released
+Q00375,R105,Business Clearance,2025-05-11,released
+Q00826,R229,Barangay ID,2025-05-11,released
+Q00690,R192,Certificate of Good Moral Character,2025-05-13,released
+Q00391,R110,Certificate of Good Moral Character,2025-05-14,released
+Q00956,R263,Barangay ID,2025-05-14,released
+Q00024,R008,Barangay ID,2025-05-15,released
+Q01022,R283,Certificate of Residency,2025-05-15,released
+Q00175,R055,Business Clearance,2025-05-16,released
+Q00114,R036,Barangay ID,2025-05-17,released
+Q00387,R109,Certificate of Residency,2025-05-17,released
+Q00682,R190,Barangay Clearance,2025-05-17,released
+Q01005,R278,Barangay Clearance,2025-05-18,released
+Q00768,R215,Certificate of Indigency,2025-05-19,released
+Q00102,R033,Business Clearance,2025-05-21,released
+Q00483,R134,Barangay ID,2025-05-21,released
+Q00962,R265,Barangay ID,2025-05-21,released
+Q00416,R117,Business Clearance,2025-05-22,released
+Q00489,R136,Business Clearance,2025-05-23,released
+Q00492,R137,Barangay ID,2025-05-23,released
+Q01007,R279,Barangay Clearance,2025-05-24,released
+Q00015,R005,Barangay ID,2025-05-26,released
+Q00423,R119,Barangay Clearance,2025-05-26,released
+Q01017,R282,Barangay ID,2025-05-26,released
+Q00728,R203,Certificate of Residency,2025-05-28,released
+Q00184,R057,Business Clearance,2025-05-30,released
+Q00737,R206,Business Clearance,2025-05-30,released
+Q00077,R025,Barangay ID,2025-05-31,released
+Q00224,R069,Certificate of Good Moral Character,2025-05-31,released
+Q00586,R162,Business Clearance,2025-06-01,pending
+Q00309,R091,Barangay ID,2025-06-03,released
+Q00402,R113,Business Clearance,2025-06-03,released
+Q00648,R181,Certificate of Residency,2025-06-03,released
+Q00691,R192,Certificate of Good Moral Character,2025-06-04,released
+Q00310,R091,Barangay ID,2025-06-05,released
+Q00211,R066,Business Clearance,2025-06-06,released
+Q00453,R126,Certificate of Residency,2025-06-07,released
+Q00490,R136,Business Clearance,2025-06-07,released
+Q00545,R151,Business Clearance,2025-06-07,released
+Q00664,R186,Barangay Clearance,2025-06-08,released
+Q00680,R189,Certificate of Indigency,2025-06-10,released
+Q00692,R192,Barangay Clearance,2025-06-10,released
+Q00937,R259,Barangay ID,2025-06-12,released
+Q00981,R269,Business Clearance,2025-06-13,released
+Q00137,R042,Certificate of Good Moral Character,2025-06-14,released
+Q00625,R174,Certificate of Indigency,2025-06-16,released
+Q00597,R164,Certificate of Residency,2025-06-17,released
+Q00751,R211,Barangay ID,2025-06-17,released
+Q00789,R220,Barangay ID,2025-06-17,pending
+Q00653,R184,Barangay ID,2025-06-18,released
+Q00982,R269,Barangay Clearance,2025-06-19,released
+Q00227,R070,Business Clearance,2025-06-20,pending
+Q00856,R237,Certificate of Indigency,2025-06-20,released
+Q00283,R084,Certificate of Indigency,2025-06-22,released
+Q00349,R100,Barangay ID,2025-06-22,released
+Q00920,R254,Certificate of Good Moral Character,2025-06-22,released
+Q00230,R071,Barangay ID,2025-06-23,released
+Q00539,R149,Barangay Clearance,2025-06-23,released
+Q00983,R269,Barangay ID,2025-06-23,released
+Q00840,R232,Business Clearance,2025-06-25,released
+Q00994,R274,Certificate of Indigency,2025-06-27,released
+Q01058,R293,Barangay ID,2025-06-27,released
+Q00738,R206,Barangay Clearance,2025-06-28,released
+Q00805,R224,Certificate of Indigency,2025-06-28,pending
+Q00311,R091,Certificate of Indigency,2025-06-29,released
+Q00379,R107,Certificate of Residency,2025-06-30,released
+Q00617,R170,Barangay Clearance,2025-06-30,released
+Q00670,R187,Barangay ID,2025-06-30,released
+Q01018,R282,Certificate of Indigency,2025-06-30,released
+Q00468,R129,Certificate of Indigency,2025-07-01,released
+Q00576,R159,Certificate of Residency,2025-07-02,released
+Q00930,R257,Certificate of Indigency,2025-07-02,released
+Q00007,R002,Business Clearance,2025-07-03,pending
+Q00302,R089,Certificate of Residency,2025-07-03,released
+Q00831,R230,Business Clearance,2025-07-05,released
+Q00797,R222,Barangay ID,2025-07-07,released
+Q00769,R215,Barangay Clearance,2025-07-08,released
+Q00278,R083,Certificate of Indigency,2025-07-09,released
+Q00958,R264,Barangay ID,2025-07-11,pending
+Q00320,R093,Barangay Clearance,2025-07-13,released
+Q00867,R240,Certificate of Indigency,2025-07-13,released
+Q00654,R184,Barangay Clearance,2025-07-14,released
+Q00078,R025,Barangay ID,2025-07-15,released
+Q00454,R126,Barangay Clearance,2025-07-16,released
+Q00279,R083,Barangay Clearance,2025-07-17,released
+Q00683,R190,Barangay ID,2025-07-17,released
+Q00915,R253,Business Clearance,2025-07-17,released
+Q00053,R017,Barangay Clearance,2025-07-18,pending
+Q00715,R200,Certificate of Indigency,2025-07-18,released
+Q00180,R056,Barangay Clearance,2025-07-21,released
+Q00780,R218,Barangay ID,2025-07-22,released
+Q00931,R257,Certificate of Indigency,2025-07-22,released
+Q00041,R012,Barangay ID,2025-07-23,released
+Q00369,R104,Barangay ID,2025-07-23,released
+Q00649,R182,Certificate of Indigency,2025-07-24,released
+Q00413,R116,Certificate of Good Moral Character,2025-07-26,released
+Q00439,R122,Certificate of Residency,2025-07-27,released
+Q00923,R255,Barangay ID,2025-07-27,released
+Q00859,R238,Barangay Clearance,2025-07-28,released
+Q01062,R294,Business Clearance,2025-07-28,released
+Q00451,R125,Barangay Clearance,2025-07-29,released
+Q00640,R179,Business Clearance,2025-07-30,released
+Q00503,R140,Barangay Clearance,2025-07-31,released
+Q00395,R111,Barangay Clearance,2025-08-01,pending
+Q01082,R300,Certificate of Residency,2025-08-01,released
+Q00155,R048,Barangay Clearance,2025-08-02,released
+Q00398,R112,Certificate of Good Moral Character,2025-08-02,released
+Q00720,R201,Barangay ID,2025-08-02,released
+Q00904,R250,Certificate of Residency,2025-08-02,released
+Q00959,R264,Certificate of Indigency,2025-08-03,released
+Q00338,R098,Barangay ID,2025-08-04,released
+Q00511,R142,Barangay ID,2025-08-04,released
+Q00354,R101,Business Clearance,2025-08-05,pending
+Q00851,R236,Barangay ID,2025-08-05,released
+Q00291,R086,Barangay ID,2025-08-08,released
+Q00501,R139,Barangay ID,2025-08-08,pending
+Q00603,R166,Certificate of Indigency,2025-08-08,released
+Q00860,R238,Certificate of Residency,2025-08-08,pending
+Q00455,R126,Barangay ID,2025-08-09,pending
+Q00568,R157,Certificate of Indigency,2025-08-09,pending
+Q00684,R190,Certificate of Indigency,2025-08-09,released
+Q00115,R036,Certificate of Indigency,2025-08-10,released
+Q00765,R214,Barangay ID,2025-08-10,released
+Q00284,R084,Barangay Clearance,2025-08-11,released
+Q00084,R027,Barangay ID,2025-08-12,released
+Q00093,R031,Barangay ID,2025-08-12,released
+Q00782,R219,Barangay ID,2025-08-12,released
+Q00783,R219,Certificate of Indigency,2025-08-13,released
+Q00299,R088,Certificate of Residency,2025-08-14,released
+Q00551,R153,Certificate of Indigency,2025-08-14,released
+Q00745,R209,Barangay ID,2025-08-14,released
+Q00942,R260,Certificate of Indigency,2025-08-14,released
+Q00992,R273,Barangay Clearance,2025-08-14,released
+Q00707,R197,Barangay ID,2025-08-17,released
+Q00758,R212,Certificate of Good Moral Character,2025-08-19,released
+Q00970,R266,Barangay ID,2025-08-19,released
+Q00185,R057,Certificate of Residency,2025-08-20,pending
+Q00998,R275,Barangay ID,2025-08-21,released
+Q00181,R056,Barangay ID,2025-08-23,released
+Q00762,R213,Certificate of Indigency,2025-08-23,released
+Q00790,R220,Business Clearance,2025-08-24,released
+Q00121,R037,Barangay ID,2025-08-25,released
+Q00459,R127,Barangay ID,2025-08-25,released
+Q00658,R185,Certificate of Residency,2025-08-25,released
+Q01049,R291,Business Clearance,2025-08-25,pending
+Q00587,R162,Barangay ID,2025-08-26,released
+Q00446,R124,Barangay ID,2025-08-27,released
+Q00716,R200,Barangay Clearance,2025-08-27,released
+Q00901,R249,Barangay ID,2025-08-27,released
+Q00512,R142,Certificate of Indigency,2025-08-29,pending
+Q00429,R120,Certificate of Indigency,2025-08-31,released
+Q00927,R256,Business Clearance,2025-08-31,released
+Q00043,R013,Barangay Clearance,2025-09-01,released
+Q00350,R100,Certificate of Indigency,2025-09-02,released
+Q00752,R211,Certificate of Indigency,2025-09-03,released
+Q00128,R039,Barangay Clearance,2025-09-04,released
+Q00025,R008,Barangay ID,2025-09-05,pending
+Q00196,R061,Barangay ID,2025-09-06,released
+Q00562,R155,Barangay ID,2025-09-06,released
+Q00600,R165,Certificate of Residency,2025-09-06,released
+Q00739,R206,Barangay ID,2025-09-06,pending
+Q01029,R285,Business Clearance,2025-09-07,pending
+Q00665,R186,Barangay ID,2025-09-08,released
+Q00190,R059,Barangay ID,2025-09-11,released
+Q00583,R161,Barangay ID,2025-09-11,released
+Q00065,R021,Business Clearance,2025-09-12,released
+Q00784,R219,Certificate of Indigency,2025-09-12,released
+Q00906,R251,Certificate of Good Moral Character,2025-09-14,released
+Q00921,R254,Barangay Clearance,2025-09-15,released
+Q00239,R072,Certificate of Residency,2025-09-17,released
+Q00308,R090,Barangay ID,2025-09-17,released
+Q01032,R286,Business Clearance,2025-09-17,released
+Q00140,R043,Business Clearance,2025-09-18,released
+Q00079,R025,Barangay Clearance,2025-09-19,released
+Q00770,R215,Barangay ID,2025-09-20,released
+Q00268,R080,Barangay Clearance,2025-09-21,released
+Q00365,R103,Barangay Clearance,2025-09-21,pending
+Q00176,R055,Barangay Clearance,2025-09-22,pending
+Q00248,R075,Barangay ID,2025-09-22,released
+Q00685,R190,Certificate of Indigency,2025-09-22,released
+Q00989,R271,Barangay ID,2025-09-22,released
+Q00210,R065,Barangay Clearance,2025-09-24,released
+Q00872,R241,Barangay ID,2025-09-24,pending
+Q00643,R180,Certificate of Residency,2025-09-25,released
+Q01023,R283,Certificate of Indigency,2025-09-25,released
+Q00316,R092,Certificate of Good Moral Character,2025-09-26,released
+Q00620,R171,Business Clearance,2025-09-26,pending
+Q00598,R164,Barangay Clearance,2025-09-30,released
+Q00865,R239,Certificate of Indigency,2025-09-30,released
+Q00126,R038,Barangay ID,2025-10-02,released
+Q00417,R117,Certificate of Residency,2025-10-02,released
+Q00563,R155,Certificate of Residency,2025-10-02,released
+Q00879,R243,Certificate of Indigency,2025-10-02,released
+Q00370,R104,Certificate of Residency,2025-10-03,released
+Q01036,R287,Certificate of Good Moral Character,2025-10-03,released
+Q00215,R067,Business Clearance,2025-10-05,released
+Q00730,R204,Certificate of Indigency,2025-10-06,released
+Q00857,R237,Certificate of Indigency,2025-10-09,released
+Q00151,R047,Business Clearance,2025-10-10,released
+Q00424,R119,Barangay ID,2025-10-10,released
+Q00844,R234,Barangay ID,2025-10-10,released
+Q00097,R032,Business Clearance,2025-10-12,pending
+Q00289,R085,Barangay Clearance,2025-10-12,released
+Q00162,R050,Barangay ID,2025-10-13,released
+Q00507,R141,Certificate of Good Moral Character,2025-10-13,released
+Q00924,R255,Barangay Clearance,2025-10-14,released
+Q00116,R036,Business Clearance,2025-10-15,released
+Q00430,R120,Certificate of Indigency,2025-10-15,released
+Q00943,R260,Barangay ID,2025-10-16,released
+Q00498,R138,Barangay Clearance,2025-10-18,pending
+Q00086,R028,Barangay ID,2025-10-20,released
+Q00399,R112,Certificate of Indigency,2025-10-22,released
+Q00963,R265,Barangay ID,2025-10-22,released
+Q01006,R278,Barangay ID,2025-10-22,released
+Q00231,R071,Barangay Clearance,2025-10-23,released
+Q00330,R096,Barangay Clearance,2025-10-23,pending
+Q00524,R145,Certificate of Residency,2025-10-23,pending
+Q00584,R161,Certificate of Residency,2025-10-23,released
+Q00704,R196,Barangay ID,2025-10-23,released
+Q00633,R177,Certificate of Residency,2025-10-24,released
+Q00973,R267,Certificate of Residency,2025-10-25,pending
+Q01015,R281,Business Clearance,2025-10-25,released
+Q00474,R131,Barangay ID,2025-10-26,released
+Q00637,R178,Barangay ID,2025-10-26,released
+Q00785,R219,Barangay ID,2025-10-26,released
+Q00806,R224,Certificate of Indigency,2025-10-26,released
+Q00786,R219,Barangay ID,2025-10-27,released
+Q00292,R086,Certificate of Indigency,2025-10-28,released
+Q00552,R153,Barangay Clearance,2025-10-28,released
+Q00861,R238,Barangay Clearance,2025-10-29,released
+Q00723,R202,Certificate of Good Moral Character,2025-10-31,released
+Q01024,R283,Certificate of Indigency,2025-10-31,released
+Q00873,R241,Certificate of Indigency,2025-11-01,released
+Q00016,R005,Certificate of Residency,2025-11-02,released
+Q00074,R024,Certificate of Indigency,2025-11-02,released
+Q00216,R067,Barangay ID,2025-11-02,released
+Q00465,R128,Business Clearance,2025-11-02,released
+Q00073,R023,Barangay Clearance,2025-11-05,released
+Q00659,R185,Certificate of Good Moral Character,2025-11-05,released
+Q00832,R230,Business Clearance,2025-11-05,released
+Q00392,R110,Certificate of Good Moral Character,2025-11-06,released
+Q00721,R201,Certificate of Residency,2025-11-06,pending
+Q00905,R250,Certificate of Residency,2025-11-06,released
+Q01037,R287,Barangay Clearance,2025-11-06,pending
+Q00366,R103,Barangay ID,2025-11-07,released
+Q00701,R195,Certificate of Indigency,2025-11-07,released
+Q00964,R265,Barangay ID,2025-11-07,released
+Q00626,R174,Certificate of Indigency,2025-11-08,released
+Q00686,R190,Barangay Clearance,2025-11-08,released
+Q00627,R174,Certificate of Indigency,2025-11-09,released
+Q00634,R177,Barangay ID,2025-11-10,pending
+Q00771,R215,Barangay ID,2025-11-10,released
+Q00475,R131,Barangay ID,2025-11-11,pending
+Q00677,R188,Barangay ID,2025-11-11,released
+Q01083,R300,Certificate of Residency,2025-11-13,released
+Q00049,R015,Barangay ID,2025-11-14,released
+Q00344,R099,Certificate of Good Moral Character,2025-11-14,released
+Q01003,R277,Barangay Clearance,2025-11-14,released
+Q00103,R033,Barangay Clearance,2025-11-15,pending
+Q00048,R014,Barangay ID,2025-11-16,pending
+Q00232,R071,Certificate of Indigency,2025-11-17,released
+Q00447,R124,Business Clearance,2025-11-19,pending
+Q00660,R185,Certificate of Good Moral Character,2025-11-19,released
+Q00999,R275,Certificate of Indigency,2025-11-19,released
+Q00425,R119,Certificate of Residency,2025-11-20,released
+Q00697,R194,Barangay ID,2025-11-20,released
+Q00339,R098,Certificate of Residency,2025-11-21,released
+Q00671,R187,Barangay Clearance,2025-11-21,released
+Q00168,R053,Barangay Clearance,2025-11-22,released
+Q01000,R275,Barangay ID,2025-11-22,released
+Q00321,R093,Barangay ID,2025-11-23,pending
+Q00011,R004,Business Clearance,2025-11-24,released
+Q00094,R031,Certificate of Indigency,2025-11-24,released
+Q00599,R164,Barangay ID,2025-11-24,pending
+Q00932,R257,Certificate of Indigency,2025-11-25,released
+Q00371,R104,Certificate of Residency,2025-11-26,released
+Q00018,R006,Certificate of Indigency,2025-11-27,pending
+Q00351,R100,Barangay ID,2025-11-27,released
+Q00317,R092,Barangay ID,2025-11-28,released
+Q00322,R093,Barangay Clearance,2025-11-28,released
+Q00327,R095,Barangay ID,2025-11-28,released
+Q00817,R226,Business Clearance,2025-11-28,pending
+Q00156,R048,Barangay ID,2025-11-29,released
+Q00130,R040,Business Clearance,2025-11-30,released
+Q00883,R244,Barangay Clearance,2025-12-01,released
+Q00233,R071,Business Clearance,2025-12-02,released
+Q00807,R224,Barangay ID,2025-12-02,released
+Q00127,R038,Certificate of Indigency,2025-12-04,released
+Q00553,R153,Barangay ID,2025-12-04,released
+Q00075,R024,Barangay ID,2025-12-05,released
+Q00631,R175,Certificate of Indigency,2025-12-05,pending
+Q00644,R180,Certificate of Indigency,2025-12-05,pending
+Q00546,R151,Certificate of Good Moral Character,2025-12-06,released
+Q00884,R244,Barangay Clearance,2025-12-06,released
+Q00029,R009,Barangay ID,2025-12-07,released
+Q00160,R049,Certificate of Residency,2025-12-07,released
+Q00638,R178,Certificate of Good Moral Character,2025-12-07,released
+Q00251,R076,Business Clearance,2025-12-09,released
+Q01004,R277,Certificate of Residency,2025-12-09,released
+Q01033,R286,Certificate of Residency,2025-12-09,released
+Q00345,R099,Barangay Clearance,2025-12-10,pending
+Q00678,R188,Barangay Clearance,2025-12-10,released
+Q00508,R141,Certificate of Indigency,2025-12-11,pending
+Q00960,R264,Certificate of Indigency,2025-12-11,released
+Q00204,R063,Certificate of Indigency,2025-12-12,released
+Q00986,R270,Certificate of Indigency,2025-12-12,released
+Q00085,R027,Certificate of Residency,2025-12-13,released
+Q00042,R012,Barangay Clearance,2025-12-14,released
+Q00069,R022,Certificate of Indigency,2025-12-14,released
+Q00145,R045,Barangay ID,2025-12-15,released
+Q00772,R216,Barangay ID,2025-12-16,released
+Q00666,R186,Certificate of Good Moral Character,2025-12-17,released
+Q00645,R180,Barangay Clearance,2025-12-18,released
+Q00191,R059,Certificate of Residency,2025-12-19,released
+Q00819,R227,Business Clearance,2025-12-19,released
+Q00274,R082,Barangay ID,2025-12-21,released
+Q01055,R292,Barangay Clearance,2025-12-21,released
+Q00141,R043,Business Clearance,2025-12-23,released
+Q00746,R209,Barangay Clearance,2025-12-23,released
+Q00098,R032,Barangay ID,2025-12-25,released
+Q00604,R166,Barangay ID,2025-12-26,released
+Q00280,R083,Barangay Clearance,2025-12-27,released
+Q01063,R294,Barangay ID,2025-12-27,released
+Q00672,R187,Business Clearance,2025-12-28,released
+Q00240,R073,Barangay ID,2025-12-29,released
+Q00753,R211,Barangay ID,2025-12-29,released
+Q00902,R249,Barangay ID,2025-12-30,released
+Q00030,R009,Barangay Clearance,2025-12-31,released
+Q00605,R166,Barangay Clearance,2025-12-31,released

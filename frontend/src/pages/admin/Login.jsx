@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import Icon from "../../components/ui/Icon.jsx";
+import { useState } from "react";
 import BrandMark from "../../components/ui/BrandMark";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -68,10 +69,10 @@ function Login() {
                 <Link
                     to="/"
                     className="auth-back-arrow"
-                    aria-label="Back to Barangay Document System"
-                    title="Back to Barangay Document System"
+                    aria-label="Back to BarangayEase"
+                    title="Back to BarangayEase"
                 >
-                    <i className="bi bi-arrow-left" aria-hidden="true" />
+                    <Icon name="arrow-left" />
                 </Link>
 
                 {/* =================================================
@@ -85,11 +86,11 @@ function Login() {
                         ADMINISTRATOR PORTAL
                     </span>
 
-                    <h1>Barangay Document System</h1>
+                    <h1>BarangayEase</h1>
 
                     <p>
-                        Integrated Document Request, Processing, and Analytics
-                        System
+                        Barangay document requests, processing, and analytics
+                        in one system.
                     </p>
                 </div>
 
@@ -109,7 +110,7 @@ function Login() {
                     ================================================= */}
                     {error && (
                         <div className="portal-auth-error" role="alert">
-                            <i className="bi bi-exclamation-circle-fill" aria-hidden="true" />
+                            <Icon name="exclamation-circle-fill" />
                             <span>{error}</span>
                         </div>
                     )}
@@ -168,7 +169,7 @@ function Login() {
                                     }
                                     aria-pressed={showPassword}
                                 >
-                                    <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`} aria-hidden="true" />
+                                    <Icon name={showPassword ? "eye-slash" : "eye"} />
                                 </button>
                             </div>
                         </div>
@@ -178,16 +179,11 @@ function Login() {
                             type="submit"
                             className="portal-login-button"
                             disabled={loading}
+                            aria-busy={loading || undefined}
+                            aria-label={loading ? "Signing in" : undefined}
                         >
                             {loading ? (
-                                <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
-                                    Signing in...
-                                </>
+                                "Signing in..."
                             ) : (
                                 "Sign in to admin portal"
                             )}

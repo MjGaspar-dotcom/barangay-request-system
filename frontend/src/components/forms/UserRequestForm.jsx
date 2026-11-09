@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 import { validateForm } from "../../utils/validateForm";
-export default function UserRequestForm() {
+export default function UserRequestForm({ initialDocument = "" }) {
     const { user } = useAuth();
+    const verificationStatus = user?.verification_status;
 
     const [documentTypes, setDocumentTypes] = useState([]);
     const [documentTypeId, setDocumentTypeId] = useState("");
@@ -19,7 +20,17 @@ export default function UserRequestForm() {
             try {
                 const response = await api.get("/document-types");
 
-                setDocumentTypes(response.data.data);
+                const availableDocumentTypes = response.data.data;
+                setDocumentTypes(availableDocumentTypes);
+                const recommendedDocument = availableDocumentTypes.find(
+                    (documentType) =>
+                        documentType.document_name === initialDocument
+                );
+                if (recommendedDocument) {
+                    setDocumentTypeId(
+                        String(recommendedDocument.document_type_id)
+                    );
+                }
             } catch (error) {
                 console.error(error);
                 setError("Failed to load document types.");
@@ -29,7 +40,7 @@ export default function UserRequestForm() {
         };
 
         fetchDocumentTypes();
-    }, []);
+    }, [initialDocument]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -77,7 +88,10 @@ export default function UserRequestForm() {
             if (error.response?.status === 422) {
                 setError("Please check the information you entered.");
             } else {
-                setError("Failed to submit request.");
+                setError(
+                    error.response?.data?.message ||
+                        "Failed to submit request."
+                );
             }
         } finally {
             setLoading(false);
@@ -90,10 +104,10 @@ export default function UserRequestForm() {
 
     return (
         <form noValidate onSubmit={handleSubmit}>
-            <div className="mb-3">
+            <div className="mb-4">
                 <label
                     htmlFor="document_type_id"
-                    className="form-label"
+                    className="app-label"
                 >
                     Document Type
                 </label>
@@ -101,7 +115,7 @@ export default function UserRequestForm() {
                 <select
                     id="document_type_id"
                     name="document_type_id"
-                    className="form-select"
+                    className="app-select"
                     value={documentTypeId}
                     onChange={(event) =>
                         setDocumentTypeId(event.target.value)
@@ -123,10 +137,10 @@ export default function UserRequestForm() {
                 </select>
             </div>
 
-            <div className="mb-3">
+            <div className="mb-4">
                 <label
                     htmlFor="purpose"
-                    className="form-label"
+                    className="app-label"
                 >
                     Purpose
                 </label>
@@ -134,7 +148,7 @@ export default function UserRequestForm() {
                 <textarea
                     id="purpose"
                     name="purpose"
-                    className="form-control"
+                    className="app-input"
                     value={purpose}
                     onChange={(event) =>
                         setPurpose(event.target.value)
@@ -143,14 +157,21 @@ export default function UserRequestForm() {
                 />
             </div>
 
+            {verificationStatus !== "verified" && (
+                <div className="app-alert app-alert-info" role="status">
+                    Your account must be verified before you can submit a
+                    document request.
+                </div>
+            )}
+
             {error && (
-                <p className="text-danger">
+                <p className="text-destructive">
                     {error}
                 </p>
             )}
 
             {submittedRequest && (
-                <div className="alert alert-success" role="status">
+                <div className="app-alert app-alert-success" role="status">
                     <p className="mb-2">
                         Request submitted successfully. Tracking number:{" "}
                         <strong>{submittedRequest.trackingNumber}</strong>
@@ -175,8 +196,8 @@ export default function UserRequestForm() {
 
             <button
                 type="submit"
-                className="btn btn-primary"
-                disabled={loading}
+                className="app-button app-button-primary"
+                disabled={loading || verificationStatus !== "verified"}
             >
                 {loading ? "Submitting..." : "Submit Request"}
             </button>

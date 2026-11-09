@@ -59,7 +59,7 @@ function UserLayout({ children }) {
                         <MenuIcon />
                     </DashboardMenuButton>
 
-                    <strong>Barangay Document System</strong>
+                    <strong>BarangayEase</strong>
                 </DashboardMobileHeader>
 
                 <DashboardContent>{children}</DashboardContent>

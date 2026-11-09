@@ -1,20 +1,25 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import Table from "react-bootstrap/Table";
+import Icon from "../../components/ui/Icon.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import StatusBadge from "../../components/ui/StatusBadge";
 
 const STATUS_FILTERS = [
     { value: "all", label: "All" },
     { value: "Pending", label: "Pending" },
+    { value: "Additional Requirements", label: "Additional Requirements" },
     { value: "Approved", label: "Approved" },
     { value: "Processing", label: "Processing" },
     { value: "Ready for Pickup", label: "Ready" },
     { value: "Completed", label: "Completed" },
     { value: "Rejected", label: "Rejected" },
 ];
+
+const PAGE_SIZE = 10;
 
 export default function ManageRequests() {
     const navigate = useNavigate();
@@ -24,23 +29,26 @@ export default function ManageRequests() {
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-
-    const fetchRequests = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get("/staff/requests");
-            setRequests(response.data.data || []);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load requests.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [page, setPage] = useState(1);
 
     useEffect(() => {
-        fetchRequests();
+        let active = true;
+        api.get("/staff/requests")
+            .then((response) => {
+                if (!active) return;
+                setRequests(response.data.data || []);
+                setError("");
+            })
+            .catch((requestError) => {
+                console.error(requestError);
+                if (active) setError("Failed to load requests.");
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
+        };
     }, []);
 
     const getRequesterName = (request) => {
@@ -80,10 +88,18 @@ export default function ManageRequests() {
         });
     }, [requests, search, statusFilter]);
 
+    const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
+    const currentPage = Math.min(page, Math.max(pageCount, 1));
+    const pageRequests = filtered.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+    );
+
     const counts = useMemo(() => {
         const result = {
             total: requests.length,
             pending: 0,
+            additionalRequirements: 0,
             approved: 0,
             processing: 0,
             ready: 0,
@@ -94,6 +110,7 @@ export default function ManageRequests() {
         requests.forEach((req) => {
             const s = (req.status || "").toLowerCase();
             if (s === "pending") result.pending++;
+            else if (s === "additional requirements") result.additionalRequirements++;
             else if (s === "approved") result.approved++;
             else if (s === "processing") result.processing++;
             else if (s === "ready for pickup") result.ready++;
@@ -105,13 +122,17 @@ export default function ManageRequests() {
     }, [requests]);
 
     const statCards = [
-        { label: "Total", value: counts.total, tone: "total" },
-        { label: "Pending", value: counts.pending, tone: "pending" },
-        { label: "Approved", value: counts.approved, tone: "approved" },
-        { label: "Processing", value: counts.processing, tone: "processing" },
-        { label: "Ready", value: counts.ready, tone: "ready" },
-        { label: "Completed", value: counts.completed, tone: "completed" },
-        { label: "Rejected", value: counts.rejected, tone: "rejected" },
+        { label: "Total", value: counts.total },
+        { label: "Pending", value: counts.pending },
+        {
+            label: "Additional Requirements",
+            value: counts.additionalRequirements,
+        },
+        { label: "Approved", value: counts.approved },
+        { label: "Processing", value: counts.processing },
+        { label: "Ready", value: counts.ready },
+        { label: "Completed", value: counts.completed },
+        { label: "Rejected", value: counts.rejected },
     ];
 
     const formatDate = (value) =>
@@ -120,15 +141,7 @@ export default function ManageRequests() {
     if (loading) {
         return (
             <AdminLayout>
-                <div className="page-loading">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading requests...</p>
-                </div>
+                <SkeletonLoader label="Loading requests" variant="table" />
             </AdminLayout>
         );
     }
@@ -137,7 +150,7 @@ export default function ManageRequests() {
         return (
             <AdminLayout>
                 <div className="page-loading">
-                    <div className="alert alert-danger" role="alert">{error}</div>
+                    <div className="app-alert app-alert-danger" role="alert">{error}</div>
                 </div>
             </AdminLayout>
         );
@@ -146,7 +159,7 @@ export default function ManageRequests() {
     return (
         <AdminLayout>
             <div className="admin-dashboard manage-requests-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div>
                             <span className="section-label">
@@ -157,24 +170,21 @@ export default function ManageRequests() {
 
                             <p>
                                 Review every document request submitted by
-                                registered residents. Open a request to review
-                                its details and manage its status.
+                                registered residents. Open
+                                a request to review its details and manage its
+                                status.
                             </p>
                         </div>
                     </div>
 
                     <section className="dashboard-section">
-                        <div className="row g-3">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                             {statCards.map((stat) => (
                                 <div
-                                    className="col-sm-6 col-md-4 col-xl"
+                                    className="sm:col-span-6 md:col-span-4 xl:col-span-3"
                                     key={stat.label}
                                 >
                                     <div className="dashboard-stat-card">
-                                        <div className={`dashboard-stat-icon dashboard-stat-icon-${stat.tone}`}>
-
-                                            {stat.label[0]}
-                                        </div>
                                         <div>
                                             <span className="dashboard-stat-label">
                                                 {stat.label}
@@ -196,21 +206,23 @@ export default function ManageRequests() {
                         >
                             <input
                                 type="search"
-                                className="form-control filter-search-380"
+                                className="app-input filter-search-380"
                                 placeholder="Search by tracking number, name, document, purpose..."
                                 value={search}
-                                onChange={(event) =>
+                                onChange={(event) => {
                                     setSearch(event.target.value)
-                                }
+                                    setPage(1);
+                                }}
                                 
                             />
 
                             <select
-                                className="form-select filter-select-180"
+                                className="app-select filter-select-180"
                                 value={statusFilter}
-                                onChange={(event) =>
+                                onChange={(event) => {
                                     setStatusFilter(event.target.value)
-                                }
+                                    setPage(1);
+                                }}
                                 
                             >
                                 {STATUS_FILTERS.map((filter) => (
@@ -226,8 +238,15 @@ export default function ManageRequests() {
                             <div className="filter-count"
                                 
                             >
-                                Showing {filtered.length} of {requests.length}{" "}
-                                request{requests.length === 1 ? "" : "s"}
+                                Showing{" "}
+                                {filtered.length === 0
+                                    ? "0"
+                                    : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(
+                                          currentPage * PAGE_SIZE,
+                                          filtered.length,
+                                      )}`}{" "}
+                                of {filtered.length} matching request
+                                {filtered.length === 1 ? "" : "s"} ({requests.length} total)
                             </div>
                         </div>
                     </section>
@@ -236,7 +255,7 @@ export default function ManageRequests() {
                         {filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon" aria-hidden="true">
-                                    <i className="bi bi-inbox" />
+                                    <Icon name="inbox" />
                                 </div>
                                 <h3>No Requests Found</h3>
                                 <p>
@@ -259,7 +278,7 @@ export default function ManageRequests() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filtered.map((request) => {
+                                        {pageRequests.map((request) => {
                                             const reqId = request.request_id;
 
                                             return (
@@ -281,7 +300,7 @@ export default function ManageRequests() {
                                                         <div className="data-table-actions">
                                                             <Button
                                                                 type="button"
-                                                                className="btn btn-outline-success btn-sm"
+                                                                className="app-button app-button-outline-success app-button-sm"
                                                                 onClick={() =>
                                                                     navigate(
                                                                         `/admin/requests/${reqId}`,
@@ -300,6 +319,58 @@ export default function ManageRequests() {
                             </div>
                         )}
                     </section>
+
+                    {pageCount > 1 && (
+                        <nav aria-label="Request pagination">
+                            <ul className="pagination activity-pagination">
+                                <li>
+                                    <Button
+                                        type="button"
+                                        className="app-button app-button-outline-secondary app-button-sm"
+                                        disabled={currentPage === 1}
+                                        onClick={() => setPage(currentPage - 1)}
+                                    >
+                                        Previous
+                                    </Button>
+                                </li>
+                                {Array.from(
+                                    { length: pageCount },
+                                    (_, index) => index + 1,
+                                ).map((pageNumber) => (
+                                    <li key={pageNumber}>
+                                        <Button
+                                            type="button"
+                                            variant={
+                                                pageNumber === currentPage
+                                                    ? "default"
+                                                    : "outline-secondary"
+                                            }
+                                            size="sm"
+                                            aria-current={
+                                                pageNumber === currentPage
+                                                    ? "page"
+                                                    : undefined
+                                            }
+                                            aria-label={`Go to page ${pageNumber}`}
+                                            onClick={() => setPage(pageNumber)}
+                                        >
+                                            {pageNumber}
+                                        </Button>
+                                    </li>
+                                ))}
+                                <li>
+                                    <Button
+                                        type="button"
+                                        className="app-button app-button-outline-secondary app-button-sm"
+                                        disabled={currentPage === pageCount}
+                                        onClick={() => setPage(currentPage + 1)}
+                                    >
+                                        Next
+                                    </Button>
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
                 </div>
             </div>
         </AdminLayout>

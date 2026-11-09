@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
     BrowserRouter,
     Navigate,
@@ -16,7 +16,10 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
 
 const Landing = lazy(() => import("../pages/public/Landing"));
+const UserRequest = lazy(() => import("../pages/user/Request"));
+const TrackRequest = lazy(() => import("../pages/user/TrackRequest"));
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
+const AdminAnalytics = lazy(() => import("../pages/staff/Reports"));
 const AdminLogin = lazy(() => import("../pages/admin/Login"));
 const ManageUsers = lazy(() => import("../pages/admin/ManageUsers"));
 const ManageStaff = lazy(() => import("../pages/admin/ManageStaff"));
@@ -31,6 +34,7 @@ const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
 const WorkflowAnalysis = lazy(() => import("../pages/admin/WorkflowAnalysis"));
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
 const StaffDashboard = lazy(() => import("../pages/staff/Dashboard"));
+const StaffAllRequests = lazy(() => import("../pages/staff/AllRequests"));
 const StaffRequestQueue = lazy(() => import("../pages/staff/RequestQueue"));
 const StaffReports = lazy(() => import("../pages/staff/Reports"));
 const StaffRequestDetails = lazy(
@@ -54,21 +58,24 @@ function RouteScrollReset() {
     return null;
 }
 
+function RouteLoadingFallback() {
+    return (
+        <LoadingState
+            label="Loading page..."
+            className="route-loading logo-loading"
+        />
+    );
+}
+
 export default function AppRoutes() {
     return (
         <BrowserRouter>
             <RouteScrollReset />
-            <Suspense
-                fallback={
-                    <LoadingState
-                        label="Loading page..."
-                        className="route-loading"
-                    />
-                }
-            >
+            <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                     {/* PUBLIC */}
                     <Route path="/" element={<Landing />} />
+                    <Route path="/track-request" element={<TrackRequest />} />
 
                     {/* AUTH */}
                     <Route path="/login" element={<Login />} />
@@ -80,6 +87,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["user"]}>
                                 <UserDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/request"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <UserRequest />
                             </ProtectedRoute>
                         }
                     />
@@ -110,6 +125,14 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/staff/requests"
+                        element={
+                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                                <StaffAllRequests />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/staff/queue"
                         element={
                             <ProtectedRoute allowedRoles={["staff"]}>
@@ -132,6 +155,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/analytics"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <AdminAnalytics isAdmin />
                             </ProtectedRoute>
                         }
                     />

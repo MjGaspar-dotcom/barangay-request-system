@@ -1,3 +1,4 @@
+import Icon from "../components/ui/Icon.jsx";
 import BrandMark from "../components/ui/BrandMark";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -83,11 +84,11 @@ function PortalLayout({
 
                                 <div className="portal-brand-text">
                                     <span className="portal-brand-name">
-                                        Barangay Aurora
+                                        BarangayEase
                                     </span>
 
                                     <span className="portal-brand-subtitle">
-                                        Document Services
+                                        Barangay Aurora
                                     </span>
                                 </div>
                             </Link>
@@ -110,10 +111,7 @@ function PortalLayout({
                                 aria-label="Open navigation"
                                 aria-expanded={sidebarOpen}
                             >
-                                <i
-                                    className="bi bi-list"
-                                    aria-hidden="true"
-                                />
+                                <Icon name="list" />
                             </button>
                         </div>
                     )}

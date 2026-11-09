@@ -1,0 +1,92 @@
+import {
+    Activity,
+    ArrowDownRight,
+    ArrowLeft,
+    ArrowLeftRight,
+    ArrowRight,
+    ArrowUpRight,
+    BadgeCheck,
+    BarChart3,
+    BriefcaseBusiness,
+    CheckCircle2,
+    CircleAlert,
+    CircleCheck,
+    CircleHelp,
+    CirclePlus,
+    Clock3,
+    Database,
+    Eye,
+    EyeOff,
+    FileText,
+    Gauge,
+    Hourglass,
+    Inbox,
+    Layers,
+    Lightbulb,
+    ListOrdered,
+    LogOut,
+    Menu,
+    Network,
+    Play,
+    Route,
+    ShieldCheck,
+    Trash2,
+    UserCheck,
+    Users,
+    Workflow,
+} from "lucide-react";
+
+const icons = {
+    activity: Activity,
+    "arrow-down-right": ArrowDownRight,
+    "arrow-left": ArrowLeft,
+    "arrow-left-right": ArrowLeftRight,
+    "arrow-right": ArrowRight,
+    "arrow-up-right": ArrowUpRight,
+    "bar-chart-line": BarChart3,
+    "box-arrow-right": LogOut,
+    "check-circle": CircleCheck,
+    "check-circle-fill": CircleCheck,
+    "circle-plus": CirclePlus,
+    "clipboard-check": CheckCircle2,
+    collection: Layers,
+    clock: Clock3,
+    "clock-history": Clock3,
+    database: Database,
+    "diagram-3": Workflow,
+    "exclamation-circle-fill": CircleAlert,
+    eye: Eye,
+    "eye-slash": EyeOff,
+    "file-earmark-text": FileText,
+    "hourglass-split": Hourglass,
+    inbox: Inbox,
+    lightning: Lightbulb,
+    list: Menu,
+    "list-ol": ListOrdered,
+    "person-badge": BadgeCheck,
+    "person-check": UserCheck,
+    "person-workspace": BriefcaseBusiness,
+    people: Users,
+    "play-fill": Play,
+    "plus-circle": CirclePlus,
+    shield: ShieldCheck,
+    "shield-lock": ShieldCheck,
+    "signpost-split": Route,
+    speedometer2: Gauge,
+    trash: Trash2,
+    users: Users,
+    "diagram-network": Network,
+    workflow: Workflow,
+};
+
+export default function Icon({ name, size = 16, strokeWidth = 2, ...props }) {
+    const IconComponent = icons[name] || CircleHelp;
+    return (
+        <IconComponent
+            size={size}
+            strokeWidth={strokeWidth}
+            aria-hidden="true"
+            {...props}
+        />
+    );
+}
