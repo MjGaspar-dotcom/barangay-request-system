@@ -4,65 +4,69 @@ const theme = createTheme({
     palette: {
         mode: "light",
         primary: {
-            main: "#166534",
-            dark: "#14532d",
-            light: "#dcfce7",
+            main: "#2F7D4A",
+            dark: "#27683D",
+            light: "#DCEBDD",
             contrastText: "#ffffff",
         },
         secondary: {
-            main: "#64748b",
-            dark: "#334155",
-            light: "#f1f5f9",
+            main: "#647067",
+            dark: "#25352B",
+            light: "#F5F7F5",
             contrastText: "#ffffff",
         },
         success: {
-            main: "#16a34a",
-            dark: "#15803d",
-            light: "#dcfce7",
+            main: "#218653",
+            dark: "#17633C",
+            light: "#E5F2E9",
         },
         error: {
-            main: "#dc2626",
-            dark: "#991b1b",
-            light: "#fee2e2",
+            main: "#C24141",
+            dark: "#9C3030",
+            light: "#FAE8E8",
         },
         warning: {
-            main: "#d97706",
-            dark: "#92400e",
-            light: "#fef3c7",
+            main: "#B7791F",
+            dark: "#805411",
+            light: "#FBF1DF",
         },
         info: {
-            main: "#2563eb",
-            dark: "#1e40af",
-            light: "#dbeafe",
+            main: "#356AC3",
+            dark: "#2B559A",
+            light: "#E9EFFA",
         },
         background: {
-            default: "#f6f8f7",
+            default: "#F5F7F5",
             paper: "#ffffff",
         },
         text: {
-            primary: "#17201b",
-            secondary: "#64748b",
+            primary: "#25352B",
+            secondary: "#647067",
         },
-        divider: "#e2e8e5",
+        divider: "#E1E7E2",
     },
 
     typography: {
         fontFamily:
             '"Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
         h1: {
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
+            fontSize: "1.875rem",
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
         },
         h2: {
-            fontWeight: 800,
+            fontSize: "1.5rem",
+            fontWeight: 600,
             letterSpacing: "-0.02em",
         },
         h3: {
-            fontWeight: 700,
+            fontSize: "1.25rem",
+            fontWeight: 600,
             letterSpacing: "-0.01em",
         },
         h4: {
-            fontWeight: 700,
+            fontSize: "1.0625rem",
+            fontWeight: 600,
         },
         body1: {
             fontSize: "0.9375rem",
@@ -73,7 +77,7 @@ const theme = createTheme({
             lineHeight: 1.6,
         },
         button: {
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: "none",
         },
         validationError: {
@@ -96,39 +100,39 @@ const theme = createTheme({
     },
 
     shape: {
-        borderRadius: 12,
+        borderRadius: 10,
     },
 
     customColors: {
-        heading: "#17201b",
-        surface: "#f8faf9",
-        surfaceStrong: "#f1f5f3",
-        paleGreen: "#f0fdf4",
-        mutedGreen: "#bbf7d0",
-        borderSoft: "#e7ece9",
-        focusRing: "rgba(22, 101, 52, 0.18)",
+        heading: "#25352B",
+        surface: "#F5F7F5",
+        surfaceStrong: "#EEF2EE",
+        paleGreen: "#DCEBDD",
+        mutedGreen: "#C6DDC8",
+        borderSoft: "#E1E7E2",
+        focusRing: "rgba(47, 125, 74, 0.2)",
 
         portal: {
-            background: "#062f25",
-            backgroundDeep: "#03271f",
-            headerSurface: "#174c3b",
-            headerBorder: "#2f6853",
-            footerSurface: "#123c30",
+            background: "#25352B",
+            backgroundDeep: "#1C2921",
+            headerSurface: "#2F7D4A",
+            headerBorder: "#559563",
+            footerSurface: "#25352B",
             primaryText: "#ffffff",
-            secondaryText: "#d4e2dc",
-            mutedText: "#b3c9c0",
-            accent: "#e6c45b",
-            logoBackground: "#166534",
-            logoBorder: "#e6c45b",
+            secondaryText: "#E1E7E2",
+            mutedText: "#C6DDC8",
+            accent: "#DCEBDD",
+            logoBackground: "#2F7D4A",
+            logoBorder: "#DCEBDD",
             iconSurface: "rgba(255, 255, 255, 0.1)",
             cardDecoration: "rgba(255, 255, 255, 0.08)",
             texture: "rgba(255, 255, 255, 0.035)",
 
             serviceCards: {
-                request: "#166534",
-                track: "#0f766e",
-                signIn: "#245f4b",
-                register: "#416b55",
+                request: "#2F7D4A",
+                track: "#218653",
+                signIn: "#27683D",
+                register: "#559563",
             },
         },
     },
@@ -146,32 +150,32 @@ const theme = createTheme({
 
     statusColors: {
         pending: {
-            background: "#fef3c7",
-            color: "#92400e",
+            background: "#FBF1DF",
+            color: "#805411",
         },
         approved: {
-            background: "#dbeafe",
-            color: "#1e40af",
+            background: "#DCEBDD",
+            color: "#25352B",
         },
         processing: {
-            background: "#ede9fe",
-            color: "#6d28d9",
+            background: "#E9EFFA",
+            color: "#2B559A",
         },
         ready: {
-            background: "#d1fae5",
-            color: "#065f46",
+            background: "#E5F2E9",
+            color: "#17633C",
         },
         completed: {
-            background: "#dcfce7",
-            color: "#166534",
+            background: "#E5F2E9",
+            color: "#17633C",
         },
         rejected: {
-            background: "#fee2e2",
-            color: "#991b1b",
+            background: "#FAE8E8",
+            color: "#9C3030",
         },
         neutral: {
-            background: "#e5e7eb",
-            color: "#374151",
+            background: "#EEF2EE",
+            color: "#48534B",
         },
     },
 
@@ -183,8 +187,8 @@ const theme = createTheme({
                 },
                 body: {
                     margin: 0,
-                    backgroundColor: "#f6f8f7",
-                    color: "#17201b",
+                    backgroundColor: "#F5F7F5",
+                    color: "#25352B",
                     WebkitFontSmoothing: "antialiased",
                     MozOsxFontSmoothing: "grayscale",
                 },
@@ -199,7 +203,7 @@ const theme = createTheme({
                     boxSizing: "border-box",
                 },
                 "*:focus-visible": {
-                    outline: "3px solid rgba(22, 101, 52, 0.2)",
+                    outline: "3px solid rgba(47, 125, 74, 0.24)",
                     outlineOffset: 2,
                 },
             },
@@ -233,14 +237,14 @@ const theme = createTheme({
                     },
                 },
                 containedPrimary: {
-                    boxShadow: "0 4px 12px rgba(22, 101, 52, 0.18)",
+                    boxShadow: "0 2px 6px rgba(37, 53, 43, 0.08)",
 
                     "&:hover": {
-                        boxShadow: "0 6px 16px rgba(22, 101, 52, 0.22)",
+                        boxShadow: "0 3px 8px rgba(37, 53, 43, 0.12)",
                     },
                 },
                 outlinedPrimary: {
-                    borderColor: "rgba(22, 101, 52, 0.35)",
+                    borderColor: "rgba(47, 125, 74, 0.45)",
                 },
             },
         },
@@ -259,7 +263,7 @@ const theme = createTheme({
                     backgroundImage: "none",
                 },
                 rounded: {
-                    borderRadius: 14,
+                    borderRadius: 10,
                 },
             },
         },
@@ -267,9 +271,9 @@ const theme = createTheme({
         MuiCard: {
             styleOverrides: {
                 root: {
-                    border: "1px solid #e7ece9",
-                    borderRadius: 16,
-                    boxShadow: "0 8px 24px rgba(20, 83, 45, 0.06)",
+                    border: "1px solid #E1E7E2",
+                    borderRadius: 10,
+                    boxShadow: "0 2px 8px rgba(37, 53, 43, 0.05)",
                 },
             },
         },
@@ -355,7 +359,7 @@ const theme = createTheme({
                     border: "1px solid rgba(217, 119, 6, 0.2)",
                 },
                 standardInfo: {
-                    border: "1px solid rgba(37, 99, 235, 0.2)",
+                    border: "1px solid rgba(21, 128, 61, 0.2)",
                 },
             },
         },
@@ -373,11 +377,11 @@ const theme = createTheme({
             styleOverrides: {
                 head: {
                     fontWeight: 800,
-                    color: "#475569",
-                    backgroundColor: "#f8faf9",
+                    color: "#48534B",
+                    backgroundColor: "#EEF2EE",
                 },
                 root: {
-                    borderBottomColor: "#e7ece9",
+                    borderBottomColor: "#E1E7E2",
                 },
             },
         },

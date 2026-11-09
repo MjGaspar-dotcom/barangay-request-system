@@ -9,10 +9,9 @@ import Sidebar from "./Sidebar";
 |--------------------------------------------------------------------------
 | All four portal landing pages use this layout:
 |
-| 1. Guest
-| 2. Resident / User
-| 3. Staff
-| 4. Administrator
+| 1. Resident / User
+| 2. Staff
+| 3. Administrator
 |
 | The barangay photograph is placed in a separate background layer.
 | This allows us to control the image opacity without affecting

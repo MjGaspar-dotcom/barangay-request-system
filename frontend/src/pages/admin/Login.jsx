@@ -178,16 +178,11 @@ function Login() {
                             type="submit"
                             className="portal-login-button"
                             disabled={loading}
+                            aria-busy={loading || undefined}
+                            aria-label={loading ? "Signing in" : undefined}
                         >
                             {loading ? (
-                                <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                        role="status"
-                                        aria-hidden="true"
-                                    ></span>
-                                    Signing in...
-                                </>
+                                "Signing in..."
                             ) : (
                                 "Sign in to admin portal"
                             )}

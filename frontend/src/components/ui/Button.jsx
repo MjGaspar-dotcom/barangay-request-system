@@ -9,6 +9,20 @@ import BootstrapButton from "react-bootstrap/Button";
  *
  * Use either:  <Button variant="outline-danger">  or  <Button className="btn btn-outline-danger">
  */
-export default function Button({ variant = null, ...props }) {
-    return <BootstrapButton variant={variant} {...props} />;
+export default function Button({
+    variant = null,
+    loading = false,
+    loadingLabel = "Loading",
+    disabled = false,
+    ...props
+}) {
+    return (
+        <BootstrapButton
+            variant={variant}
+            {...props}
+            disabled={disabled || loading}
+            aria-busy={loading || undefined}
+            aria-label={loading ? loadingLabel : props["aria-label"]}
+        />
+    );
 }

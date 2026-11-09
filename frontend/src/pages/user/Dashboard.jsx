@@ -1,7 +1,9 @@
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ListAltRoundedIcon from "@mui/icons-material/ListAltRounded";
 import { Chip } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import ActionCard from "../../components/ui/ActionCard";
+import ForYouRecommendations from "../../components/ForYouRecommendations";
 import PageHeader from "../../components/ui/PageHeader";
 import PortalWorkspace from "../../components/ui/PortalWorkspace";
 import SectionCard from "../../components/ui/SectionCard";
@@ -20,9 +22,14 @@ import {
 
 function Dashboard() {
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     const residentName =
         user?.first_name || user?.firstName || user?.name || "Resident";
+
+    const selectRecommendedDocument = (document) => {
+        navigate("/request", { state: { recommendedDocument: document } });
+    };
 
     return (
         <PortalLayout portalLabel="RESIDENT SERVICES">
@@ -54,6 +61,13 @@ function Dashboard() {
                             description="View and monitor your submitted requests."
                         />
                     </ResidentActions>
+
+                    <ForYouRecommendations
+                        residentId={
+                            user?.resident_id ?? user?.user_id ?? user?.id ?? ""
+                        }
+                        onSelectDocument={selectRecommendedDocument}
+                    />
 
                     <SectionCard
                         eyebrow="Document Services"

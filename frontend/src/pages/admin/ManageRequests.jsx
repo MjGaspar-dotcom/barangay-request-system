@@ -4,22 +4,18 @@ import Button from "../../components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import StatusBadge from "../../components/ui/StatusBadge";
 
 const STATUS_FILTERS = [
     { value: "all", label: "All" },
     { value: "Pending", label: "Pending" },
+    { value: "Additional Requirements", label: "Additional Requirements" },
     { value: "Approved", label: "Approved" },
     { value: "Processing", label: "Processing" },
     { value: "Ready for Pickup", label: "Ready" },
     { value: "Completed", label: "Completed" },
     { value: "Rejected", label: "Rejected" },
-];
-
-const TYPE_FILTERS = [
-    { value: "all", label: "All" },
-    { value: "registered", label: "Registered" },
-    { value: "guest", label: "Guest" },
 ];
 
 export default function ManageRequests() {
@@ -30,35 +26,30 @@ export default function ManageRequests() {
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [typeFilter, setTypeFilter] = useState("all");
-
-    const fetchRequests = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get("/staff/requests");
-            setRequests(response.data.data || []);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load requests.");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        fetchRequests();
+        let active = true;
+        api.get("/staff/requests")
+            .then((response) => {
+                if (!active) return;
+                setRequests(response.data.data || []);
+                setError("");
+            })
+            .catch((requestError) => {
+                console.error(requestError);
+                if (active) setError("Failed to load requests.");
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
+        };
     }, []);
 
     const getRequesterName = (request) => {
-        if (request.request_type === "registered" && request.user) {
+        if (request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
-        }
-        if (request.request_type === "guest") {
-            const g = request.guest || request;
-            if (g.first_name) {
-                return `${g.first_name} ${g.last_name}`;
-            }
         }
         return "Unknown";
     };
@@ -72,10 +63,6 @@ export default function ManageRequests() {
                 (request.status || "").toLowerCase() !==
                     statusFilter.toLowerCase()
             ) {
-                return false;
-            }
-
-            if (typeFilter !== "all" && request.request_type !== typeFilter) {
                 return false;
             }
 
@@ -95,12 +82,13 @@ export default function ManageRequests() {
 
             return true;
         });
-    }, [requests, search, statusFilter, typeFilter]);
+    }, [requests, search, statusFilter]);
 
     const counts = useMemo(() => {
         const result = {
             total: requests.length,
             pending: 0,
+            additionalRequirements: 0,
             approved: 0,
             processing: 0,
             ready: 0,
@@ -111,6 +99,7 @@ export default function ManageRequests() {
         requests.forEach((req) => {
             const s = (req.status || "").toLowerCase();
             if (s === "pending") result.pending++;
+            else if (s === "additional requirements") result.additionalRequirements++;
             else if (s === "approved") result.approved++;
             else if (s === "processing") result.processing++;
             else if (s === "ready for pickup") result.ready++;
@@ -124,6 +113,11 @@ export default function ManageRequests() {
     const statCards = [
         { label: "Total", value: counts.total, tone: "total" },
         { label: "Pending", value: counts.pending, tone: "pending" },
+        {
+            label: "Additional Requirements",
+            value: counts.additionalRequirements,
+            tone: "pending",
+        },
         { label: "Approved", value: counts.approved, tone: "approved" },
         { label: "Processing", value: counts.processing, tone: "processing" },
         { label: "Ready", value: counts.ready, tone: "ready" },
@@ -131,27 +125,13 @@ export default function ManageRequests() {
         { label: "Rejected", value: counts.rejected, tone: "rejected" },
     ];
 
-    const getValidIdImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith("http")) return path;
-        return `http://127.0.0.1:8000/storage/${path}`;
-    };
-
     const formatDate = (value) =>
         value ? new Date(value).toLocaleString() : "—";
 
     if (loading) {
         return (
             <AdminLayout>
-                <div className="page-loading">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading requests...</p>
-                </div>
+                <SkeletonLoader label="Loading requests" variant="table" />
             </AdminLayout>
         );
     }
@@ -180,7 +160,7 @@ export default function ManageRequests() {
 
                             <p>
                                 Review every document request submitted by
-                                registered residents and walk-in guests. Open
+                                registered residents. Open
                                 a request to review its details and manage its
                                 status.
                             </p>
@@ -247,24 +227,6 @@ export default function ManageRequests() {
                                 ))}
                             </select>
 
-                            <select
-                                className="form-select filter-select-180"
-                                value={typeFilter}
-                                onChange={(event) =>
-                                    setTypeFilter(event.target.value)
-                                }
-                                
-                            >
-                                {TYPE_FILTERS.map((filter) => (
-                                    <option
-                                        key={filter.value}
-                                        value={filter.value}
-                                    >
-                                        Type: {filter.label}
-                                    </option>
-                                ))}
-                            </select>
-
                             <div className="filter-count"
                                 
                             >
@@ -302,25 +264,16 @@ export default function ManageRequests() {
                                     </thead>
                                     <tbody>
                                         {filtered.map((request) => {
-                                            const reqId = request.request_id || request.guest_request_id;
-                                            const reqType = request.request_type || "registered";
-                                            const idImage = request.guest?.valid_id_image;
+                                            const reqId = request.request_id;
 
                                             return (
-                                                <tr key={`${reqType}-${reqId}`}>
+                                                <tr key={reqId}>
                                                     <td>
                                                         <strong>{getRequesterName(request)}</strong>
                                                         <div className="data-table-subtext">{request.tracking_number}</div>
-                                                        <div className="data-table-subtext text-capitalize">{reqType}</div>
                                                     </td>
                                                     <td>
                                                         <strong>{request.document_type?.document_name || "Unknown"}</strong>
-                                                        {idImage && (
-                                                            <div className="data-table-subtext">
-                                                                <strong>Valid ID:</strong>{" "}
-                                                                <a className="data-table-link" href={getValidIdImageUrl(idImage)} target="_blank" rel="noreferrer">View uploaded ID</a>
-                                                            </div>
-                                                        )}
                                                     </td>
                                                     <td><StatusBadge status={request.status} /></td>
                                                     <td>
@@ -335,7 +288,7 @@ export default function ManageRequests() {
                                                                 className="btn btn-outline-success btn-sm"
                                                                 onClick={() =>
                                                                     navigate(
-                                                                        `/admin/requests/${reqType}/${reqId}`,
+                                                                        `/admin/requests/${reqId}`,
                                                                     )
                                                                 }
                                                             >

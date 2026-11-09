@@ -5,6 +5,7 @@ import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 const ROLE_FILTERS = [
     { value: "all", label: "All" },
@@ -192,22 +193,6 @@ export default function ManageUsers() {
         return new Date(value).toLocaleString();
     };
 
-    if (loading) {
-        return (
-            <AdminLayout>
-                <div className="page-loading">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading users...</p>
-                </div>
-            </AdminLayout>
-        );
-    }
-
     if (error) {
         return (
             <AdminLayout>
@@ -315,14 +300,24 @@ export default function ManageUsers() {
                             <div className="filter-count"
                                 
                             >
-                                Showing {filtered.length} of {users.length}{" "}
-                                user{users.length === 1 ? "" : "s"}
+                                {!loading && (
+                                    <>
+                                        Showing {filtered.length} of {users.length}{" "}
+                                        user{users.length === 1 ? "" : "s"}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </section>
 
                     <section className="dashboard-section">
-                        {filtered.length === 0 ? (
+                        {loading ? (
+                            <SkeletonLoader
+                                label="Loading users"
+                                variant="table"
+                                columns={9}
+                            />
+                        ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon" aria-hidden="true">
                                     <i className="bi bi-people" />

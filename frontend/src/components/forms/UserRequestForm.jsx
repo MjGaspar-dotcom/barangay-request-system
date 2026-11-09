@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 import { validateForm } from "../../utils/validateForm";
-export default function UserRequestForm() {
+export default function UserRequestForm({ initialDocument = "" }) {
     const { user } = useAuth();
+    const verificationStatus = user?.verification_status;
 
     const [documentTypes, setDocumentTypes] = useState([]);
     const [documentTypeId, setDocumentTypeId] = useState("");
@@ -19,7 +20,17 @@ export default function UserRequestForm() {
             try {
                 const response = await api.get("/document-types");
 
-                setDocumentTypes(response.data.data);
+                const availableDocumentTypes = response.data.data;
+                setDocumentTypes(availableDocumentTypes);
+                const recommendedDocument = availableDocumentTypes.find(
+                    (documentType) =>
+                        documentType.document_name === initialDocument
+                );
+                if (recommendedDocument) {
+                    setDocumentTypeId(
+                        String(recommendedDocument.document_type_id)
+                    );
+                }
             } catch (error) {
                 console.error(error);
                 setError("Failed to load document types.");
@@ -29,7 +40,7 @@ export default function UserRequestForm() {
         };
 
         fetchDocumentTypes();
-    }, []);
+    }, [initialDocument]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -38,19 +49,12 @@ export default function UserRequestForm() {
 
         setError("");
         setSuccess("");
-        setLoading(true);
 
-        if (verificationStatus === "rejected") {
-            return (
-                <div className="alert alert-danger">
-                    <h5>Account Verification Rejected</h5>
-                    <p className="mb-0">
-                        Your account verification was rejected. Please update your
-                        profile and valid ID information, then wait for another
-                        verification review.
-                    </p>
-                </div>
+        if (verificationStatus !== "verified") {
+            setError(
+                "Your account must be verified before you can submit a request."
             );
+            return;
         }
 
         setLoading(true);
@@ -62,7 +66,7 @@ export default function UserRequestForm() {
             });
 
             setSuccess(
-                `Request submitted successfully. Tracking number: ${response.data.data.tracking_number}`
+                `Request submitted successfully. Tracking number: ${response.data.data.request.tracking_number}`
             );
 
             setDocumentTypeId("");
@@ -73,7 +77,10 @@ export default function UserRequestForm() {
             if (error.response?.status === 422) {
                 setError("Please check the information you entered.");
             } else {
-                setError("Failed to submit request.");
+                setError(
+                    error.response?.data?.message ||
+                        "Failed to submit request."
+                );
             }
         } finally {
             setLoading(false);
@@ -139,6 +146,13 @@ export default function UserRequestForm() {
                 />
             </div>
 
+            {verificationStatus !== "verified" && (
+                <div className="alert alert-info" role="status">
+                    Your account must be verified before you can submit a
+                    document request.
+                </div>
+            )}
+
             {error && (
                 <p className="text-danger">
                     {error}
@@ -154,7 +168,7 @@ export default function UserRequestForm() {
             <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || verificationStatus !== "verified"}
             >
                 {loading ? "Submitting..." : "Submit Request"}
             </button>

@@ -27,18 +27,10 @@ class UpdateBarangayRequest  extends FormRequest
     {
         return [
             // request processing status
-            'status' => 'sometimes|in:Pending,Processing,Approved,Ready for Pickup,Rejected,Completed',
+            'status' => 'sometimes|in:Pending,Additional Requirements,Approved,Rejected,Processing,Ready for Pickup,Completed',
 
-            //Staff/Admin remarks about Request
-            'remarks' => 'sometimes|nullable|string',
-
-            //Staff member who verified the Status
-            'verified_by' => 'sometimes|nullable|exists:staff,staff_id',
-
-            // Data and Time when the Request was Verified
-            'verified_at' =>'sometimes|nullable|date',
-
-            
+            'remarks' => 'sometimes|nullable|string|max:2000',
+            'recipient_name' => 'sometimes|required|string|max:255',
         ];
     }
 }

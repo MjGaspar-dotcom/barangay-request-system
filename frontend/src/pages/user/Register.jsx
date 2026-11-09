@@ -361,6 +361,8 @@ function Register() {
                         type="submit"
                         className="btn btn-success w-100"
                         disabled={loading}
+                        aria-busy={loading || undefined}
+                        aria-label={loading ? "Creating account" : undefined}
                     >
                         {loading ? "Creating Account..." : "Create Account"}
                     </button>

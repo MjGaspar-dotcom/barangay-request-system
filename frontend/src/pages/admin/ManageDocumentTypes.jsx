@@ -4,6 +4,7 @@ import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
@@ -177,12 +178,10 @@ export default function ManageDocumentTypes() {
     if (loading) {
         return (
             <AdminLayout>
-                <div className="page-loading">
-                    <div className="spinner-border text-success" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading document types...</p>
-                </div>
+                <SkeletonLoader
+                    label="Loading document types"
+                    variant="table"
+                />
             </AdminLayout>
         );
     }
@@ -213,7 +212,7 @@ export default function ManageDocumentTypes() {
                                 <p>
                                     Create, edit, and manage the document
                                     services offered by the barangay to
-                                    residents and walk-in guests.
+                                    registered residents.
                                 </p>
                             </div>
 
@@ -339,12 +338,12 @@ export default function ManageDocumentTypes() {
                                             type="submit"
                                             className="btn btn-success"
                                             disabled={submitting}
+                                            loading={submitting}
+                                            loadingLabel="Saving document type"
                                         >
-                                            {submitting
-                                                ? "Saving..."
-                                                : editingId
-                                                  ? "Save Changes"
-                                                  : "Create Document Type"}
+                                            {editingId
+                                                ? "Save Changes"
+                                                : "Create Document Type"}
                                         </Button>
 
                                         <Button

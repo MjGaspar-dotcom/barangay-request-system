@@ -160,27 +160,27 @@
    These styles are scoped to avoid changing resident pages.
    ========================================================= */
 
-/* Staff operations workspace: calm slate, teal, and clear task focus. */
+/* Staff and admin use the same Barangay Aurora green-and-gold palette. */
 .portal-staff-workspace {
-    --workspace-accent: #0f766e;
-    --workspace-accent-dark: #115e59;
-    --workspace-soft: #e6f5f2;
-    --workspace-border: #d5e8e4;
+    --workspace-accent: var(--brand-800);
+    --workspace-accent-dark: var(--brand-900);
+    --workspace-soft: var(--brand-50);
+    --workspace-border: var(--brand-200);
 }
 
 .portal-staff-workspace .portal-dashboard-layout {
-    background: #f3f7f7;
+    background: var(--surface);
 }
 
 .portal-staff-workspace .portal-dashboard-sidebar .dashboard-sidebar {
-    background: #123c43;
+    background: linear-gradient(180deg, #123b28 0%, #0b2d20 100%);
     border-right: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 8px 0 28px rgba(16, 54, 61, 0.08);
+    box-shadow: 8px 0 28px rgba(15, 45, 30, 0.08);
 }
 
 .portal-staff-workspace .sidebar-logo {
-    background: #d6f3ed;
-    color: #115e59;
+    background: var(--brand-100);
+    color: var(--brand-900);
 }
 
 /* Sidebar identity card: ONE shape for every role and layout (staff, admin
@@ -199,25 +199,25 @@
 }
 
 .portal-staff-workspace .sidebar-role-label {
-    color: #a7e4d9;
+    color: var(--accent-gold-light);
     text-transform: none;
 }
 
 .portal-staff-workspace .sidebar-link:hover,
 .portal-staff-workspace .sidebar-link.active {
     color: var(--white);
-    background: #176d70;
-    box-shadow: inset 3px 0 #8ee0d0;
+    background: rgba(var(--accent-gold-rgb), 0.14);
+    box-shadow: inset 3px 0 var(--accent-gold-light);
 }
 
 .portal-staff-workspace .portal-header {
-    border-bottom: 1px solid #e0e9e9;
+    border-bottom: 1px solid var(--gray-200);
 }
 
 .portal-staff-workspace .portal-header-label {
-    color: #0f766e;
-    background: #e6f5f2;
-    border: 1px solid #cde9e3;
+    color: var(--brand-800);
+    background: var(--brand-50);
+    border: 1px solid var(--brand-200);
     border-radius: 999px;
     padding: 8px 13px;
     font-size: 11px;
@@ -226,17 +226,17 @@
 }
 
 .portal-staff-workspace .portal-main {
-    background: #f3f7f7;
+    background: var(--surface);
 }
 
 .portal-staff-workspace .staff-welcome {
-    border-left: 4px solid #0f766e;
+    border-left: 4px solid var(--brand-800);
     padding-left: 22px;
 }
 
 .portal-staff-workspace .staff-stat-card {
-    border-color: #dce9e8;
-    box-shadow: 0 4px 16px rgba(20, 65, 70, 0.04);
+    border-color: var(--gray-200);
+    box-shadow: 0 4px 16px rgba(20, 83, 45, 0.04);
 }
 
 /* Admin console: deeper forest green, warm ivory, and restrained gold. */
@@ -248,27 +248,27 @@
 }
 
 .portal-admin-workspace .portal-dashboard-layout {
-    background: #f5f5ef;
+    background: var(--surface);
 }
 
 .portal-admin-workspace .portal-dashboard-sidebar .dashboard-sidebar {
     background: linear-gradient(180deg, #123b28 0%, #0b2d20 100%);
-    border-right: 1px solid rgba(224, 190, 105, 0.24);
+    border-right: 1px solid rgba(var(--accent-gold-rgb), 0.24);
     box-shadow: 8px 0 28px rgba(15, 45, 30, 0.12);
 }
 
 .portal-admin-workspace .sidebar-logo {
-    background: #e5c77c;
+    background: var(--accent-gold-light);
     color: #173b28;
 }
 
 .portal-admin-workspace .sidebar-user {
-    border: 1px solid rgba(229, 199, 124, 0.25);
-    background: rgba(229, 199, 124, 0.08);
+    border: 1px solid rgba(var(--accent-gold-rgb), 0.25);
+    background: rgba(var(--accent-gold-rgb), 0.08);
 }
 
 .portal-admin-workspace .sidebar-role-label {
-    color: #e5c77c;
+    color: var(--accent-gold-light);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
@@ -276,14 +276,14 @@
 .portal-admin-workspace .sidebar-link:hover,
 .portal-admin-workspace .sidebar-link.active {
     color: var(--white);
-    background: rgba(229, 199, 124, 0.14);
-    box-shadow: inset 3px 0 #e5c77c;
+    background: rgba(var(--accent-gold-rgb), 0.14);
+    box-shadow: inset 3px 0 var(--accent-gold-light);
 }
 
 .portal-admin-workspace .sidebar-menu-label,
 .admin-management-layout .sidebar-menu-label {
     padding: 0 12px 4px;
-    color: #e5c77c;
+    color: var(--accent-gold-light);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -296,14 +296,14 @@
 }
 
 .portal-admin-workspace .portal-header {
-    border-bottom: 1px solid #e7e3d6;
+    border-bottom: 1px solid var(--gray-200);
     background: var(--white);
 }
 
 .portal-admin-workspace .portal-header-label {
-    color: #71531b;
-    background: #f8f0d9;
-    border: 1px solid #e9d9a7;
+    color: var(--accent-gold-text);
+    background: var(--accent-gold-soft);
+    border: 1px solid var(--accent-gold-border);
     border-radius: 7px;
     padding: 8px 13px;
     font-size: 11px;
@@ -312,31 +312,31 @@
 }
 
 .portal-admin-workspace .portal-main {
-    background: #f5f5ef;
+    background: var(--surface);
 }
 
 /* Admin management pages use a distinct console sidebar as well. */
 .admin-management-layout .dashboard-sidebar {
     background: linear-gradient(180deg, #123b28 0%, #0b2d20 100%);
-    border-right: 1px solid rgba(224, 190, 105, 0.24);
+    border-right: 1px solid rgba(var(--accent-gold-rgb), 0.24);
 }
 
 .admin-management-layout .sidebar-logo {
-    background: #e5c77c;
+    background: var(--accent-gold-light);
     color: #173b28;
 }
 
 .admin-management-layout .sidebar-user {
-    border: 1px solid rgba(229, 199, 124, 0.25);
-    background: rgba(229, 199, 124, 0.08);
+    border: 1px solid rgba(var(--accent-gold-rgb), 0.25);
+    background: rgba(var(--accent-gold-rgb), 0.08);
 }
 
 .portal-admin-workspace .sidebar-account-card,
 .admin-management-layout .sidebar-account-card {
     padding: 8px;
-    border: 1px solid rgba(229, 199, 124, 0.25);
+    border: 1px solid rgba(var(--accent-gold-rgb), 0.25);
     border-radius: 12px;
-    background: rgba(229, 199, 124, 0.08);
+    background: rgba(var(--accent-gold-rgb), 0.08);
 }
 
 .portal-admin-workspace .sidebar-account-card .sidebar-user,
@@ -350,44 +350,44 @@
 
 .portal-admin-workspace .sidebar-account-card .sidebar-role-label,
 .admin-management-layout .sidebar-account-card .sidebar-role-label {
-    color: #e5c77c;
+    color: var(--accent-gold-light);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 
 .portal-admin-workspace .sidebar-account-card .sidebar-logout,
 .admin-management-layout .sidebar-account-card .sidebar-logout {
-    border-top: 1px solid rgba(229, 199, 124, 0.2);
+    border-top: 1px solid rgba(var(--accent-gold-rgb), 0.2);
     border-radius: 0 0 8px 8px;
 }
 
 .admin-management-layout .sidebar-role-label {
-    color: #e5c77c;
+    color: var(--accent-gold-light);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 
 .portal-staff-workspace .portal-dashboard-sidebar .dashboard-sidebar {
-    background: linear-gradient(180deg, #123c43 0%, #0b3037 100%);
-    border-right: 1px solid rgba(142, 224, 208, 0.2);
-    box-shadow: 8px 0 28px rgba(16, 54, 61, 0.12);
+    background: linear-gradient(180deg, #123b28 0%, #0b2d20 100%);
+    border-right: 1px solid rgba(var(--accent-gold-rgb), 0.2);
+    box-shadow: 8px 0 28px rgba(15, 45, 30, 0.12);
 }
 
 .portal-staff-workspace .sidebar-logo {
-    background: #d6f3ed;
-    color: #115e59;
+    background: var(--brand-100);
+    color: var(--brand-900);
 }
 
 .portal-staff-workspace .sidebar-link:hover,
 .portal-staff-workspace .sidebar-link.active {
     color: var(--white);
-    background: #176d70;
-    box-shadow: inset 3px 0 #8ee0d0;
+    background: rgba(var(--accent-gold-rgb), 0.14);
+    box-shadow: inset 3px 0 var(--accent-gold-light);
 }
 
 .portal-staff-workspace .sidebar-menu-label {
     padding: 0 12px 4px;
-    color: #a7e4d9;
+    color: var(--accent-gold-light);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -395,9 +395,9 @@
 
 .portal-staff-workspace .sidebar-account-card {
     padding: 8px;
-    border: 1px solid rgba(142, 224, 208, 0.22);
+    border: 1px solid rgba(var(--accent-gold-rgb), 0.25);
     border-radius: 12px;
-    background: rgba(142, 224, 208, 0.07);
+    background: rgba(var(--accent-gold-rgb), 0.08);
 }
 
 .portal-staff-workspace .sidebar-account-card .sidebar-user {
@@ -409,25 +409,25 @@
 }
 
 .portal-staff-workspace .sidebar-account-card .sidebar-role-label {
-    color: #a7e4d9;
+    color: var(--accent-gold-light);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 
 .portal-staff-workspace .sidebar-account-card .sidebar-logout {
-    border-top: 1px solid rgba(142, 224, 208, 0.2);
+    border-top: 1px solid rgba(var(--accent-gold-rgb), 0.2);
     border-radius: 0 0 8px 8px;
 }
 
 .admin-management-layout .sidebar-link:hover,
 .admin-management-layout .sidebar-link.active {
     color: var(--white);
-    background: rgba(229, 199, 124, 0.14);
-    box-shadow: inset 3px 0 #e5c77c;
+    background: rgba(var(--accent-gold-rgb), 0.14);
+    box-shadow: inset 3px 0 var(--accent-gold-light);
 }
 
 .admin-management-layout .dashboard-content {
-    background: #f5f5ef;
+    background: var(--surface);
 }
 
 @media (max-width: 768px) {
@@ -457,8 +457,17 @@
 
 .portal-dashboard-sidebar .sidebar-navigation,
 .dashboard-sidebar-wrapper .sidebar-navigation {
+    flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.portal-dashboard-sidebar .sidebar-navigation::-webkit-scrollbar,
+.dashboard-sidebar-wrapper .sidebar-navigation::-webkit-scrollbar {
+    display: none;
 }
 
 /* The generated civic illustration is a decorative backdrop, never content. */
@@ -517,7 +526,7 @@
     background: rgba(250, 249, 242, 0.76);
 }
 
-/* Mobile drawer stays fixed and intentionally has no internal scrollbar. */
+/* Keep the mobile drawer fixed while allowing long navigation lists to scroll. */
 @media (max-width: 768px) {
     .portal-dashboard-sidebar .dashboard-sidebar,
     .dashboard-sidebar-wrapper .dashboard-sidebar {
@@ -528,7 +537,7 @@
 
     .portal-dashboard-sidebar .sidebar-navigation,
     .dashboard-sidebar-wrapper .sidebar-navigation {
-        overflow: hidden;
+        overflow-y: auto;
     }
 }
 
@@ -561,9 +570,10 @@
 }
 
 .portal-dashboard-page .portal-dashboard-sidebar .sidebar-navigation {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
 }
 
 .portal-dashboard-page .portal-dashboard-main {
@@ -618,6 +628,10 @@
         height: 100dvh;
         max-height: 100dvh;
         overflow: hidden;
+    }
+
+    .portal-dashboard-page .portal-dashboard-sidebar .sidebar-navigation {
+        overflow-y: auto;
     }
 
     .portal-dashboard-page .portal-dashboard-main {
@@ -749,15 +763,15 @@
 .portal-dashboard-page .sidebar-navigation .sidebar-link.active,
 .admin-management-layout .sidebar-navigation .sidebar-link.active {
     color: var(--white);
-    background: rgba(229, 199, 124, 0.15);
-    box-shadow: inset 4px 0 #e5c77c;
+    background: rgba(var(--accent-gold-rgb), 0.15);
+    box-shadow: inset 4px 0 var(--accent-gold-light);
     font-weight: 750;
     text-decoration: none;
 }
 
 .portal-staff-workspace .sidebar-navigation .sidebar-link.active {
-    background: #176d70;
-    box-shadow: inset 4px 0 #8ee0d0;
+    background: rgba(var(--accent-gold-rgb), 0.14);
+    box-shadow: inset 4px 0 var(--accent-gold-light);
 }
 
 .portal-dashboard-page .sidebar-navigation .sidebar-link-icon,
@@ -770,7 +784,7 @@
 
 .portal-dashboard-page .sidebar-navigation .sidebar-link:focus-visible,
 .admin-management-layout .sidebar-navigation .sidebar-link:focus-visible {
-    outline: 3px solid rgba(229, 199, 124, 0.8);
+    outline: 3px solid rgba(var(--accent-gold-rgb), 0.8);
     outline-offset: 2px;
 }
 

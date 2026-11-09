@@ -11,6 +11,11 @@ function AdminLayout({ children }) {
             icon: "bi-speedometer2",
         },
         {
+            label: "System Analytics",
+            to: "/admin/analytics",
+            icon: "bi-bar-chart-line",
+        },
+        {
             label: "Manage Users",
             to: "/admin/users",
             icon: "bi-people",

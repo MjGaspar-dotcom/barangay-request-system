@@ -48,7 +48,9 @@ class AuditService
     public static function logStatusChange(
         Model $model,
         string $oldStatus,
-        string $newStatus
+        string $newStatus,
+        ?string $remarks = null,
+        string $action = 'status_changed'
     ): AuditLog {
         $user = Auth::user();
         $userName = $user ? "{$user->first_name} {$user->last_name}" : 'System';
@@ -56,11 +58,14 @@ class AuditService
         $id = $model->getKey();
 
         return self::log(
-            'status_changed',
+            $action,
             $model,
-            "{$userName} changed {$table} #{$id} status from {$oldStatus} to {$newStatus}",
+            trim("{$userName} changed {$table} #{$id} status from {$oldStatus} to {$newStatus}. " . ($remarks ?? '')),
             ['status' => $oldStatus],
-            ['status' => $newStatus]
+            array_filter([
+                'status' => $newStatus,
+                'remarks' => $remarks,
+            ], static fn ($value) => $value !== null)
         );
     }
 
@@ -72,8 +77,7 @@ class AuditService
         int $userId,
         string $title,
         string $message,
-        ?int $requestId = null,
-        ?int $guestRequestId = null
+        ?int $requestId = null
     ): Notification {
         $user = Auth::user();
 
@@ -82,7 +86,6 @@ class AuditService
             'user_id' => $userId,
             'staff_id' => $user?->staff?->staff_id,
             'request_id' => $requestId,
-            'guest_request_id' => $guestRequestId,
             'title' => $title,
             'message' => $message,
         ]);
@@ -95,8 +98,7 @@ class AuditService
         string $type,
         string $title,
         string $message,
-        ?int $requestId = null,
-        ?int $guestRequestId = null
+        ?int $requestId = null
     ): void {
         $staffMembers = Staff::with('user')->get();
 
@@ -106,7 +108,6 @@ class AuditService
                 'user_id' => $staff->user_id,
                 'staff_id' => $staff->staff_id,
                 'request_id' => $requestId,
-                'guest_request_id' => $guestRequestId,
                 'title' => $title,
                 'message' => $message,
             ]);

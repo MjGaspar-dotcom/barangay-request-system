@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
     Button,
-    CircularProgress,
     TextField,
 } from "@mui/material";
 import api from "../../services/api";
@@ -185,11 +184,9 @@ export default function EmailOtpVerification({
                             !emailIsValid ||
                             resendSeconds > 0
                         }
+                        aria-busy={sending || undefined}
+                        aria-label={sending ? "Sending verification code" : undefined}
                     >
-                        {sending && (
-                            <CircularProgress size={18} color="inherit" />
-                        )}
-
                         {sending
                             ? "Sending..."
                             : resendSeconds > 0
@@ -238,14 +235,9 @@ export default function EmailOtpVerification({
                                     verifying ||
                                     !OTP_PATTERN.test(otp)
                                 }
+                                aria-busy={verifying || undefined}
+                                aria-label={verifying ? "Verifying email" : undefined}
                             >
-                                {verifying && (
-                                    <CircularProgress
-                                        size={18}
-                                        color="inherit"
-                                    />
-                                )}
-
                                 {verifying
                                     ? "Verifying..."
                                     : "Verify Email"}

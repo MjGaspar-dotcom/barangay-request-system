@@ -1,21 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AdminStaffController;
+use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BarangayRequestController;
+use App\Http\Controllers\Api\DocumentRequestTrendController;
 use App\Http\Controllers\Api\DocumentTypeController;
-use App\Http\Controllers\Api\GuestRequestController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OcrTestController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\AdminUserController;
-use App\Http\Controllers\Api\AdminStaffController;
-use App\Http\Controllers\Api\AdminController;
-
-use App\Http\Controllers\Api\OcrTestController;
-
 use App\Services\QrCodeService;
+use Illuminate\Support\Facades\Route;
 
 Route::post('/ocr/test', [OcrTestController::class, 'test']);
 
@@ -27,12 +25,12 @@ Route::get('/test-qr', function () {
 
 Route::get('/test', function () {
     return response()->json([
-        'message' => 'API is working'
+        'message' => 'API is working',
     ]);
 });
 
-// Document types are needed by both guests and authenticated users when
-// submitting a request. Management actions remain protected below.
+// Document types are needed by mobile and web clients when submitting a
+// request. Management actions remain protected below.
 Route::get(
     '/document-types',
     [DocumentTypeController::class, 'index']
@@ -45,26 +43,14 @@ Route::get(
 Route::post('/login', [AuthController::class, 'login'])
     ->name('login');
 
+Route::post('/auth/google', [AuthController::class, 'google'])
+    ->middleware('throttle:10,1')
+    ->name('auth.google');
+
 Route::post('/register', [AuthController::class, 'register'])
     ->name('register');
 
-// ==========================
-// GUEST REQUESTS (Public)
-// ==========================
-
-// Submit a new guest request — no login required.
-Route::post(
-    '/guest-requests',
-    [GuestRequestController::class, 'store']
-);
-
-// Track a guest request by tracking number — no login required.
-Route::get(
-    '/guest-requests/track/{trackingNumber}',
-    [GuestRequestController::class, 'track']
-);
-
-// Track any request by tracking number — no login required.
+// Track a registered request by tracking number.
 Route::get(
     '/track/{trackingNumber}',
     [BarangayRequestController::class, 'track']
@@ -112,6 +98,15 @@ Route::middleware('auth:sanctum')->group(function () {
         [BarangayRequestController::class, 'update']
     );
 
+    Route::post(
+        '/barangay-requests/{barangayRequest}/requirements/resubmit',
+        [BarangayRequestController::class, 'resubmitRequirements']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/documents/{document}/view',
+        [BarangayRequestController::class, 'showDocument']
+    );
+
     // --------------------------------------------------
     // Document Types
     // --------------------------------------------------
@@ -137,34 +132,13 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 
     Route::get('/staff', [StaffController::class, 'index']);
     Route::get('/staff/requests', [StaffController::class, 'allRequests']);
-
-    // --------------------------------------------------
-    // Guest Requests (Staff/Admin management)
-    // --------------------------------------------------
-
-    Route::get(
-        '/guest-requests',
-        [GuestRequestController::class, 'index']
+    Route::post(
+        '/barangay-requests/{barangayRequest}/requirements/verify',
+        [BarangayRequestController::class, 'verifyRequirements']
     );
-
-    Route::get(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'show']
-    );
-
-    Route::put(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'update']
-    );
-
-    Route::patch(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'update']
-    );
-
-    Route::delete(
-        '/guest-requests/{guestRequest}',
-        [GuestRequestController::class, 'destroy']
+    Route::post(
+        '/barangay-requests/{barangayRequest}/documents/prepared',
+        [BarangayRequestController::class, 'storePreparedDocument']
     );
 
     // Delete is staff/admin only — moved out of the registered-user route group.
@@ -182,6 +156,16 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 // ==========================
 
 Route::middleware(['auth:sanctum', 'admin.only'])->group(function () {
+
+    Route::post(
+        '/barangay-requests/{barangayRequest}/documents/authorize',
+        [BarangayRequestController::class, 'authorizeDocument']
+    );
+
+    Route::get(
+        '/admin/analytics/document-request-trends',
+        DocumentRequestTrendController::class
+    );
 
     // --------------------------------------------------
     // Manage Users

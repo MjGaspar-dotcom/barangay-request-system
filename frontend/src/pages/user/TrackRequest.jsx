@@ -19,7 +19,7 @@ export default function TrackRequest() {
 
         try {
             const response = await api.get(
-                `/guest-requests/track/${trackingNumber.trim()}`
+                `/track/${trackingNumber.trim()}`
             );
 
             setResult(response.data.data);
@@ -66,7 +66,7 @@ export default function TrackRequest() {
                                     id="tracking_number"
                                     type="text"
                                     className="form-control mb-3"
-                                    placeholder="Example: GR-20260902-ABCDEF"
+                                    placeholder="Example: BR-20260902-ABCDEF"
                                     value={trackingNumber}
                                     onChange={(e) =>
                                         setTrackingNumber(e.target.value)
@@ -78,6 +78,8 @@ export default function TrackRequest() {
                                     type="submit"
                                     className="btn btn-primary w-100"
                                     disabled={loading}
+                                    aria-busy={loading || undefined}
+                                    aria-label={loading ? "Searching requests" : undefined}
                                 >
                                     {loading ? "Searching..." : "Track Request"}
                                 </button>
@@ -104,7 +106,7 @@ export default function TrackRequest() {
                                             </tr>
                                             <tr>
                                                 <th>Document</th>
-                                                <td>{result.document}</td>
+                                                <td>{result.document_type}</td>
                                             </tr>
                                             <tr>
                                                 <th>Status</th>

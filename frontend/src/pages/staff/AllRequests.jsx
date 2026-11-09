@@ -3,14 +3,15 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import PortalLayout from "../../layouts/PortalLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 /*
 |--------------------------------------------------------------------------
 | Staff — All Requests
 |--------------------------------------------------------------------------
-| Full searchable, filterable list of every barangay and guest request.
-| Staff can approve/reject/advance/delete directly from this list, or
-| click through to the details page for full info.
+| Full searchable, filterable list of registered barangay requests.
+| Staff can start approved requests here or open the details page for
+| requirement verification and the remaining workflow actions.
 |--------------------------------------------------------------------------
 */
 
@@ -22,6 +23,7 @@ const navigationItems = [
 const STATUS_FILTERS = [
     { value: "all", label: "All Statuses" },
     { value: "Pending", label: "Pending" },
+    { value: "Additional Requirements", label: "Additional Requirements" },
     { value: "Approved", label: "Approved" },
     { value: "Processing", label: "Processing" },
     { value: "Ready for Pickup", label: "Ready for Pickup" },
@@ -29,22 +31,12 @@ const STATUS_FILTERS = [
     { value: "Rejected", label: "Rejected" },
 ];
 
-const TYPE_FILTERS = [
-    { value: "all", label: "All Types" },
-    { value: "registered", label: "Registered" },
-    { value: "guest", label: "Guest" },
-];
-
 const formatDate = (value) =>
     value ? new Date(value).toLocaleString() : "—";
 
 function getRequesterName(request) {
-    if (request.request_type === "registered" && request.user) {
+    if (request.user) {
         return `${request.user.first_name} ${request.user.last_name}`;
-    }
-    if (request.request_type === "guest") {
-        const g = request.guest || request;
-        if (g.first_name) return `${g.first_name} ${g.last_name}`;
     }
     return "Unknown";
 }
@@ -57,7 +49,6 @@ export default function AllRequests() {
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [typeFilter, setTypeFilter] = useState("all");
     const [busyId, setBusyId] = useState(null);
     const [flashMessage, setFlashMessage] = useState("");
     const [flashError, setFlashError] = useState("");
@@ -78,7 +69,6 @@ export default function AllRequests() {
 
     const fetchRequests = useCallback(async () => {
         try {
-            setLoading(true);
             const response = await api.get("/staff/requests");
             setRequests(response.data.data || []);
             setError("");
@@ -91,24 +81,39 @@ export default function AllRequests() {
     }, []);
 
     useEffect(() => {
-        fetchRequests();
-    }, [fetchRequests]);
+        let active = true;
+        api.get("/staff/requests")
+            .then((response) => {
+                if (!active) return;
+                setRequests(response.data.data || []);
+                setError("");
+            })
+            .catch((loadError) => {
+                console.error(loadError);
+                if (active) {
+                    setError("Failed to load requests. Please try again.");
+                }
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleStatusUpdate = async (request, newStatus) => {
-        const key = `${request.request_type}-${request.request_id}`;
+        const key = request.request_id;
         const confirmAction = window.confirm(
             `Change status of ${request.tracking_number} to "${newStatus}"?`
         );
         if (!confirmAction) return;
 
-        const endpoint =
-            request.request_type === "guest"
-                ? `/guest-requests/${request.request_id}`
-                : `/barangay-requests/${request.request_id}`;
-
         try {
             setBusyId(key);
-            await api.put(endpoint, { status: newStatus });
+            await api.put(`/barangay-requests/${request.request_id}`, {
+                status: newStatus,
+            });
             flash(
                 `${request.tracking_number} updated to "${newStatus}".`
             );
@@ -117,34 +122,6 @@ export default function AllRequests() {
             console.error(err);
             flash(
                 err.response?.data?.message || "Failed to update status.",
-                true
-            );
-        } finally {
-            setBusyId(null);
-        }
-    };
-
-    const handleDelete = async (request) => {
-        const key = `${request.request_type}-${request.request_id}`;
-        const confirmDelete = window.confirm(
-            `Permanently delete ${request.tracking_number}? This cannot be undone.`
-        );
-        if (!confirmDelete) return;
-
-        const endpoint =
-            request.request_type === "guest"
-                ? `/guest-requests/${request.request_id}`
-                : `/barangay-requests/${request.request_id}`;
-
-        try {
-            setBusyId(key);
-            await api.delete(endpoint);
-            flash(`Request ${request.tracking_number} has been deleted.`);
-            await fetchRequests();
-        } catch (err) {
-            console.error(err);
-            flash(
-                err.response?.data?.message || "Failed to delete request.",
                 true
             );
         } finally {
@@ -162,9 +139,6 @@ export default function AllRequests() {
             )
                 return false;
 
-            if (typeFilter !== "all" && req.request_type !== typeFilter)
-                return false;
-
             if (needle) {
                 const haystack = [
                     req.tracking_number,
@@ -180,7 +154,7 @@ export default function AllRequests() {
 
             return true;
         });
-    }, [requests, search, statusFilter, typeFilter]);
+    }, [requests, search, statusFilter]);
 
     const counts = useMemo(() => {
         const result = { total: 0, pending: 0, processing: 0, completed: 0 };
@@ -207,7 +181,7 @@ export default function AllRequests() {
                         <h1 style={{ marginTop: 4 }}>All Requests</h1>
                         <p>
                             Review, process, and manage every document request
-                            submitted by residents and walk-in guests.
+                            submitted by registered residents.
                         </p>
                     </div>
                     <div className="staff-status-badge">
@@ -271,18 +245,6 @@ export default function AllRequests() {
                             ))}
                         </select>
 
-                        <select
-                            className="staff-filter-select"
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                        >
-                            {TYPE_FILTERS.map((f) => (
-                                <option key={f.value} value={f.value}>
-                                    {f.label}
-                                </option>
-                            ))}
-                        </select>
-
                         <span className="staff-filter-count">
                             {loading
                                 ? "Loading…"
@@ -311,10 +273,7 @@ export default function AllRequests() {
                     </div>
                 ) : loading ? (
                     <div className="staff-work-card">
-                        <div className="staff-empty-state">
-                            <div className="staff-empty-icon">⏳</div>
-                            <p>Loading requests…</p>
-                        </div>
+                        <SkeletonLoader label="Loading requests" variant="table" />
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="staff-work-card">
@@ -331,14 +290,9 @@ export default function AllRequests() {
                     <div className="staff-all-requests-list">
                         {filtered.map((request) => {
                             const reqId = request.request_id;
-                            const reqType = request.request_type || "registered";
-                            const key = `${reqType}-${reqId}`;
+                            const key = reqId;
                             const isBusy = busyId === key;
                             const requesterName = getRequesterName(request);
-                            const isFinal =
-                                request.status === "Completed" ||
-                                request.status === "Rejected";
-
                             return (
                                 <div
                                     className="staff-request-card"
@@ -349,15 +303,10 @@ export default function AllRequests() {
                                         <div
                                             className="staff-request-type-icon"
                                             style={{
-                                                backgroundColor:
-                                                    reqType === "registered"
-                                                        ? "#dcfce7"
-                                                        : "#fef9c3",
+                                                backgroundColor: "#dcfce7",
                                             }}
                                         >
-                                            {reqType === "registered"
-                                                ? "👤"
-                                                : "🧑"}
+                                            👤
                                         </div>
 
                                         <div className="staff-request-card-meta">
@@ -371,10 +320,6 @@ export default function AllRequests() {
                                             <div className="staff-request-card-sub">
                                                 <span className="staff-request-tracking">
                                                     {request.tracking_number}
-                                                </span>
-                                                <span>·</span>
-                                                <span style={{ textTransform: "capitalize" }}>
-                                                    {reqType}
                                                 </span>
                                                 <span>·</span>
                                                 <span>
@@ -405,49 +350,20 @@ export default function AllRequests() {
                                             disabled={isBusy}
                                             onClick={() =>
                                                 navigate(
-                                                    `/staff/requests/${reqType}/${reqId}`
+                                                    `/staff/requests/${reqId}`
                                                 )
                                             }
                                         >
                                             View Details
                                         </button>
 
-                                        {!isFinal && request.status === "Pending" && (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    className="staff-btn staff-btn-success"
-                                                    disabled={isBusy}
-                                                    onClick={() =>
-                                                        handleStatusUpdate(
-                                                            request,
-                                                            "Approved"
-                                                        )
-                                                    }
-                                                >
-                                                    ✓ Approve
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="staff-btn staff-btn-danger"
-                                                    disabled={isBusy}
-                                                    onClick={() =>
-                                                        handleStatusUpdate(
-                                                            request,
-                                                            "Rejected"
-                                                        )
-                                                    }
-                                                >
-                                                    ✕ Reject
-                                                </button>
-                                            </>
-                                        )}
-
                                         {request.status === "Approved" && (
                                             <button
                                                 type="button"
                                                 className="staff-btn staff-btn-primary"
                                                 disabled={isBusy}
+                                                aria-busy={isBusy || undefined}
+                                                aria-label={isBusy ? "Updating request" : undefined}
                                                 onClick={() =>
                                                     handleStatusUpdate(
                                                         request,
@@ -459,47 +375,6 @@ export default function AllRequests() {
                                             </button>
                                         )}
 
-                                        {request.status === "Processing" && (
-                                            <button
-                                                type="button"
-                                                className="staff-btn staff-btn-info"
-                                                disabled={isBusy}
-                                                onClick={() =>
-                                                    handleStatusUpdate(
-                                                        request,
-                                                        "Ready for Pickup"
-                                                    )
-                                                }
-                                            >
-                                                📦 Ready for Pickup
-                                            </button>
-                                        )}
-
-                                        {request.status === "Ready for Pickup" && (
-                                            <button
-                                                type="button"
-                                                className="staff-btn staff-btn-success"
-                                                disabled={isBusy}
-                                                onClick={() =>
-                                                    handleStatusUpdate(
-                                                        request,
-                                                        "Completed"
-                                                    )
-                                                }
-                                            >
-                                                ✓ Mark Completed
-                                            </button>
-                                        )}
-
-                                        <button
-                                            type="button"
-                                            className="staff-btn staff-btn-outline-danger"
-                                            disabled={isBusy}
-                                            onClick={() => handleDelete(request)}
-                                            style={{ marginLeft: "auto" }}
-                                        >
-                                            🗑 Delete
-                                        </button>
                                     </div>
                                 </div>
                             );

@@ -169,6 +169,38 @@
     font-size: 14px;
 }
 
+.admin-skeleton {
+    display: block;
+    overflow: hidden;
+    border-radius: 6px;
+    background: linear-gradient(
+        90deg,
+        #edf1ed 25%,
+        #f8faf8 45%,
+        #edf1ed 65%
+    );
+    background-size: 200% 100%;
+    animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.admin-overview-value-skeleton {
+    width: 52px;
+    height: 23px;
+    margin-top: 7px;
+}
+
+.admin-overview-description-skeleton {
+    width: 76%;
+    height: 14px;
+    margin-top: 7px;
+}
+
+@keyframes admin-skeleton-shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Management Panel
@@ -243,6 +275,10 @@
     gap: 9px;
 
     padding-top: 13px;
+}
+
+.admin-management-grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
 }
 
 /*
@@ -377,9 +413,12 @@
 
 .admin-activity-card,
 .admin-analytics-card {
-    min-height: 260px;
+    display: flex;
+    height: 275px;
+    min-height: 0;
+    flex-direction: column;
 
-    padding: 24px;
+    padding: 14px;
 }
 
 .admin-activity-link {
@@ -396,14 +435,24 @@
 
 .admin-activity-list {
     display: flex;
+    min-height: 0;
+    flex: 1;
     flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.admin-activity-list::-webkit-scrollbar {
+    display: none;
 }
 
 .admin-activity-item {
     display: flex;
+    flex: 0 0 auto;
     flex-direction: column;
-    gap: 5px;
-    padding: 12px 0;
+    gap: 4px;
+    padding: 7px 0;
     border-bottom: 1px solid rgba(22, 101, 52, 0.1);
 }
 
@@ -413,18 +462,89 @@
 
 .admin-activity-item strong {
     color: var(--gray-700);
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .admin-activity-item span,
 .admin-activity-message {
     color: var(--gray-500);
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .admin-activity-message {
     margin: 20px 0 0;
     text-align: center;
+}
+
+.admin-activity-skeleton-list {
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.admin-activity-skeleton-row {
+    display: grid;
+    gap: 7px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+}
+
+.admin-activity-skeleton-row .admin-skeleton:first-child {
+    width: 88%;
+    height: 12px;
+}
+
+.admin-activity-skeleton-row .admin-skeleton:last-child {
+    width: 38%;
+    height: 9px;
+}
+
+.admin-notification-skeleton-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-notification-skeleton-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 2px;
+    border-bottom: 1px solid rgba(22, 101, 52, 0.08);
+}
+
+.admin-notification-skeleton-row > div {
+    display: grid;
+    flex: 1;
+    gap: 7px;
+}
+
+.admin-notification-skeleton-row .admin-skeleton {
+    height: 11px;
+}
+
+.admin-notification-skeleton-row > div .admin-skeleton:first-child {
+    width: 34%;
+}
+
+.admin-notification-skeleton-row > div .admin-skeleton:nth-child(2) {
+    width: 72%;
+}
+
+.admin-notification-skeleton-row > div .admin-skeleton:last-child {
+    width: 25%;
+    height: 9px;
+}
+
+.admin-notification-skeleton-action {
+    width: 60px;
+    height: 30px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-skeleton {
+        animation: none;
+    }
 }
 
 /*

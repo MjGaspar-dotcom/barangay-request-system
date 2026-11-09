@@ -28,7 +28,7 @@ const getStatusColors = (theme, status) => {
     }
 
     if (normalizedStatus === "admin") {
-        return theme.statusColors.processing;
+        return theme.statusColors.neutral;
     }
 
     if (normalizedStatus === "staff") {

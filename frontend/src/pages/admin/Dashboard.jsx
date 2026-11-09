@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
+import DocumentRequestTrendPreview from "../../components/analytics/DocumentRequestTrendPreview";
 import PortalLayout from "../../layouts/PortalLayout";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
 const navigationItems = [
     { label: "Dashboard", to: "/admin/dashboard", icon: "bi-speedometer2" },
+    {
+        label: "System Analytics",
+        to: "/admin/analytics",
+        icon: "bi-bar-chart-line",
+    },
     { label: "Manage Users", to: "/admin/users", icon: "bi-people" },
     { label: "Manage Staff", to: "/admin/staff", icon: "bi-person-badge" },
     { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
@@ -16,6 +22,31 @@ const navigationItems = [
 
 const count = (value) =>
     Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
+
+function OverviewCard({ label, value, description, loading }) {
+    return (
+        <div className="admin-overview-card" aria-busy={loading}>
+            <span className="admin-overview-label">{label}</span>
+            {loading ? (
+                <div
+                    className="admin-skeleton admin-overview-value-skeleton"
+                    role="status"
+                    aria-label={`Loading ${label.toLowerCase()}`}
+                />
+            ) : (
+                <strong>{value}</strong>
+            )}
+            {loading ? (
+                <div
+                    className="admin-skeleton admin-overview-description-skeleton"
+                    aria-hidden="true"
+                />
+            ) : (
+                <p>{description}</p>
+            )}
+        </div>
+    );
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -161,74 +192,36 @@ function Dashboard() {
                     System Overview
                 ------------------------------------------------------- */}
                 <div className="admin-overview-grid">
-                    <div className="admin-overview-card">
-                        <span className="admin-overview-label">
-                            DOCUMENT REQUESTS
-                        </span>
-
-                        <strong>
-                            {loading || error || !stats
-                                ? "—"
-                                : count(
-                                      Number(stats.total_registered_requests) +
-                                          Number(stats.total_guest_requests)
-                                  )}
-                        </strong>
-
-                        <p>Total requests</p>
-                    </div>
-
-                    <div className="admin-overview-card">
-                        <span className="admin-overview-label">USERS</span>
-
-                        <strong>
-                            {loading || error || !stats
-                                ? "—"
-                                : count(stats.total_residents)}
-                        </strong>
-
-                        <p>Registered residents</p>
-                    </div>
-
-                    <div className="admin-overview-card">
-                        <span className="admin-overview-label">STAFF</span>
-
-                        <strong>
-                            {loading || error || !stats
-                                ? "—"
-                                : count(stats.total_staff)}
-                        </strong>
-
-                        <p>Active staff accounts</p>
-                    </div>
-
-                    <div className="admin-overview-card">
-                        <span className="admin-overview-label">
-                            DOCUMENT TYPES
-                        </span>
-
-                        <strong>
-                            {loading || error || !stats
-                                ? "—"
-                                : count(stats.active_document_types)}
-                        </strong>
-
-                        <p>Available services</p>
-                    </div>
-
-                    <div className="admin-overview-card">
-                        <span className="admin-overview-label">
-                            AUDIT LOGS
-                        </span>
-
-                        <strong>
-                            {loading || error || !stats
-                                ? "—"
-                                : count(stats.total_audit_logs)}
-                        </strong>
-
-                        <p>Recorded system actions</p>
-                    </div>
+                    <OverviewCard
+                        label="DOCUMENT REQUESTS"
+                        value={count(stats?.total_registered_requests)}
+                        description="Total requests"
+                        loading={loading}
+                    />
+                    <OverviewCard
+                        label="USERS"
+                        value={count(stats?.total_residents)}
+                        description="Registered residents"
+                        loading={loading}
+                    />
+                    <OverviewCard
+                        label="STAFF"
+                        value={count(stats?.total_staff)}
+                        description="Active staff accounts"
+                        loading={loading}
+                    />
+                    <OverviewCard
+                        label="DOCUMENT TYPES"
+                        value={count(stats?.active_document_types)}
+                        description="Available services"
+                        loading={loading}
+                    />
+                    <OverviewCard
+                        label="AUDIT LOGS"
+                        value={count(stats?.total_audit_logs)}
+                        description="Recorded system actions"
+                        loading={loading}
+                    />
                 </div>
 
                 {/* -------------------------------------------------------
@@ -316,6 +309,30 @@ function Dashboard() {
 
                             <span className="admin-management-arrow">→</span>
                         </Link>
+
+                        {/* Analytics */}
+                        <Link
+                            to="/admin/analytics"
+                            className="admin-management-item"
+                        >
+                            <div className="admin-management-icon">
+                                <i
+                                    className="bi bi-bar-chart-line"
+                                    aria-hidden="true"
+                                />
+                            </div>
+
+                            <div className="admin-management-content">
+                                <strong>System Analytics</strong>
+
+                                <span>
+                                    Explore document request trends and system
+                                    insights.
+                                </span>
+                            </div>
+
+                            <span className="admin-management-arrow">→</span>
+                        </Link>
                     </div>
                 </div>
 
@@ -345,9 +362,21 @@ function Dashboard() {
                                 Recent activity is unavailable.
                             </p>
                         ) : loading ? (
-                            <p className="admin-activity-message">
-                                Loading recent activity...
-                            </p>
+                            <div
+                                className="admin-activity-skeleton-list"
+                                role="status"
+                                aria-label="Loading recent activity"
+                            >
+                                {Array.from({ length: 3 }, (_, index) => (
+                                    <div
+                                        className="admin-activity-skeleton-row"
+                                        key={index}
+                                    >
+                                        <span className="admin-skeleton" />
+                                        <span className="admin-skeleton" />
+                                    </div>
+                                ))}
+                            </div>
                         ) : activity.length ? (
                             <div className="admin-activity-list">
                                 {activity.map((entry, index) => (
@@ -382,7 +411,7 @@ function Dashboard() {
                         )}
                     </div>
 
-                    <div className="admin-analytics-card">
+                    <div className="admin-analytics-card admin-analytics-preview-card">
                         <div className="admin-panel-header">
                             <div>
                                 <span className="admin-section-label">
@@ -391,32 +420,28 @@ function Dashboard() {
 
                                 <h2>System Insights</h2>
                             </div>
+                            <Link
+                                to="/admin/analytics"
+                                className="admin-activity-link"
+                            >
+                                View trends
+                            </Link>
                         </div>
 
-                        <div className="admin-analytics-content">
-                            <div className="admin-analytics-value">
-                                {loading || error || !stats
-                                    ? "—"
-                                    : count(
-                                          Number(stats.completed_requests) +
-                                              Number(stats.guest_completed)
-                                      )}
-                            </div>
-
-                            <p>
-                                Total document requests completed across the
-                                system.
-                            </p>
-
-                            <span className="admin-analytics-note">
-                                {loading || error || !stats
-                                    ? "LOADING"
-                                    : `${count(
-                                          Number(stats.pending_requests) +
-                                              Number(stats.guest_pending)
-                                      )} REQUESTS PENDING`}
-                            </span>
-                        </div>
+                        <DocumentRequestTrendPreview
+                            completedRequests={
+                                stats
+                                    ? count(stats.completed_requests)
+                                    : "—"
+                            }
+                            pendingRequests={
+                                stats
+                                    ? count(stats.pending_requests)
+                                    : "—"
+                            }
+                            dashboardLoading={loading}
+                            dashboardError={Boolean(error)}
+                        />
                     </div>
                 </div>
 

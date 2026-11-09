@@ -5,7 +5,6 @@
 @import "../layouts/dashboard-shell.css";
 @import "../pages/admin/admin-shared.css";
 @import "../layouts/portal-auth.css";
-@import "../pages/guest/guest-landing.css";
 @import "../pages/shared/staff-admin-landing.css";
 @import "../pages/user/resident-landing.css";
 @import "../pages/staff/staff-landing.css";

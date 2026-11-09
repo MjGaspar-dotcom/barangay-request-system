@@ -4,6 +4,7 @@ import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
@@ -149,15 +150,7 @@ export default function ManageStaff() {
     if (loading) {
         return (
             <AdminLayout>
-                <div className="page-loading">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading staff...</p>
-                </div>
+                <SkeletonLoader label="Loading staff" variant="table" />
             </AdminLayout>
         );
     }
@@ -426,10 +419,10 @@ export default function ManageStaff() {
                                             type="submit"
                                             className="btn btn-success"
                                             disabled={submitting}
+                                            loading={submitting}
+                                            loadingLabel="Creating staff account"
                                         >
-                                            {submitting
-                                                ? "Creating..."
-                                                : "Create Staff Account"}
+                                            Create Staff Account
                                         </Button>
 
                                         <Button

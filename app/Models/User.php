@@ -1,32 +1,33 @@
 <?php
 
 namespace App\Models;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\BarangayRequest;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Staff;
-use App\Models\Admin;
 
 class User extends Authenticatable
 {
-
     public function requests()
     {
         return $this->hasMany(BarangayRequest::class, 'user_id', 'user_id');
 
     }
+
     public function notifications()
     {
         return $this->hasMany(Notification::class, 'user_id', 'user_id');
     }
-    //staff
+
+    // staff
     public function staff()
     {
         return $this->hasOne(Staff::class, 'user_id', 'user_id');
     }
-    //admin
+
+    // admin
     public function admin()
     {
         return $this->hasOne(Admin::class, 'user_id', 'user_id');
@@ -37,17 +38,15 @@ class User extends Authenticatable
     //     return $this->role === 'admin';
     // }
 
-
-
-
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, SoftDeletes;
+
     protected $primaryKey = 'user_id';
 
     protected $hidden = [
         'password',
         'remember_token',
+        'google_id',
     ];
 
     protected $casts = [
@@ -58,6 +57,8 @@ class User extends Authenticatable
     protected $fillable = [
         'username',
         'password',
+        'google_id',
+        'email_verified_at',
         'first_name',
         'middle_name',
         'last_name',
@@ -72,7 +73,4 @@ class User extends Authenticatable
         'valid_id_front',
         'valid_id_back',
     ];
-
 }
-
-

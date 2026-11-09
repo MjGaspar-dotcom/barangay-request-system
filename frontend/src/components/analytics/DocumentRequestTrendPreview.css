@@ -1,0 +1,181 @@
+.admin-trend-preview {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.admin-analytics-preview-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-trend-preview-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-trend-preview-summary > div {
+    display: grid;
+    gap: 2px;
+}
+
+.admin-trend-preview-summary > div > span,
+.admin-trend-preview-footer > span {
+    color: #68776e;
+    font-size: 10px;
+}
+
+.admin-trend-preview-summary-skeleton {
+    width: 38px;
+    height: 21px;
+}
+
+.admin-trend-preview-pending-skeleton {
+    width: 56px;
+    height: 24px;
+    border-radius: 20px;
+}
+
+.admin-trend-preview-summary strong {
+    color: #287c4b;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.admin-trend-preview-pending {
+    padding: 5px 8px;
+    border-radius: 20px;
+    background: #f0f7f1;
+    color: #347b4c;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.admin-trend-preview-chart {
+    width: 100%;
+    height: 105px;
+    min-height: 0;
+    flex: 0 0 105px;
+}
+
+.admin-trend-preview-tooltip {
+    display: grid;
+    gap: 3px;
+    padding: 8px 10px;
+    border: 1px solid #e4ebe5;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(24, 61, 41, 0.1);
+    color: #33453a;
+    font-size: 11px;
+}
+
+.admin-trend-preview-tooltip strong {
+    color: #183d29;
+}
+
+.admin-trend-preview-message {
+    display: grid;
+    min-height: 0;
+    flex: 1;
+    place-items: center;
+    margin: 0;
+    padding: 12px;
+    border: 1px dashed #e2eae3;
+    border-radius: 8px;
+    color: #738078;
+    font-size: 11px;
+    text-align: center;
+}
+
+.admin-trend-preview-skeleton {
+    display: block;
+    height: 105px;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #f7f9f7;
+}
+
+.admin-trend-preview-skeleton svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.admin-trend-preview-skeleton-grid {
+    fill: none;
+    stroke: #e6ede7;
+    stroke-dasharray: 2 5;
+    stroke-width: 1;
+}
+
+.admin-trend-preview-skeleton-line {
+    fill: none;
+    stroke: #a8cbb1;
+    stroke-dasharray: 420;
+    stroke-dashoffset: 420;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+    animation: admin-trend-line-draw 1.8s ease-in-out infinite alternate;
+}
+
+.admin-trend-preview-skeleton-dots {
+    fill: none;
+    stroke: #c5ddca;
+    stroke-linecap: round;
+    stroke-width: 7;
+    animation: admin-trend-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.admin-trend-preview-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.admin-trend-preview-footer a {
+    color: #287c4b;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.admin-trend-preview-footer a:hover {
+    color: #183d29;
+    text-decoration: underline;
+}
+
+@keyframes admin-trend-pulse {
+    from {
+        opacity: 0.55;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes admin-trend-line-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-trend-preview-skeleton-line,
+    .admin-trend-preview-skeleton-dots {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+}

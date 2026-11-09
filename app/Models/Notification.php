@@ -13,7 +13,6 @@ class Notification extends Model
         'user_id',
         'staff_id',
         'request_id',
-        'guest_request_id',
         'title',
         'message',
         'is_read',
@@ -44,10 +43,5 @@ class Notification extends Model
     public function request()
     {
         return $this->belongsTo(BarangayRequest::class, 'request_id', 'request_id');
-    }
-
-    public function guestRequest()
-    {
-        return $this->belongsTo(GuestRequest::class, 'guest_request_id', 'guest_request_id');
     }
 }

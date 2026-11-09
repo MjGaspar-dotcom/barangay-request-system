@@ -1,6 +1,6 @@
 # Barangay Document Request System — Frontend
 
-React + Vite frontend for the Barangay Document Request System. The project includes public service pages and role-specific staff/admin workflows.
+React + Vite web frontend for staff and administrators of the Barangay Document Request System. Residents use the mobile app; resident API and account data remain available to that client.
 
 ## Requirements
 
@@ -23,13 +23,13 @@ npm run lint
 
 ## Design and motion notes
 
-The existing visual identity is preserved: forest green for the public/resident experience, teal for staff, neutral surfaces, and the current component/layout structure. See `DESIGN-SYSTEM.md` and `brand-spec.md` for the token and asset notes.
+The existing visual identity is preserved with teal staff screens and neutral administrator surfaces. See `DESIGN-SYSTEM.md` and `brand-spec.md` for the token and asset notes.
 
 The shared motion layer provides fine-pointer hover feedback, brief route entrance cues, one-time viewport reveals, smooth scroll behavior, and keyboard focus visibility. It respects `prefers-reduced-motion` and avoids animating layout dimensions.
 
 ## Project structure
 
-- `src/pages/` — public, resident, staff, admin, and guest pages
+- `src/pages/` — staff and admin web pages, plus the staff/admin access landing page
 - `src/components/` — reusable UI, navigation, forms, and sections
 - `src/layouts/` — shared public and role-specific layouts
 - `src/routes/` — route definitions and route guards

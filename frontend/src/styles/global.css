@@ -5501,6 +5501,7 @@ button, input, textarea, select, a { transition-duration: 150ms; }
 .status-badge-sm { padding: 2px 8px; font-size: 11px; }
 .status-badge-md { padding: 4px 12px; font-size: 12px; }
 .status-badge-pending { background: var(--warning-bg); color: var(--warning-text); }
+.status-badge-additional-requirements { background: #fff7ed; color: #9a3412; }
 .status-badge-approved, .status-badge-staff { background: var(--info-bg); color: var(--info-text); }
 .status-badge-processing, .status-badge-admin { background: #ede9fe; color: #6d28d9; }
 .status-badge-ready-for-pickup, .status-badge-verified, .status-badge-completed { background: var(--success-bg); color: var(--success-text); }
@@ -5669,7 +5670,6 @@ button, input, textarea, select, a { transition-duration: 150ms; }
 }
 
 .admin-management-icon.request-type-registered { background-color: var(--brand-100); }
-.admin-management-icon.request-type-guest { background-color: var(--warning-bg); }
 .data-table-subtext { margin-top: var(--space-1); color: var(--gray-500); font-size: var(--font-size-xs); overflow-wrap: anywhere; }
 .data-table-link { color: var(--brand-800); font-weight: 600; }
 .data-table-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); min-width: 220px; }

@@ -158,6 +158,8 @@ function StaffLogin() {
                             type="submit"
                             className="portal-login-button"
                             disabled={loading}
+                            aria-busy={loading || undefined}
+                            aria-label={loading ? "Signing in" : undefined}
                         >
                             {loading ? "Signing in..." : "Sign in to staff portal"}
                         </button>

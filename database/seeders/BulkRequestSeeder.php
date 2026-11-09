@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\BarangayRequest;
-use App\Models\GuestRequest;
 
 class BulkRequestSeeder extends Seeder
 {

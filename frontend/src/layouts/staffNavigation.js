@@ -8,7 +8,7 @@ export const STAFF_NAV_ITEMS = [
         also: ["/staff/requests"],
     },
     {
-        label: "Request Reports",
+        label: "System Analytics",
         to: "/staff/reports",
         icon: "bi-bar-chart-line",
     },

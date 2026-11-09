@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
+import BrandMark from "../ui/BrandMark";
 
 function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -19,11 +20,9 @@ function Navbar() {
         <header className="navbar">
             <div className="navbar-container">
                 <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
-                    <img
+                    <BrandMark
                         className="navbar-logo"
-                        src="/assets/images/barangay-aurora-logo.png"
                         alt="Barangay Aurora, Alicia, Isabela seal"
-                        decoding="async"
                     />
                     <div className="navbar-title">
                         <span className="barangay-name">Barangay Aurora</span>

@@ -156,6 +156,8 @@ function Login() {
                         type="submit"
                         className="btn btn-success w-100"
                         disabled={loading}
+                        aria-busy={loading || undefined}
+                        aria-label={loading ? "Signing in" : undefined}
                     >
                         {loading ? "Signing in..." : "Sign In"}
                     </button>

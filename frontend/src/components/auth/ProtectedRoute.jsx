@@ -1,34 +1,30 @@
-import CircularProgress from "@mui/material/CircularProgress";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import {
-    AuthenticationLoading,
-    AuthenticationLoadingText,
-} from "./ProtectedRoute.styles";
+import LoadingState from "../ui/LoadingState";
 
 function ProtectedRoute({ children, allowedRoles = [] }) {
     const { user, isAuthenticated, authLoading } = useAuth();
     const location = useLocation();
+    const loginPath = location.pathname.startsWith("/admin/")
+        ? "/admin/login"
+        : "/staff/login";
 
     if (authLoading) {
         return (
-            <AuthenticationLoading>
-                <CircularProgress
-                    color="success"
-                    size={32}
-                    aria-label="Checking authentication"
-                />
-
-                <AuthenticationLoadingText>
-                    Checking authentication...
-                </AuthenticationLoadingText>
-            </AuthenticationLoading>
+            <LoadingState
+                label="Restoring your session..."
+                className="logo-loading"
+            />
         );
     }
 
     if (!isAuthenticated) {
         return (
-            <Navigate to="/login" replace state={{ from: location.pathname }} />
+            <Navigate
+                to={loginPath}
+                replace
+                state={{ from: location.pathname }}
+            />
         );
     }
 
@@ -44,7 +40,7 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
             return <Navigate to="/staff/dashboard" replace />;
         }
 
-        return <Navigate to="/dashboard" replace />;
+        return <Navigate to="/" replace />;
     }
 
     return children;

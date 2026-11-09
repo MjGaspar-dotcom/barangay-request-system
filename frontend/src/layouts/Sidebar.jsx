@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import BrandMark from "../components/ui/BrandMark";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -6,6 +7,52 @@ function Sidebar({ items = [], onNavigate }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [visibleAnchor, setVisibleAnchor] = useState("");
+    const visibleAnchorRef = useRef("");
+    const [loggingOut, setLoggingOut] = useState(false);
+
+    const updateVisibleAnchor = (anchor) => {
+        visibleAnchorRef.current = anchor;
+        setVisibleAnchor(anchor);
+    };
+
+    useEffect(() => {
+        const anchoredItems = items
+            .map((item) => {
+                const [path, hash] = item.to.split("#");
+                return path === location.pathname && hash
+                    ? { hash, target: document.getElementById(hash) }
+                    : null;
+            })
+            .filter((item) => item?.target);
+
+        if (!anchoredItems.length) {
+            return undefined;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const visibleEntry = entries.find(
+                    (entry) => entry.isIntersecting,
+                );
+                if (visibleEntry) {
+                    updateVisibleAnchor(visibleEntry.target.id);
+                } else if (
+                    entries.some(
+                        (entry) =>
+                            entry.target.id === visibleAnchorRef.current &&
+                            !entry.isIntersecting,
+                    )
+                ) {
+                    updateVisibleAnchor("");
+                }
+            },
+            { threshold: 0.2, rootMargin: "-15% 0px -65% 0px" },
+        );
+
+        anchoredItems.forEach(({ target }) => observer.observe(target));
+        return () => observer.disconnect();
+    }, [items, location.pathname]);
 
     const underPath = (prefix) =>
         location.pathname === prefix || location.pathname.startsWith(`${prefix}/`);
@@ -18,15 +65,26 @@ function Sidebar({ items = [], onNavigate }) {
 
         const [path, hash] = item.to.split("#");
         if (!underPath(path)) return false;
-        if (hash) return location.hash === `#${hash}`;
+        if (hash) {
+            return (
+                location.hash === `#${hash}` ||
+                (!location.hash && visibleAnchor === hash)
+            );
+        }
 
         return !items.some((other) => {
             const [otherPath, otherHash] = other.to.split("#");
-            return otherHash && otherPath === path && location.hash === `#${otherHash}`;
+            return (
+                otherHash &&
+                otherPath === path &&
+                (location.hash === `#${otherHash}` ||
+                    (!location.hash && visibleAnchor === otherHash))
+            );
         });
     };
 
     const handleLogout = async () => {
+        setLoggingOut(true);
         onNavigate?.();
         navigate("/", { replace: true });
         await logout();
@@ -95,6 +153,9 @@ function Sidebar({ items = [], onNavigate }) {
                             type="button"
                             className="sidebar-logout"
                             onClick={handleLogout}
+                            disabled={loggingOut}
+                            aria-busy={loggingOut || undefined}
+                            aria-label={loggingOut ? "Logging out" : undefined}
                         >
                             <i
                                 className="bi bi-box-arrow-right"
@@ -109,6 +170,9 @@ function Sidebar({ items = [], onNavigate }) {
                         type="button"
                         className="sidebar-logout"
                         onClick={handleLogout}
+                        disabled={loggingOut}
+                        aria-busy={loggingOut || undefined}
+                        aria-label={loggingOut ? "Logging out" : undefined}
                     >
                         <i
                             className="bi bi-box-arrow-right"
