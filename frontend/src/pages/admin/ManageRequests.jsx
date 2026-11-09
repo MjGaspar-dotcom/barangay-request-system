@@ -126,7 +126,7 @@ export default function ManageRequests() {
     ];
 
     const formatDate = (value) =>
-        value ? new Date(value).toLocaleString() : "—";
+        value ? new Date(value).toLocaleString() : "ΓÇö";
 
     if (loading) {
         return (
@@ -277,7 +277,7 @@ export default function ManageRequests() {
                                                     </td>
                                                     <td><StatusBadge status={request.status} /></td>
                                                     <td>
-                                                        <div><strong>Purpose:</strong> {request.purpose || "—"}</div>
+                                                        <div><strong>Purpose:</strong> {request.purpose || "ΓÇö"}</div>
                                                         {request.remarks && <div className="data-table-subtext"><strong>Remarks:</strong> {request.remarks}</div>}
                                                     </td>
                                                     <td>{formatDate(request.created_at)}</td>

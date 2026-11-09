@@ -7,7 +7,7 @@ import Sidebar from "./Sidebar";
 |--------------------------------------------------------------------------
 | Shared Portal Layout
 |--------------------------------------------------------------------------
-| All four portal landing pages use this layout:
+| Portal landing pages use this layout:
 |
 | 1. Resident / User
 | 2. Staff

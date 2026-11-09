@@ -145,7 +145,7 @@ export default function ManageStaff() {
             .join(" ");
 
     const formatDate = (value) =>
-        value ? new Date(value).toLocaleString() : "—";
+        value ? new Date(value).toLocaleString() : "ΓÇö";
 
     if (loading) {
         return (
@@ -521,7 +521,7 @@ export default function ManageStaff() {
                                                         
                                                     >
                                                         {member.user?.address ||
-                                                            "—"}
+                                                            "ΓÇö"}
                                                     </div>
                                                 </td>
                                                 <td>
@@ -532,11 +532,11 @@ export default function ManageStaff() {
                                                 </td>
                                                 <td>
                                                     {member.user
-                                                        ?.contact_number || "—"}
+                                                        ?.contact_number || "ΓÇö"}
                                                 </td>
                                                 <td>
                                                     {member.assigned_by_name ||
-                                                        "—"}
+                                                        "ΓÇö"}
                                                 </td>
                                                 <td>
                                                     {formatDate(

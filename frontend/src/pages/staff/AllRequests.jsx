@@ -322,6 +322,8 @@ export default function AllRequests() {
                                                     {request.tracking_number}
                                                 </span>
                                                 <span>·</span>
+                                                <span>Registered</span>
+                                                <span>·</span>
                                                 <span>
                                                     {request.document_type
                                                         ?.document_name ||

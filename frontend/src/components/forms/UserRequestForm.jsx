@@ -13,7 +13,7 @@ export default function UserRequestForm({ initialDocument = "" }) {
     const [loading, setLoading] = useState(false);
     const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
     const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const [submittedRequest, setSubmittedRequest] = useState(null);
 
     useEffect(() => {
         const fetchDocumentTypes = async () => {
@@ -48,11 +48,13 @@ export default function UserRequestForm({ initialDocument = "" }) {
         if (!validateForm(event.currentTarget)) return;
 
         setError("");
-        setSuccess("");
+        setSubmittedRequest(null);
 
-        if (verificationStatus !== "verified") {
+        if (user?.verification_status !== "verified") {
             setError(
-                "Your account must be verified before you can submit a request."
+                user?.verification_status === "rejected"
+                    ? "Your account verification was rejected. Update your profile and valid ID information, then request another review."
+                    : "Your account must be verified before you can submit a document request."
             );
             return;
         }
@@ -65,9 +67,18 @@ export default function UserRequestForm({ initialDocument = "" }) {
                 purpose: purpose,
             });
 
-            setSuccess(
-                `Request submitted successfully. Tracking number: ${response.data.data.request.tracking_number}`
-            );
+            const requestData = response.data?.data;
+            const trackingNumber = requestData?.request?.tracking_number;
+            if (!trackingNumber) {
+                throw new Error(
+                    "Request submission response did not include a tracking number."
+                );
+            }
+
+            setSubmittedRequest({
+                trackingNumber,
+                qrCode: requestData.qr_code || "",
+            });
 
             setDocumentTypeId("");
             setPurpose("");
@@ -159,10 +170,28 @@ export default function UserRequestForm({ initialDocument = "" }) {
                 </p>
             )}
 
-            {success && (
-                <p className="text-success">
-                    {success}
-                </p>
+            {submittedRequest && (
+                <div className="alert alert-success" role="status">
+                    <p className="mb-2">
+                        Request submitted successfully. Tracking number:{" "}
+                        <strong>{submittedRequest.trackingNumber}</strong>
+                    </p>
+                    {submittedRequest.qrCode && (
+                        <div>
+                            <p className="mb-2">
+                                Scan this QR code to check your request status.
+                            </p>
+                            <img
+                                src={`data:image/svg+xml,${encodeURIComponent(
+                                    submittedRequest.qrCode
+                                )}`}
+                                alt={`Tracking QR code for ${submittedRequest.trackingNumber}`}
+                                width="180"
+                                height="180"
+                            />
+                        </div>
+                    )}
+                </div>
             )}
 
             <button

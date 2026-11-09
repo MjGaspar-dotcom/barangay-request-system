@@ -143,7 +143,7 @@ function Dashboard() {
                             <span className="staff-stat-label">PENDING</span>
 
                             <span className="staff-stat-number">
-                                {loading || error ? "—" : counts.pending}
+                                {loading || error ? "ΓÇö" : counts.pending}
                             </span>
                         </div>
 
@@ -155,7 +155,7 @@ function Dashboard() {
                             <span className="staff-stat-label">PROCESSING</span>
 
                             <span className="staff-stat-number">
-                                {loading || error ? "—" : counts.processing}
+                                {loading || error ? "ΓÇö" : counts.processing}
                             </span>
                         </div>
 
@@ -167,7 +167,7 @@ function Dashboard() {
                             <span className="staff-stat-label">COMPLETED</span>
 
                             <span className="staff-stat-number">
-                                {loading || error ? "—" : counts.completed}
+                                {loading || error ? "ΓÇö" : counts.completed}
                             </span>
                         </div>
 
@@ -179,7 +179,7 @@ function Dashboard() {
                             <span className="staff-stat-label">TOTAL</span>
 
                             <span className="staff-stat-number">
-                                {loading || error ? "—" : counts.total}
+                                {loading || error ? "ΓÇö" : counts.total}
                             </span>
                         </div>
 

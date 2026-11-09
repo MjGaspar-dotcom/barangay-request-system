@@ -18,6 +18,7 @@ const navigationItems = [
     { label: "Manage Requests", to: "/admin/requests", icon: "bi-clipboard-check" },
     { label: "Document Types", to: "/admin/document-types", icon: "bi-file-earmark-text" },
     { label: "Recent Activity", to: "/admin/recent-activity", icon: "bi-activity" },
+    { label: "Workflow Analysis", to: "/admin/workflow-analysis", icon: "bi-diagram-3" },
 ];
 
 const count = (value) =>
@@ -176,15 +177,14 @@ function Dashboard() {
 
                     <div className="admin-system-status">
                         <span
-                            className={`admin-system-dot ${
-                                error ? "error" : ""
-                            }`}
+                            className={`admin-system-dot ${error ? "error" : ""
+                                }`}
                         ></span>
                         {loading
                             ? "CHECKING SYSTEM"
                             : error
-                              ? "DATA UNAVAILABLE"
-                              : "SYSTEM ONLINE"}
+                                ? "DATA UNAVAILABLE"
+                                : "SYSTEM ONLINE"}
                     </div>
                 </div>
 
@@ -194,7 +194,10 @@ function Dashboard() {
                 <div className="admin-overview-grid">
                     <OverviewCard
                         label="DOCUMENT REQUESTS"
-                        value={count(stats?.total_registered_requests)}
+                        value={count(
+                            stats?.total_registered_requests ??
+                                stats?.total_requests,
+                        )}
                         description="Total requests"
                         loading={loading}
                     />
@@ -255,7 +258,9 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Staff */}
@@ -271,7 +276,9 @@ function Dashboard() {
                                 <span>Manage staff accounts and access.</span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Requests */}
@@ -289,7 +296,9 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Document Types */}
@@ -307,7 +316,9 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <span className="admin-management-arrow">→</span>
+                            <span className="admin-management-arrow" aria-hidden="true">
+                                <i className="bi bi-arrow-right" />
+                            </span>
                         </Link>
 
                         {/* Analytics */}
@@ -395,8 +406,8 @@ function Dashboard() {
                                         <span>
                                             {entry.created_at
                                                 ? new Date(
-                                                      entry.created_at
-                                                  ).toLocaleString()
+                                                    entry.created_at
+                                                ).toLocaleString()
                                                 : "—"}
                                         </span>
                                     </div>
@@ -404,7 +415,12 @@ function Dashboard() {
                             </div>
                         ) : (
                             <div className="admin-empty-state">
-                                <div className="admin-empty-icon">≡</div>
+                                <div className="admin-empty-icon">
+                                    <i
+                                        className="bi bi-clock-history"
+                                        aria-hidden="true"
+                                    />
+                                </div>
                                 <h3>No recent activity</h3>
                                 <p>System activity will appear here.</p>
                             </div>

@@ -7,7 +7,9 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
     const location = useLocation();
     const loginPath = location.pathname.startsWith("/admin/")
         ? "/admin/login"
-        : "/staff/login";
+        : location.pathname.startsWith("/staff/")
+          ? "/staff/login"
+          : "/login";
 
     if (authLoading) {
         return (
@@ -40,7 +42,7 @@ function ProtectedRoute({ children, allowedRoles = [] }) {
             return <Navigate to="/staff/dashboard" replace />;
         }
 
-        return <Navigate to="/" replace />;
+        return <Navigate to="/dashboard" replace />;
     }
 
     return children;

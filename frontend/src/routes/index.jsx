@@ -7,10 +7,17 @@ import {
     useLocation,
 } from "react-router-dom";
 
+import Login from "../pages/user/Login";
+import Register from "../pages/user/Register";
+import UserDashboard from "../pages/user/Dashboard";
+import RequestDetails from "../pages/user/RequestDetails";
+
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
 
 const Landing = lazy(() => import("../pages/public/Landing"));
+const UserRequest = lazy(() => import("../pages/user/Request"));
+const TrackRequest = lazy(() => import("../pages/user/TrackRequest"));
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
 const AdminAnalytics = lazy(() => import("../pages/staff/Reports"));
 const AdminLogin = lazy(() => import("../pages/admin/Login"));
@@ -24,6 +31,7 @@ const AdminRequestDetails = lazy(
     () => import("../pages/admin/AdminRequestDetails"),
 );
 const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
+const WorkflowAnalysis = lazy(() => import("../pages/admin/WorkflowAnalysis"));
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
 const StaffDashboard = lazy(() => import("../pages/staff/Dashboard"));
 const StaffAllRequests = lazy(() => import("../pages/staff/AllRequests"));
@@ -67,6 +75,37 @@ export default function AppRoutes() {
                 <Routes>
                     {/* PUBLIC */}
                     <Route path="/" element={<Landing />} />
+                    <Route path="/track-request" element={<TrackRequest />} />
+
+                    {/* AUTH */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+
+                    {/* RESIDENT / USER */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <UserDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/request"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <UserRequest />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/requests/:requestId"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <RequestDetails />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* STAFF */}
                     <Route
@@ -172,6 +211,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <RecentActivity />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/workflow-analysis"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <WorkflowAnalysis />
                             </ProtectedRoute>
                         }
                     />

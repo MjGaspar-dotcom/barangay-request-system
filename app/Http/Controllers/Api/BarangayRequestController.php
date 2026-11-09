@@ -491,23 +491,23 @@ class BarangayRequestController extends Controller
             ->where('tracking_number', $trackingNumber)
             ->first();
 
-        if ($request) {
+        if (!$request) {
             return response()->json([
-                'success' => true,
-                'data' => [
-                    'tracking_number' => $request->tracking_number,
-                    'status' => $request->status,
-                    'document_type' => $request->documentType?->document_name,
-                    'purpose' => $request->purpose,
-                    'submitted_at' => $request->created_at,
-                    'remarks' => $request->remarks,
-                ],
-            ]);
+                'success' => false,
+                'message' => 'Request not found.',
+            ], 404);
         }
 
         return response()->json([
-            'success' => false,
-            'message' => 'Request not found.',
-        ], 404);
+            'success' => true,
+            'data' => [
+                'tracking_number' => $request->tracking_number,
+                'status' => $request->status,
+                'document_type' => $request->documentType?->document_name,
+                'purpose' => $request->purpose,
+                'submitted_at' => $request->created_at,
+                'remarks' => $request->remarks,
+            ],
+        ]);
     }
 }

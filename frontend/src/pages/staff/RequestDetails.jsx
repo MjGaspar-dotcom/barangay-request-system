@@ -89,9 +89,9 @@ export default function StaffRequestDetails() {
     if (!request) return null;
 
     const formatDate = (value) => {
-        if (!value) return "—";
+        if (!value) return "ΓÇö";
         const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+        return Number.isNaN(date.getTime()) ? "ΓÇö" : date.toLocaleString();
     };
 
     return (
@@ -182,7 +182,7 @@ export default function StaffRequestDetails() {
                                             <div>
                                                 <span className="detail-label">Email</span>
                                                 <span className="detail-value">
-                                                    {request.user.email || "—"}
+                                                    {request.user.email || "ΓÇö"}
                                                 </span>
                                             </div>
                                             <div>

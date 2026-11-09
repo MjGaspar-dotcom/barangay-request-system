@@ -29,7 +29,7 @@ The shared motion layer provides fine-pointer hover feedback, brief route entran
 
 ## Project structure
 
-- `src/pages/` — staff and admin web pages, plus the staff/admin access landing page
+- `src/pages/` — public, resident, staff, and admin pages
 - `src/components/` — reusable UI, navigation, forms, and sections
 - `src/layouts/` — shared public and role-specific layouts
 - `src/routes/` — route definitions and route guards

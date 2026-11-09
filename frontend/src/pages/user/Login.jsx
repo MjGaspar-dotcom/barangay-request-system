@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import BrandMark from "../../components/ui/BrandMark";
@@ -74,7 +74,7 @@ function Login() {
                     aria-label="Back to Barangay Document System"
                     title="Back to Barangay Document System"
                 >
-                    ←
+                    ΓåÉ
                 </Link>
 
                 {/* Authentication page header */}

@@ -189,7 +189,7 @@ export default function ManageUsers() {
             .join(" ");
 
     const formatDate = (value) => {
-        if (!value) return "—";
+        if (!value) return "ΓÇö";
         return new Date(value).toLocaleString();
     };
 
@@ -360,14 +360,14 @@ export default function ManageUsers() {
                                                     <div className="text-muted-sm"
                                                         
                                                     >
-                                                        {user.address || "—"}
+                                                        {user.address || "ΓÇö"}
                                                     </div>
                                                 </td>
                                                 <td>{user.username}</td>
                                                 <td>{user.email}</td>
                                                 <td>
                                                     {user.contact_number ||
-                                                        "—"}
+                                                        "ΓÇö"}
                                                 </td>
                                                 <td>
                                                     <StatusBadge

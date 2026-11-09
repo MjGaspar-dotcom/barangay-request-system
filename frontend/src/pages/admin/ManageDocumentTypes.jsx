@@ -534,7 +534,7 @@ export default function ManageDocumentTypes() {
                 confirmLabel="Delete document type"
                 variant="danger"
             >
-                Delete document type “{deleteTarget?.document_name}”? This
+                Delete document type ΓÇ£{deleteTarget?.document_name}ΓÇ¥? This
                 cannot be undone.
             </ConfirmDialog>
         </AdminLayout>

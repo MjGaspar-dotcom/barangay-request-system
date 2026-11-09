@@ -110,7 +110,7 @@ export default function AdminRequestDetails() {
     if (!request) return null;
 
     const formatDate = (value) =>
-        value ? new Date(value).toLocaleString() : "—";
+        value ? new Date(value).toLocaleString() : "ΓÇö";
 
     return (
         <AdminLayout>

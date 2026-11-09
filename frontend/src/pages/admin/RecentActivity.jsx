@@ -43,7 +43,7 @@ export default function RecentActivity() {
             const payload = response.data.data;
 
             // Laravel paginate() returns: { data: [...], current_page, last_page, total, ... }
-            // Some endpoints also return the array directly — support both.
+            // Some endpoints also return the array directly; support both.
             if (Array.isArray(payload)) {
                 setLogs(payload);
                 setMeta(null);
@@ -112,15 +112,15 @@ export default function RecentActivity() {
     const actionIcon = (action) => {
         switch (action) {
             case "created":
-                return "✚";
+                return "bi bi-plus-circle";
             case "deleted":
-                return "✕";
+                return "bi bi-trash";
             case "status_changed":
-                return "⟳";
+                return "bi bi-arrow-left-right";
             case "verification_updated":
-                return "✓";
+                return "bi bi-person-check";
             default:
-                return "•";
+                return "bi bi-activity";
         }
     };
 
@@ -191,7 +191,7 @@ export default function RecentActivity() {
                             {meta && (
                                 <div className="filter-summary">
                                     Page {meta.current_page} of{" "}
-                                    {meta.last_page} • Total{" "}
+                                    {meta.last_page} · Total{" "}
                                     {meta.total} entries
                                 </div>
                             )}
@@ -257,9 +257,12 @@ export default function RecentActivity() {
                                                             style={{ "--activity-bg": color.bg, "--activity-color": color.color }}
                                                             title={entry.action}
                                                         >
-                                                            {actionIcon(
-                                                                entry.action
-                                                            )}
+                                                            <i
+                                                                className={actionIcon(
+                                                                    entry.action
+                                                                )}
+                                                                aria-hidden="true"
+                                                            />
                                                         </span>
                                                     </td>
                                                     <td>

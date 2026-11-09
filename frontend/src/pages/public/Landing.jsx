@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import PortalLayout from "../../layouts/PortalLayout";
 
 function Landing() {

@@ -65,6 +65,7 @@ class AdminController extends Controller
                 'document_types' => DocumentType::count(),
                 'active_document_types' => DocumentType::where('is_active', true)->count(),
                 'total_registered_requests' => BarangayRequest::count(),
+                'total_requests' => BarangayRequest::count(),
                 'total_audit_logs' => AuditLog::count(),
             ]
         ]);

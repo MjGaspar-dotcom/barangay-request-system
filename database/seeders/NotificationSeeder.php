@@ -33,7 +33,7 @@ class NotificationSeeder extends Seeder
                     [
                         'type' => 'new_request_for_staff',
                         'title' => 'Request queue is ready',
-                        'message' => 'New registered and guest document requests will appear in your request queue.',
+                        'message' => 'New document requests will appear in your request queue.',
                     ],
                     [
                         'type' => 'dashboard_update',
