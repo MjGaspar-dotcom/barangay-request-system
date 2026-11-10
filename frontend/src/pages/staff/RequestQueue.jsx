@@ -1,13 +1,75 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DataTable from "../../components/ui/DataTable";
 import StatusBadge from "../../components/ui/StatusBadge";
 import StaffLayout from "../../layouts/StaffLayout";
 import api from "../../services/api";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
+
+const formatRequesterName = (request) =>
+    [request.user?.first_name, request.user?.last_name]
+        .filter(Boolean)
+        .join(" ") || "Unknown requester";
+
+const formatSubmittedAt = (value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+};
+
+const REQUEST_QUEUE_COLUMNS = [
+    {
+        accessorKey: "tracking_number",
+        header: "Tracking Number",
+        cell: ({ getValue }) => <strong>{getValue() || "—"}</strong>,
+    },
+    {
+        id: "requester",
+        header: "Requester",
+        cell: ({ row }) => formatRequesterName(row.original),
+    },
+    {
+        id: "document",
+        header: "Document",
+        cell: ({ row }) =>
+            row.original.document_type?.document_name || "Document request",
+    },
+    {
+        accessorKey: "purpose",
+        header: "Purpose",
+        cell: ({ getValue }) => getValue() || "—",
+    },
+    {
+        accessorKey: "created_at",
+        header: "Submitted",
+        cell: ({ getValue }) => formatSubmittedAt(getValue()),
+    },
+    {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => (
+            <StatusBadge status={row.original.status || "Unknown"} size="sm" />
+        ),
+    },
+    {
+        id: "action",
+        header: "Action",
+        cell: ({ row }) => (
+            <Link
+                className="staff-queue-view-link"
+                to={`/staff/requests/${row.original.request_id}`}
+            >
+                View details
+            </Link>
+        ),
+    },
+];
 
 const STATUS_FILTERS = [
     "All statuses",
     "Pending",
+    "Additional Requirements",
     "Approved",
     "Processing",
     "Ready for Pickup",
@@ -24,7 +86,7 @@ export default function StaffRequestQueue() {
     const [retryKey, setRetryKey] = useState(0);
 
     const fetchRequests = useCallback(async () => {
-        const response = await api.get("/barangay-requests");
+        const response = await api.get("/staff/requests");
         const data = response.data?.data;
         if (!Array.isArray(data)) {
             throw new Error("Unexpected staff requests response.");
@@ -61,20 +123,12 @@ export default function StaffRequestQueue() {
         const term = search.trim().toLowerCase();
         return requests.filter((request) => {
             const status = String(request.status || "").toLowerCase();
-            const requester = request.user || request;
-            const requesterName =
-                [
-                    requester?.first_name || requester?.guest_first_name,
-                    requester?.last_name || requester?.guest_last_name,
-                ]
-                    .filter(Boolean)
-                    .join(" ") || "Unknown requester";
             const matchesStatus =
                 statusFilter === "All statuses" ||
                 status === statusFilter.toLowerCase();
             const searchable = [
                 request.tracking_number,
-                requesterName,
+                formatRequesterName(request),
                 request.document_type?.document_name,
                 request.purpose,
                 request.status,
@@ -86,24 +140,6 @@ export default function StaffRequestQueue() {
             return matchesStatus && (!term || searchable.includes(term));
         });
     }, [requests, search, statusFilter]);
-
-    const requesterName = (request) => {
-        const requester = request.user || request;
-        return (
-            [
-                requester?.first_name || requester?.guest_first_name,
-                requester?.last_name || requester?.guest_last_name,
-            ]
-                .filter(Boolean)
-                .join(" ") || "Unknown requester"
-        );
-    };
-
-    const formatDate = (value) => {
-        if (!value) return "—";
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
-    };
 
     return (
         <StaffLayout>
@@ -124,11 +160,11 @@ export default function StaffRequestQueue() {
                 </header>
 
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}{" "}
                         <button
                             type="button"
-                            className="btn btn-sm btn-outline-danger ms-2"
+                            className="app-button app-button-sm app-button-outline-danger ms-2"
                             onClick={() =>
                                 setRetryKey((current) => current + 1)
                             }
@@ -140,26 +176,26 @@ export default function StaffRequestQueue() {
 
                 <section className="staff-queue-panel">
                     <div className="staff-queue-toolbar">
-                        <label className="visually-hidden" htmlFor="queue-search">
+                        <label className="sr-only" htmlFor="queue-search">
                             Search requests
                         </label>
                         <input
                             id="queue-search"
                             type="search"
-                            className="form-control"
+                            className="app-input"
                             placeholder="Search tracking number, requester, document..."
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                         />
                         <label
-                            className="visually-hidden"
+                            className="sr-only"
                             htmlFor="queue-status-filter"
                         >
                             Filter by status
                         </label>
                         <select
                             id="queue-status-filter"
-                            className="form-select"
+                            className="app-select"
                             value={statusFilter}
                             onChange={(event) =>
                                 setStatusFilter(event.target.value)
@@ -179,12 +215,11 @@ export default function StaffRequestQueue() {
                     </div>
 
                     {loading ? (
-                        <div className="staff-queue-empty" role="status">
-                            <span
-                                className="spinner-border spinner-border-sm text-success"
-                                aria-hidden="true"
+                        <div className="staff-queue-skeleton">
+                            <SkeletonLoader
+                                label="Loading requests"
+                                variant="table"
                             />
-                            Loading requests...
                         </div>
                     ) : error ? (
                         <div className="staff-queue-empty">
@@ -192,10 +227,7 @@ export default function StaffRequestQueue() {
                         </div>
                     ) : filteredRequests.length === 0 ? (
                         <div className="staff-queue-empty">
-                            <i
-                                className="bi bi-inbox"
-                                aria-hidden="true"
-                            />
+                            <Icon name="inbox" />
                             <strong>
                                 {requests.length
                                     ? "No matching requests"
@@ -208,70 +240,12 @@ export default function StaffRequestQueue() {
                             </span>
                         </div>
                     ) : (
-                        <DataTable className="staff-queue-table">
-                            <thead>
-                                <tr>
-                                    <th>Tracking Number</th>
-                                    <th>Requester</th>
-                                    <th>Document</th>
-                                    <th>Purpose</th>
-                                    <th>Submitted</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredRequests.map((request) => {
-                                    const requestType =
-                                        request.request_type ||
-                                        (request.user_id ? "registered" : "guest");
-                                    const requestId =
-                                        request.request_id ||
-                                        request.guest_request_id;
-                                    return (
-                                        <tr
-                                            key={`${requestType}-${requestId}`}
-                                        >
-                                            <td>
-                                                <strong>
-                                                    {request.tracking_number ||
-                                                        "—"}
-                                                </strong>
-                                            </td>
-                                            <td>{requesterName(request)}</td>
-                                            <td>
-                                                {request.document_type
-                                                    ?.document_name ||
-                                                    "Document request"}
-                                            </td>
-                                            <td>{request.purpose || "—"}</td>
-                                            <td>
-                                                {formatDate(
-                                                    request.created_at,
-                                                )}
-                                            </td>
-                                            <td>
-                                                <StatusBadge
-                                                    status={
-                                                        request.status ||
-                                                        "Unknown"
-                                                    }
-                                                    size="sm"
-                                                />
-                                            </td>
-                                            <td>
-                                                <Link
-                                                    className="staff-queue-view-link"
-                                                    to={`/staff/requests/${requestType}/${requestId}`}
-                                                >
-                                                    View details
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </DataTable>
+                        <DataTable
+                            className="staff-queue-table"
+                            data={filteredRequests}
+                            columns={REQUEST_QUEUE_COLUMNS}
+                            getRowId={(request) => String(request.request_id)}
+                        />
                     )}
                 </section>
             </section>

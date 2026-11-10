@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import Table from "react-bootstrap/Table";
+import Icon from "../../components/ui/Icon.jsx";
+import { useEffect, useState } from "react";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
-import AdminLayout from "../../layouts/AdminLayout";
 import api from "../../services/api";
+import AdminLayout from "../../layouts/AdminLayout";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 const ACTION_FILTERS = [
     { value: "all", label: "All Actions" },
@@ -23,36 +25,48 @@ export default function RecentActivity() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
 
-    const fetchActivity = useCallback(async (targetPage = 1) => {
+    const fetchActivity = async (targetPage = page) => {
         try {
             setLoading(true);
-            const params = { per_page: PAGE_SIZE, page: targetPage };
-            if (actionFilter !== "all") params.action = actionFilter;
+            const params = {
+                per_page: PAGE_SIZE,
+                page: targetPage,
+            };
 
-            const response = await api.get("/admin/recent-activity", { params });
-            const payload = response.data?.data;
-            if (Array.isArray(payload?.data)) {
-                setLogs(payload.data);
-                setMeta(payload);
-                setError("");
-            } else {
-                throw new Error("Unexpected activity response.");
+            if (actionFilter !== "all") {
+                params.action = actionFilter;
             }
+
+            const response = await api.get("/admin/recent-activity", {
+                params,
+            });
+
+            const payload = response.data.data;
+
+            // Laravel paginate() returns: { data: [...], current_page, last_page, total, ... }
+            // Some endpoints also return the array directly; support both.
+            if (Array.isArray(payload)) {
+                setLogs(payload);
+                setMeta(null);
+            } else {
+                setLogs(payload?.data || []);
+                setMeta(payload);
+            }
+
+            setError("");
         } catch (err) {
-            console.error("Failed to load recent activity:", err);
+            console.error(err);
             setError("Failed to load recent activity.");
         } finally {
             setLoading(false);
         }
-    }, [actionFilter]);
+    };
 
     useEffect(() => {
-        const loadActivity = async () => {
-            await fetchActivity(1);
-        };
-
-        loadActivity();
-    }, [fetchActivity]);
+        fetchActivity(1);
+        setPage(1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [actionFilter]);
 
     const goToPage = (nextPage) => {
         if (!meta || nextPage < 1 || nextPage > meta.last_page) return;
@@ -99,37 +113,37 @@ export default function RecentActivity() {
     const actionIcon = (action) => {
         switch (action) {
             case "created":
-                return "✚";
+                return "plus-circle";
             case "deleted":
-                return "✕";
+                return "trash";
             case "status_changed":
-                return "⟳";
+                return "arrow-left-right";
             case "verification_updated":
-                return "✓";
+                return "person-check";
             default:
-                return "•";
+                return "activity";
         }
     };
 
     const actionColor = (action) => {
         switch (action) {
             case "created":
-                return { bg: "#dcfce7", color: "#166534" };
+                return { bg: "var(--brand-100)", color: "var(--brand-800)" };
             case "deleted":
-                return { bg: "#fee2e2", color: "#991b1b" };
+                return { bg: "var(--danger-bg)", color: "var(--danger-text)" };
             case "status_changed":
-                return { bg: "#dbeafe", color: "#1e40af" };
+                return { bg: "var(--info-bg)", color: "var(--info-text)" };
             case "verification_updated":
-                return { bg: "#ede9fe", color: "#6d28d9" };
+                return { bg: "var(--accent-gold-soft)", color: "var(--accent-gold-text)" };
             default:
-                return { bg: "#e5e7eb", color: "#374151" };
+                return { bg: "var(--gray-200)", color: "var(--gray-700)" };
         }
     };
 
     return (
         <AdminLayout>
             <div className="admin-dashboard recent-activity-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div>
                             <span className="section-label">
@@ -155,18 +169,15 @@ export default function RecentActivity() {
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-                                className="form-control filter-search"
+                                className="app-input filter-search"
                             />
 
                             <select
                                 value={actionFilter}
                                 onChange={(event) =>
-                                    {
-                                        setActionFilter(event.target.value);
-                                        setPage(1);
-                                    }
+                                    setActionFilter(event.target.value)
                                 }
-                                className="form-select filter-select"
+                                className="app-select filter-select"
                             >
                                 {ACTION_FILTERS.map((filter) => (
                                     <option
@@ -181,7 +192,7 @@ export default function RecentActivity() {
                             {meta && (
                                 <div className="filter-summary">
                                     Page {meta.current_page} of{" "}
-                                    {meta.last_page} • Total{" "}
+                                    {meta.last_page} · Total{" "}
                                     {meta.total} entries
                                 </div>
                             )}
@@ -190,31 +201,18 @@ export default function RecentActivity() {
 
                     <section className="dashboard-section">
                         {loading ? (
-                            <div className="page-loading" role="status">
-                                <div
-                                    className="spinner-border text-success"
-                                    role="status"
-                                >
-                                    <span className="visually-hidden">
-                                        Loading...
-                                    </span>
-                                </div>
-                                <p>Loading activity...</p>
-                            </div>
+                            <SkeletonLoader
+                                label="Loading activity"
+                                variant="table"
+                            />
                         ) : error ? (
-                            <div className="alert alert-danger" role="alert">
+                            <div className="app-alert app-alert-danger" role="alert">
                                 <p>{error}</p>
-                                <Button
-                                    type="button"
-                                    className="btn btn-outline-danger btn-sm"
-                                    onClick={() => fetchActivity(page)}
-                                >
-                                    Retry
-                                </Button>
+                                <Button type="button" className="app-button app-button-outline-danger app-button-sm" onClick={() => fetchActivity(page)}>Retry</Button>
                             </div>
                         ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
-                                <div className="dashboard-empty-icon"><i className="bi bi-activity" aria-hidden="true" /></div>
+                                <div className="dashboard-empty-icon"><Icon name="activity" /></div>
                                 <h3>No Activity Found</h3>
                                 <p>
                                     No activity matches your current filters.
@@ -260,9 +258,11 @@ export default function RecentActivity() {
                                                             style={{ "--activity-bg": color.bg, "--activity-color": color.color }}
                                                             title={entry.action}
                                                         >
-                                                            {actionIcon(
-                                                                entry.action
-                                                            )}
+                                                            <Icon
+                                                                name={actionIcon(
+                                                                    entry.action
+                                                                )}
+                                                            />
                                                         </span>
                                                     </td>
                                                     <td>
@@ -315,22 +315,24 @@ export default function RecentActivity() {
                                 <li>
                                     <Button
                                         type="button"
-                                        className="btn btn-outline-secondary btn-sm"
+                                        className="app-button app-button-outline-secondary app-button-sm"
                                         disabled={page <= 1}
                                         onClick={() => goToPage(page - 1)}
                                     >
                                         ← Previous
                                     </Button>
                                 </li>
+
                                 <li>
                                     <span className="pagination-label">
                                         Page {page} of {meta.last_page}
                                     </span>
                                 </li>
+
                                 <li>
                                     <Button
                                         type="button"
-                                        className="btn btn-outline-secondary btn-sm"
+                                        className="app-button app-button-outline-secondary app-button-sm"
                                         disabled={page >= meta.last_page}
                                         onClick={() => goToPage(page + 1)}
                                     >

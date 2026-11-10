@@ -8,9 +8,10 @@ export default function TrackRequest() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const handleTrack = async (event) => {
-        event.preventDefault();
-        if (!validateForm(event.currentTarget)) return;
+    const handleTrack = async (e) => {
+        e.preventDefault();
+
+        if (!validateForm(e.currentTarget)) return;
 
         setError("");
         setResult(null);
@@ -18,41 +19,45 @@ export default function TrackRequest() {
 
         try {
             const response = await api.get(
-                `/barangay-requests/track/${encodeURIComponent(trackingNumber.trim())}`,
+                `/track/${trackingNumber.trim()}`
             );
+
             setResult(response.data.data);
         } catch (err) {
-            console.error("Failed to track request:", err);
-            setError(
-                err.response?.status === 404
-                    ? "No request found with that tracking number. Please check and try again."
-                    : "Failed to look up the tracking number. Please try again.",
-            );
+            console.error(err);
+
+            if (err.response?.status === 404) {
+                setError(
+                    "No request found with that tracking number. Please check and try again."
+                );
+            } else {
+                setError("Failed to look up the tracking number. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="container py-5">
+        <div className="mx-auto w-full max-w-7xl py-12">
 
-            <h1 className="fw-bold text-center mb-4">
+            <h1 className="font-bold text-center mb-6">
                 Track Your Request
             </h1>
 
-            <div className="row justify-content-center">
+            <div className="grid grid-cols-1 md:grid-cols-12 justify-center">
 
-                <div className="col-md-6">
+                <div className="md:col-span-6">
 
-                    <div className="card shadow-sm border-0">
+                    <div className="app-card shadow-sm border-0">
 
-                        <div className="card-body">
+                        <div className="app-card-body">
 
                             <form noValidate onSubmit={handleTrack}>
 
                                 <label
                                     htmlFor="tracking_number"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Enter Tracking Number
                                 </label>
@@ -60,32 +65,37 @@ export default function TrackRequest() {
                                 <input
                                     id="tracking_number"
                                     type="text"
-                                    className="form-control mb-3"
-                                    placeholder="Example: GR-20260902-ABCDEF"
+                                    className="app-input mb-4"
+                                    placeholder="Example: BR-20260902-ABCDEF"
                                     value={trackingNumber}
-                                    onChange={(event) =>
-                                        setTrackingNumber(event.target.value)
+                                    onChange={(e) =>
+                                        setTrackingNumber(e.target.value)
                                     }
                                     required
                                 />
 
                                 <button
                                     type="submit"
-                                    className="btn btn-primary w-100"
+                                    className="app-button app-button-primary w-full"
                                     disabled={loading}
+                                    aria-busy={loading || undefined}
+                                    aria-label={loading ? "Searching requests" : undefined}
                                 >
                                     {loading ? "Searching..." : "Track Request"}
                                 </button>
 
                             </form>
 
+                            {/* Error */}
                             {error && (
-                                <p className="text-danger mt-3">{error}</p>
+                                <p className="text-destructive mt-4">{error}</p>
                             )}
 
+                            {/* Result */}
                             {result && (
-                                <div className="mt-4">
-                                    <h5 className="fw-bold">Request Status</h5>
+                                <div className="mt-6">
+                                    <h5 className="font-bold">Request Status</h5>
+
                                     <table className="table table-bordered">
                                         <tbody>
                                             <tr>
@@ -96,11 +106,15 @@ export default function TrackRequest() {
                                             </tr>
                                             <tr>
                                                 <th>Document</th>
-                                                <td>{result.document || "—"}</td>
+                                                <td>{result.document_type}</td>
                                             </tr>
                                             <tr>
                                                 <th>Status</th>
-                                                <td>{result.status}</td>
+                                                <td>
+                                                    <span className="app-badge bg-primary">
+                                                        {result.status}
+                                                    </span>
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <th>Purpose</th>
@@ -109,11 +123,12 @@ export default function TrackRequest() {
                                             <tr>
                                                 <th>Submitted</th>
                                                 <td>
-                                                    {result.submitted_at
-                                                        ? new Date(result.submitted_at).toLocaleString()
-                                                        : "—"}
+                                                    {new Date(
+                                                        result.submitted_at
+                                                    ).toLocaleString()}
                                                 </td>
                                             </tr>
+
                                             {result.remarks && (
                                                 <tr>
                                                     <th>Remarks</th>

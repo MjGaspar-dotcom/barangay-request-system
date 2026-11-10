@@ -34,7 +34,7 @@ function Dashboard() {
         user?.first_name || user?.firstName || user?.name || "Staff";
 
     const fetchRequests = useCallback(async () => {
-        const response = await api.get("/barangay-requests");
+        const response = await api.get("/staff/requests");
         const requestData = response.data?.data;
 
         if (!Array.isArray(requestData)) {
@@ -99,11 +99,11 @@ function Dashboard() {
         <StaffLayout>
             <section className="staff-portal staff-dashboard-page">
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}{" "}
                         <button
                             type="button"
-                            className="btn btn-sm btn-outline-danger ms-2"
+                            className="app-button app-button-sm app-button-outline-danger ms-2"
                             onClick={handleRetry}
                         >
                             Retry

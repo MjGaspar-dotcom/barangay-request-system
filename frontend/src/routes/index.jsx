@@ -11,15 +11,15 @@ import Login from "../pages/user/Login";
 import Register from "../pages/user/Register";
 import UserDashboard from "../pages/user/Dashboard";
 import RequestDetails from "../pages/user/RequestDetails";
-import GuestRequest from "../pages/guest/Request";
-import IDScanner from "../pages/guest/IDScanner";
-import TrackRequest from "../pages/guest/TrackRequest";
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
 
 const Landing = lazy(() => import("../pages/public/Landing"));
+const UserRequest = lazy(() => import("../pages/user/Request"));
+const TrackRequest = lazy(() => import("../pages/user/TrackRequest"));
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
+const AdminAnalytics = lazy(() => import("../pages/staff/Reports"));
 const AdminLogin = lazy(() => import("../pages/admin/Login"));
 const ManageUsers = lazy(() => import("../pages/admin/ManageUsers"));
 const ManageStaff = lazy(() => import("../pages/admin/ManageStaff"));
@@ -31,8 +31,10 @@ const AdminRequestDetails = lazy(
     () => import("../pages/admin/AdminRequestDetails"),
 );
 const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
+const WorkflowAnalysis = lazy(() => import("../pages/admin/WorkflowAnalysis"));
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
 const StaffDashboard = lazy(() => import("../pages/staff/Dashboard"));
+const StaffAllRequests = lazy(() => import("../pages/staff/AllRequests"));
 const StaffRequestQueue = lazy(() => import("../pages/staff/RequestQueue"));
 const StaffReports = lazy(() => import("../pages/staff/Reports"));
 const StaffRequestDetails = lazy(
@@ -56,31 +58,28 @@ function RouteScrollReset() {
     return null;
 }
 
+function RouteLoadingFallback() {
+    return (
+        <LoadingState
+            label="Loading page..."
+            className="route-loading logo-loading"
+        />
+    );
+}
+
 export default function AppRoutes() {
     return (
         <BrowserRouter>
             <RouteScrollReset />
-            <Suspense
-                fallback={
-                    <LoadingState
-                        label="Loading page..."
-                        className="route-loading"
-                    />
-                }
-            >
+            <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                     {/* PUBLIC */}
                     <Route path="/" element={<Landing />} />
+                    <Route path="/track-request" element={<TrackRequest />} />
 
                     {/* AUTH */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-
-                    {/* GUEST */}
-                    <Route path="/request" element={<GuestRequest />}>
-                        <Route path="id-scan" element={<IDScanner />} />
-                    </Route>
-                    <Route path="/track-request" element={<TrackRequest />} />
 
                     {/* RESIDENT / USER */}
                     <Route
@@ -88,6 +87,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["user"]}>
                                 <UserDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/request"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <UserRequest />
                             </ProtectedRoute>
                         }
                     />
@@ -118,18 +125,18 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
-                        path="/staff/queue"
+                        path="/staff/requests"
                         element={
-                            <ProtectedRoute allowedRoles={["staff"]}>
-                                <StaffRequestQueue />
+                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                                <StaffAllRequests />
                             </ProtectedRoute>
                         }
                     />
                     <Route
-                        path="/staff/requests/:type/:requestId"
+                        path="/staff/queue"
                         element={
-                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
-                                <StaffRequestDetails />
+                            <ProtectedRoute allowedRoles={["staff"]}>
+                                <StaffRequestQueue />
                             </ProtectedRoute>
                         }
                     />
@@ -148,6 +155,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/analytics"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <AdminAnalytics isAdmin />
                             </ProtectedRoute>
                         }
                     />
@@ -176,14 +191,6 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
-                        path="/admin/requests/:type/:requestId"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <AdminRequestDetails />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
                         path="/admin/requests/:requestId"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
@@ -204,6 +211,14 @@ export default function AppRoutes() {
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
                                 <RecentActivity />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/workflow-analysis"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <WorkflowAnalysis />
                             </ProtectedRoute>
                         }
                     />

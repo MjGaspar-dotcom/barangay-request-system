@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Table from "react-bootstrap/Table";
+import Icon from "../../components/ui/Icon.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
+import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import api from "../../services/api";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 const ROLE_FILTERS = [
     { value: "all", label: "All" },
@@ -33,47 +35,29 @@ export default function ManageUsers() {
     const [busyUserId, setBusyUserId] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
 
-    const flash = useCallback((message, isError = false, messageType = "success") => {
-        if (isError) {
-            setActionError(message);
-            setActionMessage("");
-        } else {
-            setActionMessage(message);
-            setActionMessageType(messageType);
-            setActionError("");
-        }
-
-        window.setTimeout(() => {
-            setActionMessage("");
-            setActionError("");
-        }, 4000);
-    }, []);
-
-    const fetchUsers = useCallback(async ({ background = false } = {}) => {
+    // Initial page load shows the full-page loader. Refreshes after actions
+    // happen silently so the table stays visible and the screen does not flash.
+    const fetchUsers = async ({ background = false } = {}) => {
         try {
             if (!background) setLoading(true);
             const response = await api.get("/admin/users");
             setUsers(response.data.data || []);
             setError("");
         } catch (err) {
-            console.error("Failed to load users:", err);
+            console.error(err);
             if (!background) {
                 setError("Failed to load users. Please refresh the page and try again.");
             } else {
-                flash("The action succeeded, but the user list could not be refreshed.", true);
+                flash("The action succeeded, but the user list could not be refreshed. Please refresh the page.", true);
             }
         } finally {
             if (!background) setLoading(false);
         }
-    }, [flash]);
+    };
 
     useEffect(() => {
-        const loadUsers = async () => {
-            await fetchUsers();
-        };
-
-        loadUsers();
-    }, [fetchUsers]);
+        fetchUsers();
+    }, []);
 
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -113,6 +97,22 @@ export default function ManageUsers() {
         });
     }, [users, search, roleFilter, verificationFilter]);
 
+    const flash = (message, isError = false, messageType = "success") => {
+        if (isError) {
+            setActionError(message);
+            setActionMessage("");
+        } else {
+            setActionMessage(message);
+            setActionMessageType(messageType);
+            setActionError("");
+        }
+
+        window.setTimeout(() => {
+            setActionMessage("");
+            setActionError("");
+        }, 4000);
+    };
+
     const handleVerificationUpdate = async (user, newStatus) => {
         const name = fullName(user);
         setConfirmDialog({
@@ -133,19 +133,20 @@ export default function ManageUsers() {
             setBusyUserId(user.user_id);
             await api.patch(
                 `/admin/users/${user.user_id}/verification`,
-                { verification_status: newStatus },
+                { verification_status: newStatus }
             );
             flash(
-                `Verification for ${fullName(user)} was updated to ${newStatus}.`,
+                `Verification for ${fullName(user)} was ${newStatus === "rejected" ? "rejected" : `updated to ${newStatus}`}.`,
+                false,
+                newStatus === "rejected" ? "danger" : "success",
             );
             await fetchUsers({ background: true });
         } catch (err) {
-            console.error("Failed to update verification:", err);
-            flash(
+            console.error(err);
+            const msg =
                 err.response?.data?.message ||
-                    "Failed to update verification status.",
-                true,
-            );
+                "Failed to update verification status.";
+            flash(msg, true);
         } finally {
             setBusyUserId(null);
         }
@@ -166,14 +167,18 @@ export default function ManageUsers() {
         try {
             setBusyUserId(user.user_id);
             await api.delete(`/admin/users/${user.user_id}`);
-            flash(`The account for ${fullName(user)} was deleted.`, false, "danger");
+            flash(
+                `The account for ${fullName(user)} was deleted successfully.`,
+                false,
+                "danger",
+            );
             await fetchUsers({ background: true });
         } catch (err) {
-            console.error("Failed to delete user:", err);
-            flash(
-                err.response?.data?.message || "Failed to delete the account.",
-                true,
-            );
+            console.error(err);
+            const msg =
+                err.response?.data?.message ||
+                "Failed to delete the account.";
+            flash(msg, true);
         } finally {
             setBusyUserId(null);
         }
@@ -189,39 +194,11 @@ export default function ManageUsers() {
         return new Date(value).toLocaleString();
     };
 
-    if (loading) {
-        return (
-            <AdminLayout>
-                <div className="page-loading">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading users...</p>
-                </div>
-            </AdminLayout>
-        );
-    }
-
     if (error) {
         return (
             <AdminLayout>
-                <div className="admin-dashboard manage-users-page">
-                    <div className="container-fluid">
-                        <div className="dashboard-page-header">
-                            <div>
-                                <span className="section-label">
-                                    USER MANAGEMENT
-                                </span>
-                                <h1>Manage Users</h1>
-                            </div>
-                        </div>
-                        <div className="alert alert-info" role="status">
-                            {error}
-                        </div>
-                    </div>
+                <div className="page-loading">
+                    <div className="app-alert app-alert-danger" role="alert">{error}</div>
                 </div>
             </AdminLayout>
         );
@@ -232,7 +209,7 @@ export default function ManageUsers() {
     return (
         <AdminLayout>
             <div className="admin-dashboard manage-users-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div>
                             <span className="section-label">
@@ -251,20 +228,19 @@ export default function ManageUsers() {
 
                     {actionMessage && (
                         <div
-                            className={`alert alert-${actionMessageType} manage-users-feedback`}
+                            className={`app-alert app-alert-${actionMessageType} manage-users-feedback`}
                             role="status"
                             aria-live="polite"
                         >
-                            <i
-                                className={`bi ${actionMessageType === "danger" ? "bi-exclamation-circle-fill" : "bi-check-circle-fill"}`}
-                                aria-hidden="true"
+                            <Icon
+                                name={actionMessageType === "danger" ? "exclamation-circle-fill" : "check-circle-fill"}
                             />
                             <span>{actionMessage}</span>
                         </div>
                     )}
 
                     {actionError && (
-                        <div className="alert alert-danger" role="alert">
+                        <div className="app-alert app-alert-danger" role="alert">
                             {actionError}
                         </div>
                     )}
@@ -276,7 +252,7 @@ export default function ManageUsers() {
                         >
                             <input
                                 type="search"
-                                className="form-control filter-search-360"
+                                className="app-input filter-search-360"
                                 placeholder="Search by name, username, email, contact, address..."
                                 value={search}
                                 onChange={(event) =>
@@ -286,7 +262,7 @@ export default function ManageUsers() {
                             />
 
                             <select
-                                className="form-select filter-select-180"
+                                className="app-select filter-select-180"
                                 value={roleFilter}
                                 onChange={(event) =>
                                     setRoleFilter(event.target.value)
@@ -304,7 +280,7 @@ export default function ManageUsers() {
                             </select>
 
                             <select
-                                className="form-select filter-select-200"
+                                className="app-select filter-select-200"
                                 value={verificationFilter}
                                 onChange={(event) =>
                                     setVerificationFilter(event.target.value)
@@ -324,17 +300,27 @@ export default function ManageUsers() {
                             <div className="filter-count"
                                 
                             >
-                                Showing {filtered.length} of {users.length}{" "}
-                                user{users.length === 1 ? "" : "s"}
+                                {!loading && (
+                                    <>
+                                        Showing {filtered.length} of {users.length}{" "}
+                                        user{users.length === 1 ? "" : "s"}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </section>
 
                     <section className="dashboard-section">
-                        {filtered.length === 0 ? (
+                        {loading ? (
+                            <SkeletonLoader
+                                label="Loading users"
+                                variant="table"
+                                columns={9}
+                            />
+                        ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon" aria-hidden="true">
-                                    <i className="bi bi-people" />
+                                    <Icon name="people" />
                                 </div>
                                 <h3>No Users Found</h3>
                                 <p>
@@ -421,7 +407,7 @@ export default function ManageUsers() {
                                                                 "verified" && (
                                                                 <Button
                                                                     type="button"
-                                                                    className="btn btn-success btn-sm"
+                                                                    className="app-button app-button-success app-button-sm"
                                                                     disabled={
                                                                         busyUserId ===
                                                                         user.user_id
@@ -442,7 +428,7 @@ export default function ManageUsers() {
                                                                 "rejected" && (
                                                                 <Button
                                                                     type="button"
-                                                                    className="btn btn-outline-danger btn-sm"
+                                                                    className="app-button app-button-outline-danger app-button-sm"
                                                                     disabled={
                                                                         busyUserId ===
                                                                         user.user_id
@@ -463,7 +449,7 @@ export default function ManageUsers() {
                                                                 "pending" && (
                                                                 <Button
                                                                     type="button"
-                                                                    className="btn btn-outline-secondary btn-sm"
+                                                                    className="app-button app-button-outline-secondary app-button-sm"
                                                                     disabled={
                                                                         busyUserId ===
                                                                         user.user_id
@@ -482,7 +468,7 @@ export default function ManageUsers() {
                                                         {isResident(user) && (
                                                             <Button
                                                                 type="button"
-                                                                className="btn btn-outline-danger btn-sm"
+                                                                className="app-button app-button-outline-danger app-button-sm"
                                                                 disabled={
                                                                     busyUserId ===
                                                                     user.user_id

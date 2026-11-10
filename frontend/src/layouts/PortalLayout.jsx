@@ -1,3 +1,4 @@
+import Icon from "../components/ui/Icon.jsx";
 import BrandMark from "../components/ui/BrandMark";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -7,12 +8,11 @@ import Sidebar from "./Sidebar";
 |--------------------------------------------------------------------------
 | Shared Portal Layout
 |--------------------------------------------------------------------------
-| All four portal landing pages use this layout:
+| Portal landing pages use this layout:
 |
-| 1. Guest
-| 2. Resident / User
-| 3. Staff
-| 4. Administrator
+| 1. Resident / User
+| 2. Staff
+| 3. Administrator
 |
 | The barangay photograph is placed in a separate background layer.
 | This allows us to control the image opacity without affecting
@@ -32,20 +32,18 @@ function PortalLayout({
         <div
             className={`portal-page ${
                 hasSidebar ? "portal-dashboard-page" : ""
-            } ${portalLabel === "STAFF & ADMINISTRATION" ? "portal-staff-admin-page" : ""} ${
+            } ${
+                portalLabel === "STAFF & ADMINISTRATION"
+                    ? "portal-staff-admin-page"
+                    : ""
+            } ${
                 portalLabel === "STAFF SERVICES" ? "portal-staff-workspace" : ""
-            } ${portalLabel === "ADMINISTRATION" ? "portal-admin-workspace" : ""}`}
+            } ${
+                portalLabel === "ADMINISTRATION" ? "portal-admin-workspace" : ""
+            }`}
         >
-            {/* 
-                Background photograph.
-                Its opacity is controlled entirely through CSS.
-            */}
             <div className="portal-background" aria-hidden="true"></div>
 
-            {/* 
-                Main portal content.
-                This stays fully visible above the background image.
-            */}
             <div
                 className={
                     hasSidebar ? "portal-dashboard-layout" : "portal-content"
@@ -86,11 +84,11 @@ function PortalLayout({
 
                                 <div className="portal-brand-text">
                                     <span className="portal-brand-name">
-                                        Barangay Aurora
+                                        BarangayEase
                                     </span>
 
                                     <span className="portal-brand-subtitle">
-                                        Document Services
+                                        Barangay Aurora
                                     </span>
                                 </div>
                             </Link>
@@ -113,7 +111,7 @@ function PortalLayout({
                                 aria-label="Open navigation"
                                 aria-expanded={sidebarOpen}
                             >
-                                <i className="bi bi-list" aria-hidden="true" />
+                                <Icon name="list" />
                             </button>
                         </div>
                     )}

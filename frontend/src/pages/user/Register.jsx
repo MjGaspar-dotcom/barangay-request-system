@@ -103,13 +103,13 @@ function Register() {
                 </div>
 
                 {error && (
-                    <div className="alert alert-danger" role="alert">
+                    <div className="app-alert app-alert-danger" role="alert">
                         {error}
                     </div>
                 )}
 
                 {success && (
-                    <div className="alert alert-success" role="alert">
+                    <div className="app-alert app-alert-success" role="alert">
                         {success}
                     </div>
                 )}
@@ -118,11 +118,11 @@ function Register() {
                     <div className="form-section">
                         <h2>Account Information</h2>
 
-                        <div className="row g-3">
-                            <div className="col-md-6">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div className="md:col-span-6">
                                 <label
                                     htmlFor="username"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Username
                                 </label>
@@ -131,15 +131,15 @@ function Register() {
                                     id="username"
                                     name="username"
                                     type="text"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.username}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
 
-                            <div className="col-md-6">
-                                <label htmlFor="email" className="form-label">
+                            <div className="md:col-span-6">
+                                <label htmlFor="email" className="app-label">
                                     Email
                                 </label>
 
@@ -147,17 +147,17 @@ function Register() {
                                     id="email"
                                     name="email"
                                     type="email"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.email}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
 
-                            <div className="col-md-6">
+                            <div className="md:col-span-6">
                                 <label
                                     htmlFor="password"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Password
                                 </label>
@@ -166,7 +166,7 @@ function Register() {
                                     id="password"
                                     name="password"
                                     type="password"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.password}
                                     onChange={handleChange}
                                     required
@@ -174,10 +174,10 @@ function Register() {
                                 />
                             </div>
 
-                            <div className="col-md-6">
+                            <div className="md:col-span-6">
                                 <label
                                     htmlFor="password_confirmation"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Confirm Password
                                 </label>
@@ -186,7 +186,7 @@ function Register() {
                                     id="password_confirmation"
                                     name="password_confirmation"
                                     type="password"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.password_confirmation}
                                     onChange={handleChange}
                                     required
@@ -199,11 +199,11 @@ function Register() {
                     <div className="form-section">
                         <h2>Personal Information</h2>
 
-                        <div className="row g-3">
-                            <div className="col-md-4">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div className="md:col-span-4">
                                 <label
                                     htmlFor="first_name"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     First Name
                                 </label>
@@ -212,17 +212,17 @@ function Register() {
                                     id="first_name"
                                     name="first_name"
                                     type="text"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.first_name}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
 
-                            <div className="col-md-4">
+                            <div className="md:col-span-4">
                                 <label
                                     htmlFor="middle_name"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Middle Name
                                 </label>
@@ -231,16 +231,16 @@ function Register() {
                                     id="middle_name"
                                     name="middle_name"
                                     type="text"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.middle_name}
                                     onChange={handleChange}
                                 />
                             </div>
 
-                            <div className="col-md-4">
+                            <div className="md:col-span-4">
                                 <label
                                     htmlFor="last_name"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Last Name
                                 </label>
@@ -249,17 +249,17 @@ function Register() {
                                     id="last_name"
                                     name="last_name"
                                     type="text"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.last_name}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
 
-                            <div className="col-md-4">
+                            <div className="md:col-span-4">
                                 <label
                                     htmlFor="birth_date"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Birth Date
                                 </label>
@@ -268,22 +268,22 @@ function Register() {
                                     id="birth_date"
                                     name="birth_date"
                                     type="date"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.birth_date}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
 
-                            <div className="col-md-4">
-                                <label htmlFor="gender" className="form-label">
+                            <div className="md:col-span-4">
+                                <label htmlFor="gender" className="app-label">
                                     Gender
                                 </label>
 
                                 <select
                                     id="gender"
                                     name="gender"
-                                    className="form-select"
+                                    className="app-select"
                                     value={form.gender}
                                     onChange={handleChange}
                                     required
@@ -294,10 +294,10 @@ function Register() {
                                 </select>
                             </div>
 
-                            <div className="col-md-4">
+                            <div className="md:col-span-4">
                                 <label
                                     htmlFor="civil_status"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Civil Status
                                 </label>
@@ -305,7 +305,7 @@ function Register() {
                                 <select
                                     id="civil_status"
                                     name="civil_status"
-                                    className="form-select"
+                                    className="app-select"
                                     value={form.civil_status}
                                     onChange={handleChange}
                                     required
@@ -320,15 +320,15 @@ function Register() {
                                 </select>
                             </div>
 
-                            <div className="col-12">
-                                <label htmlFor="address" className="form-label">
+                            <div className="col-span-full">
+                                <label htmlFor="address" className="app-label">
                                     Address
                                 </label>
 
                                 <textarea
                                     id="address"
                                     name="address"
-                                    className="form-control"
+                                    className="app-input"
                                     rows="3"
                                     value={form.address}
                                     onChange={handleChange}
@@ -336,10 +336,10 @@ function Register() {
                                 />
                             </div>
 
-                            <div className="col-md-6">
+                            <div className="md:col-span-6">
                                 <label
                                     htmlFor="contact_number"
-                                    className="form-label"
+                                    className="app-label"
                                 >
                                     Contact Number
                                 </label>
@@ -348,7 +348,7 @@ function Register() {
                                     id="contact_number"
                                     name="contact_number"
                                     type="tel"
-                                    className="form-control"
+                                    className="app-input"
                                     value={form.contact_number}
                                     onChange={handleChange}
                                     required
@@ -359,8 +359,10 @@ function Register() {
 
                     <button
                         type="submit"
-                        className="btn btn-success w-100"
+                        className="app-button app-button-success w-full"
                         disabled={loading}
+                        aria-busy={loading || undefined}
+                        aria-label={loading ? "Creating account" : undefined}
                     >
                         {loading ? "Creating Account..." : "Create Account"}
                     </button>

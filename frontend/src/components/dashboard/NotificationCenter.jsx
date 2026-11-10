@@ -33,17 +33,24 @@ function NotificationCenter() {
                 if (active) {
                     setNotifications(data.notifications);
                     setUnreadCount(data.unreadCount);
-                    setError("");
                 }
             } catch (fetchError) {
-                console.error("Failed to load dashboard notifications:", fetchError);
-                if (active) setError("Notifications could not be loaded.");
+                console.error(
+                    "Failed to load dashboard notifications:",
+                    fetchError
+                );
+                if (active) {
+                    setError("Notifications could not be loaded.");
+                }
             } finally {
-                if (active) setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
 
         loadNotifications();
+
         return () => {
             active = false;
         };
@@ -60,13 +67,15 @@ function NotificationCenter() {
         setError("");
 
         try {
-            await api.patch(`/notifications/${notification.notification_id}/read`);
+            await api.patch(
+                `/notifications/${notification.notification_id}/read`
+            );
             setNotifications((current) =>
                 current.map((item) =>
                     item.notification_id === notification.notification_id
                         ? { ...item, is_read: true }
-                        : item,
-                ),
+                        : item
+                )
             );
             if (!notification.is_read) {
                 setUnreadCount((current) => Math.max(0, current - 1));
@@ -107,12 +116,28 @@ function NotificationCenter() {
             )}
 
             {loading ? (
-                <p className="dashboard-notification-message">
-                    Loading notifications...
-                </p>
+                <div
+                    className="admin-notification-skeleton-list"
+                    role="status"
+                    aria-label="Loading notifications"
+                >
+                    {Array.from({ length: 2 }, (_, index) => (
+                        <div
+                            className="admin-notification-skeleton-row"
+                            key={index}
+                        >
+                            <div>
+                                <span className="admin-skeleton" />
+                                <span className="admin-skeleton" />
+                                <span className="admin-skeleton" />
+                            </div>
+                            <span className="admin-skeleton admin-notification-skeleton-action" />
+                        </div>
+                    ))}
+                </div>
             ) : notifications.length ? (
                 <div className="dashboard-notification-list">
-                    {notifications.map((notification) => (
+                    {notifications.slice(0, 5).map((notification) => (
                         <article
                             className={`dashboard-notification ${
                                 notification.is_read ? "" : "unread"
@@ -124,7 +149,9 @@ function NotificationCenter() {
                                 <p>{notification.message}</p>
                                 <time dateTime={notification.created_at}>
                                     {notification.created_at
-                                        ? new Date(notification.created_at).toLocaleString()
+                                        ? new Date(
+                                              notification.created_at
+                                          ).toLocaleString()
                                         : ""}
                                 </time>
                             </div>
@@ -133,6 +160,15 @@ function NotificationCenter() {
                                     type="button"
                                     className="dashboard-notification-read"
                                     disabled={markingId === notification.notification_id}
+                                    aria-busy={
+                                        markingId === notification.notification_id ||
+                                        undefined
+                                    }
+                                    aria-label={
+                                        markingId === notification.notification_id
+                                            ? "Saving notification"
+                                            : undefined
+                                    }
                                     onClick={() => markAsRead(notification)}
                                 >
                                     {markingId === notification.notification_id

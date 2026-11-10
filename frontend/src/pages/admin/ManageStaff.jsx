@@ -1,9 +1,11 @@
+import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useState } from "react";
-import Table from "react-bootstrap/Table";
+import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
@@ -27,34 +29,29 @@ export default function ManageStaff() {
     const [form, setForm] = useState(EMPTY_FORM);
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [busyStaffId, setBusyStaffId] = useState(null);
     const [search, setSearch] = useState("");
     const [showForm, setShowForm] = useState(false);
-    const [busyStaffId, setBusyStaffId] = useState(null);
+    const [actionError, setActionError] = useState("");
     const [confirmDialog, setConfirmDialog] = useState(null);
 
+    const fetchStaff = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get("/admin/staff");
+            setStaff(response.data.data || []);
+            setError("");
+        } catch (err) {
+            console.error(err);
+            setError("Failed to load staff.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        let active = true;
-
-        const loadStaff = async () => {
-            try {
-                const response = await api.get("/staff");
-                if (active) {
-                    setStaff(response.data.data || []);
-                    setError("");
-                }
-            } catch (err) {
-                console.error(err);
-                if (active) setError("Failed to load staff.");
-            } finally {
-                if (active) setLoading(false);
-            }
-        };
-
-        loadStaff();
-
-        return () => {
-            active = false;
-        };
+        fetchStaff();
     }, []);
 
     const handleChange = (event) => {
@@ -70,30 +67,40 @@ export default function ManageStaff() {
         setFormSuccess("");
 
         try {
+            setSubmitting(true);
             await api.post("/admin/staff", form);
+
             setFormSuccess(
-                `Staff account for ${form.first_name} ${form.last_name} created successfully.`,
+                `Staff account for ${form.first_name} ${form.last_name} created successfully.`
             );
             setForm(EMPTY_FORM);
             setShowForm(false);
-            const response = await api.get("/staff");
-            setStaff(response.data.data || []);
+            await fetchStaff();
         } catch (err) {
-            console.error("Failed to create staff account:", err);
-            const errors = err.response?.data?.errors || {};
-            const firstError = Object.values(errors)[0]?.[0];
-            setFormError(
-                firstError ||
+            console.error(err);
+            if (err.response?.status === 422) {
+                const errors = err.response.data.errors || {};
+                const firstKey = Object.keys(errors)[0];
+                setFormError(
+                    firstKey
+                        ? errors[firstKey][0]
+                        : "Please check the form for errors."
+                );
+            } else {
+                setFormError(
                     err.response?.data?.message ||
-                    "Failed to create staff account.",
-            );
+                        "Failed to create staff account."
+                );
+            }
+        } finally {
+            setSubmitting(false);
         }
     };
 
-    const handleDelete = (member) => {
+    const handleDelete = async (member) => {
         setConfirmDialog({
             title: "Remove staff account",
-            message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This also deletes the associated user account.`,
+            message: `Remove staff account for ${member.user?.first_name} ${member.user?.last_name}? This will also delete the underlying user account.`,
             confirmLabel: "Remove staff account",
             variant: "danger",
             onConfirm: () => runDelete(member),
@@ -101,16 +108,15 @@ export default function ManageStaff() {
     };
 
     const runDelete = async (member) => {
-        setBusyStaffId(member.staff_id);
         try {
+            setBusyStaffId(member.staff_id);
             await api.delete(`/admin/staff/${member.staff_id}`);
-            setStaff((current) =>
-                current.filter((item) => item.staff_id !== member.staff_id),
-            );
+            await fetchStaff();
         } catch (err) {
-            console.error("Failed to remove staff account:", err);
-            setError(
-                err.response?.data?.message || "Failed to remove staff account.",
+            console.error(err);
+            setActionError(
+                err.response?.data?.message ||
+                    "Failed to remove staff account."
             );
         } finally {
             setBusyStaffId(null);
@@ -145,15 +151,7 @@ export default function ManageStaff() {
     if (loading) {
         return (
             <AdminLayout>
-                <div className="page-loading">
-                    <div
-                        className="spinner-border text-success"
-                        role="status"
-                    >
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p>Loading staff...</p>
-                </div>
+                <SkeletonLoader label="Loading staff" variant="table" />
             </AdminLayout>
         );
     }
@@ -162,7 +160,7 @@ export default function ManageStaff() {
         return (
             <AdminLayout>
                 <div className="page-loading">
-                    <div className="alert alert-danger" role="alert">{error}</div>
+                    <div className="app-alert app-alert-danger" role="alert">{error}</div>
                 </div>
             </AdminLayout>
         );
@@ -171,7 +169,7 @@ export default function ManageStaff() {
     return (
         <AdminLayout>
             <div className="admin-dashboard manage-staff-page">
-                <div className="container-fluid">
+                <div className="w-full">
                     <div className="dashboard-page-header">
                         <div className="header-row-between-lg manage-staff-header-row">
                             <div>
@@ -189,7 +187,7 @@ export default function ManageStaff() {
 
                             <Button
                                 type="button"
-                                className="btn btn-success staff-create-button"
+                                className="app-button app-button-success staff-create-button"
                                 onClick={() => {
                                     setShowForm((current) => !current);
                                     setFormError("");
@@ -203,7 +201,7 @@ export default function ManageStaff() {
 
                     {formSuccess && (
                         <div
-                            className="alert alert-success"
+                            className="app-alert app-alert-success"
                             role="alert"
                         >
                             {formSuccess}
@@ -211,8 +209,14 @@ export default function ManageStaff() {
                     )}
 
                     {formError && (
-                        <div className="alert alert-danger" role="alert">
+                        <div className="app-alert app-alert-danger" role="alert">
                             {formError}
+                        </div>
+                    )}
+
+                    {actionError && (
+                        <div className="app-alert app-alert-danger" role="alert">
+                            {actionError}
                         </div>
                     )}
 
@@ -226,29 +230,29 @@ export default function ManageStaff() {
                                 </h3>
 
                                 <form noValidate onSubmit={handleSubmit}>
-                                    <div className="row g-3">
-                                        <div className="col-md-6">
-                                            <label className="form-label">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div className="md:col-span-6">
+                                            <label className="app-label">
                                                 Username *
                                             </label>
                                             <input
                                                 type="text"
                                                 name="username"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.username}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
 
-                                        <div className="col-md-6">
-                                            <label className="form-label">
+                                        <div className="md:col-span-6">
+                                            <label className="app-label">
                                                 Password *
                                             </label>
                                             <input
                                                 type="password"
                                                 name="password"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.password}
                                                 onChange={handleChange}
                                                 minLength={8}
@@ -256,55 +260,55 @@ export default function ManageStaff() {
                                             />
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label">
+                                        <div className="md:col-span-4">
+                                            <label className="app-label">
                                                 First Name *
                                             </label>
                                             <input
                                                 type="text"
                                                 name="first_name"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.first_name}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label">
+                                        <div className="md:col-span-4">
+                                            <label className="app-label">
                                                 Middle Name
                                             </label>
                                             <input
                                                 type="text"
                                                 name="middle_name"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.middle_name}
                                                 onChange={handleChange}
                                             />
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label">
+                                        <div className="md:col-span-4">
+                                            <label className="app-label">
                                                 Last Name *
                                             </label>
                                             <input
                                                 type="text"
                                                 name="last_name"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.last_name}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label">
+                                        <div className="md:col-span-4">
+                                            <label className="app-label">
                                                 Birth Date *
                                             </label>
                                             <input
                                                 type="date"
                                                 name="birth_date"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.birth_date}
                                                 onChange={handleChange}
                                                 max={new Date()
@@ -314,13 +318,13 @@ export default function ManageStaff() {
                                             />
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label">
+                                        <div className="md:col-span-4">
+                                            <label className="app-label">
                                                 Gender *
                                             </label>
                                             <select
                                                 name="gender"
-                                                className="form-select"
+                                                className="app-select"
                                                 value={form.gender}
                                                 onChange={handleChange}
                                                 required
@@ -337,13 +341,13 @@ export default function ManageStaff() {
                                             </select>
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <label className="form-label">
+                                        <div className="md:col-span-4">
+                                            <label className="app-label">
                                                 Civil Status *
                                             </label>
                                             <select
                                                 name="civil_status"
-                                                className="form-select"
+                                                className="app-select"
                                                 value={form.civil_status}
                                                 onChange={handleChange}
                                                 required
@@ -366,42 +370,42 @@ export default function ManageStaff() {
                                             </select>
                                         </div>
 
-                                        <div className="col-12">
-                                            <label className="form-label">
+                                        <div className="col-span-full">
+                                            <label className="app-label">
                                                 Address *
                                             </label>
                                             <input
                                                 type="text"
                                                 name="address"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.address}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
 
-                                        <div className="col-md-6">
-                                            <label className="form-label">
+                                        <div className="md:col-span-6">
+                                            <label className="app-label">
                                                 Contact Number *
                                             </label>
                                             <input
                                                 type="text"
                                                 name="contact_number"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.contact_number}
                                                 onChange={handleChange}
                                                 required
                                             />
                                         </div>
 
-                                        <div className="col-md-6">
-                                            <label className="form-label">
+                                        <div className="md:col-span-6">
+                                            <label className="app-label">
                                                 Email *
                                             </label>
                                             <input
                                                 type="email"
                                                 name="email"
-                                                className="form-control"
+                                                className="app-input"
                                                 value={form.email}
                                                 onChange={handleChange}
                                                 required
@@ -414,19 +418,23 @@ export default function ManageStaff() {
                                     >
                                         <Button
                                             type="submit"
-                                            className="btn btn-success"
+                                            className="app-button app-button-success"
+                                            disabled={submitting}
+                                            loading={submitting}
+                                            loadingLabel="Creating staff account"
                                         >
                                             Create Staff Account
                                         </Button>
 
                                         <Button
                                             type="button"
-                                            className="btn btn-outline-secondary"
+                                            className="app-button app-button-outline-secondary"
                                             onClick={() => {
                                                 setForm(EMPTY_FORM);
                                                 setFormError("");
                                                 setShowForm(false);
                                             }}
+                                            disabled={submitting}
                                         >
                                             Cancel
                                         </Button>
@@ -443,7 +451,7 @@ export default function ManageStaff() {
                         >
                             <input
                                 type="search"
-                                className="form-control filter-search-360"
+                                className="app-input filter-search-360"
                                 placeholder="Search by name, username, email..."
                                 value={search}
                                 onChange={(event) =>
@@ -465,7 +473,7 @@ export default function ManageStaff() {
                         {filtered.length === 0 ? (
                             <div className="dashboard-empty-state">
                                 <div className="dashboard-empty-icon" aria-hidden="true">
-                                    <i className="bi bi-person-workspace" />
+                                    <Icon name="person-workspace" />
                                 </div>
                                 <h3>No Staff Found</h3>
                                 <p>
@@ -539,13 +547,15 @@ export default function ManageStaff() {
                                                 <td>
                                                     <Button
                                                         type="button"
-                                                        className="btn btn-outline-danger btn-sm"
+                                                        className="app-button app-button-outline-danger app-button-sm"
                                                         disabled={
                                                             busyStaffId ===
                                                             member.staff_id
                                                         }
                                                         onClick={() =>
-                                                            handleDelete(member)
+                                                            handleDelete(
+                                                                member
+                                                            )
                                                         }
                                                     >
                                                         Remove

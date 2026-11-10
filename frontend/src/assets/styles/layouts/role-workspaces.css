@@ -529,7 +529,7 @@
 }
 
 /* Admin action buttons: match the rounded, forest-green sidebar interaction style. */
-.admin-management-layout .admin-table td .btn {
+.admin-management-layout .admin-table td .app-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -547,75 +547,75 @@
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.admin-management-layout .admin-table td .btn-success {
+.admin-management-layout .admin-table td .app-button-success {
     color: var(--white);
     background: #176b43;
     border-color: #176b43;
 }
 
-.admin-management-layout .admin-table td .btn-success:hover:not(:disabled) {
+.admin-management-layout .admin-table td .app-button-success:hover:not(:disabled) {
     background: #105534;
     border-color: #105534;
     transform: translateY(-1px);
 }
 
-.admin-management-layout .admin-table td .btn-outline-danger {
+.admin-management-layout .admin-table td .app-button-outline-danger {
     color: #9f3434;
     background: #fff7f6;
     border-color: #e7b8b5;
 }
 
-.admin-management-layout .admin-table td .btn-outline-danger:hover:not(:disabled) {
+.admin-management-layout .admin-table td .app-button-outline-danger:hover:not(:disabled) {
     color: var(--white);
     background: #a83d39;
     border-color: #a83d39;
 }
 
-.admin-management-layout .admin-table td .btn-outline-secondary {
+.admin-management-layout .admin-table td .app-button-outline-secondary {
     color: #244c38;
     background: #edf4ee;
     border-color: #cbdccf;
 }
 
-.admin-management-layout .admin-table td .btn-outline-secondary:hover:not(:disabled) {
+.admin-management-layout .admin-table td .app-button-outline-secondary:hover:not(:disabled) {
     color: #173b28;
     background: #dceadd;
     border-color: #b5ceb9;
 }
 
 /* Edit / Activate (outline-success) and Deactivate (outline-warning).
-   The generic `.admin-table td .btn` rule above forces a transparent border,
+   The generic `.admin-table td .app-button` rule above forces a transparent border,
    so these two need their own resting colors or they blend into the cell. */
-.admin-management-layout .admin-table td .btn-outline-success {
+.admin-management-layout .admin-table td .app-button-outline-success {
     color: #176b43;
     background: #f1f8f3;
     border-color: #b9d8c4;
 }
 
-.admin-management-layout .admin-table td .btn-outline-success:hover:not(:disabled) {
+.admin-management-layout .admin-table td .app-button-outline-success:hover:not(:disabled) {
     color: #fff;
     background: #176b43;
     border-color: #176b43;
 }
 
-.admin-management-layout .admin-table td .btn-outline-warning {
+.admin-management-layout .admin-table td .app-button-outline-warning {
     color: #8a5a00;
     background: #fff8e6;
     border-color: #ecd391;
 }
 
-.admin-management-layout .admin-table td .btn-outline-warning:hover:not(:disabled) {
+.admin-management-layout .admin-table td .app-button-outline-warning:hover:not(:disabled) {
     color: #fff;
     background: #a86a00;
     border-color: #a86a00;
 }
 
-.admin-management-layout .admin-table td .btn:focus-visible {
+.admin-management-layout .admin-table td .app-button:focus-visible {
     outline: 3px solid rgba(225, 194, 111, 0.75);
     outline-offset: 2px;
 }
 
-.admin-management-layout .admin-table td .btn:disabled {
+.admin-management-layout .admin-table td .app-button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
