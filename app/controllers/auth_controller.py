@@ -1,7 +1,12 @@
 ﻿# Debug: Authentication, registration, profile, OCR, and health endpoints.
 from datetime import datetime, date
+import mimetypes
 import re
-from flask import jsonify, request
+from pathlib import Path
+from uuid import uuid4
+
+from PIL import Image, UnidentifiedImageError
+from flask import current_app, jsonify, request, send_file
 from flask_jwt_extended import (
     create_access_token,
     get_jwt,
@@ -21,7 +26,8 @@ from app.models import (
 from app.services.tracking_number_service import TrackingNumberService
 from app.services.request_status_service import RequestStatusService
 from app.utils.passwords import hash_password, verify_password
-from app.controllers.base import success, failure, role_required
+from app.controllers.base import success, failure
+from app.middleware.roles import role_required
 
 
 def api_test():
@@ -50,9 +56,11 @@ def ocr_test():
     try:
         import pytesseract
         from PIL import Image
+        from app.services.ocr_parsing_service import OcrParsingService
 
         raw_text = pytesseract.image_to_string(Image.open(image.stream))
-        return success({"text": raw_text.strip()}, "OCR completed")
+        parsed = OcrParsingService.parse(raw_text.strip())
+        return success(parsed, "OCR completed")
     except ImportError:
         return failure("OCR service is unavailable on this server.", 503)
 
@@ -243,9 +251,133 @@ def logout():
 @jwt_required()
 def update_profile():
     user = db.session.get(User, int(get_jwt_identity()))
-    data = request.get_json(silent=True) or {}
-    for field in ("name", "phone", "address"):
-        if field in data:
-            setattr(user, field, data[field])
+    if not user:
+        return failure("User not found", 404)
+    data = (
+        request.form.to_dict()
+        if request.mimetype == "multipart/form-data"
+        else request.get_json(silent=True) or {}
+    )
+    if not isinstance(data, dict):
+        return failure("Profile data must be an object.", 422)
+
+    for field in ("first_name", "middle_name", "last_name", "gender", "civil_status", "address"):
+        if field not in data:
+            continue
+        value = data[field]
+        if value is not None and not isinstance(value, str):
+            return failure(f"{field.replace('_', ' ').capitalize()} must be text.", 422)
+        if field in {"first_name", "last_name"} and not (value or "").strip():
+            return failure(f"{field.replace('_', ' ').capitalize()} is required.", 422)
+        setattr(user, field, value.strip() or None if value is not None else None)
+
+    if "name" in data and not any(
+        field in data for field in ("first_name", "middle_name", "last_name")
+    ):
+        parts = data["name"].strip().split() if isinstance(data["name"], str) else []
+        if parts:
+            user.first_name = parts[0]
+            user.last_name = " ".join(parts[1:]) or parts[0]
+
+    if "contact_number" in data or "phone" in data:
+        contact_number = data.get("contact_number", data.get("phone"))
+        if contact_number is not None and not isinstance(contact_number, str):
+            return failure("Contact number must be text.", 422)
+        user.contact_number = contact_number.strip() or None if contact_number else None
+
+    if "birth_date" in data:
+        birth_date_value = data["birth_date"]
+        if birth_date_value in (None, ""):
+            user.birth_date = None
+        elif not isinstance(birth_date_value, str):
+            return failure("Birth date must use YYYY-MM-DD format.", 422)
+        else:
+            try:
+                parsed_birth_date = date.fromisoformat(birth_date_value)
+            except ValueError:
+                return failure("Birth date must use YYYY-MM-DD format.", 422)
+            if parsed_birth_date > date.today():
+                return failure("Birth date cannot be in the future.", 422)
+            user.birth_date = parsed_birth_date
+
+    image_formats = {
+        ".jpg": "JPEG",
+        ".jpeg": "JPEG",
+        ".png": "PNG",
+        ".webp": "WEBP",
+    }
+    image_fields = {
+        "profile_picture": "profile-pictures",
+        "valid_id_front": "resident-valid-ids",
+        "valid_id_back": "resident-valid-ids",
+    }
+    storage_root = Path(current_app.config["PUBLIC_STORAGE_ROOT"]).resolve()
+    pending_images = []
+    for field, directory in image_fields.items():
+        image = request.files.get(field)
+        if image is None:
+            continue
+        extension = Path(image.filename or "").suffix.lower()
+        expected_format = image_formats.get(extension)
+        if expected_format is None:
+            return failure("Images must be JPG, PNG, or WEBP files.", 422)
+        image.stream.seek(0, 2)
+        image_size = image.stream.tell()
+        image.stream.seek(0)
+        if image_size == 0 or image_size > 10 * 1024 * 1024:
+            return failure("Each image must be between 1 byte and 10 MB.", 422)
+        try:
+            with Image.open(image.stream) as decoded:
+                if decoded.format != expected_format:
+                    return failure("The uploaded file is not a valid image.", 422)
+                if decoded.width * decoded.height > 25_000_000:
+                    return failure("The image dimensions are too large.", 422)
+                decoded.verify()
+        except (
+            Image.DecompressionBombError,
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+        ):
+            return failure("The uploaded file is not a valid image.", 422)
+        image.stream.seek(0)
+
+        pending_images.append((field, directory, extension, image))
+
+    for field, directory, extension, image in pending_images:
+        relative_path = Path(directory) / str(user.id) / f"{uuid4().hex}{extension}"
+        destination = storage_root / relative_path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        image.save(destination)
+        setattr(user, field, relative_path.as_posix())
+
     db.session.commit()
     return success(user.to_dict(), "Profile updated")
+
+
+@jwt_required()
+def profile_image(image_field):
+    if image_field not in {"profile_picture", "valid_id_front", "valid_id_back"}:
+        return failure("Profile image not found.", 404)
+    user = db.session.get(User, int(get_jwt_identity()))
+    if not user:
+        return failure("User not found", 404)
+    relative_path = getattr(user, image_field)
+    if not relative_path:
+        return failure("Profile image not found.", 404)
+
+    storage_root = Path(current_app.config["PUBLIC_STORAGE_ROOT"]).resolve()
+    image_path = (storage_root / relative_path).resolve()
+    try:
+        image_path.relative_to(storage_root)
+    except ValueError:
+        return failure("Profile image not found.", 404)
+    if not image_path.is_file():
+        return failure("Profile image not found.", 404)
+
+    content_type = (
+        mimetypes.guess_type(image_path.name)[0] or "application/octet-stream"
+    )
+    response = send_file(image_path, mimetype=content_type, conditional=True)
+    response.cache_control.no_store = True
+    return response

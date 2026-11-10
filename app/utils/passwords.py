@@ -15,7 +15,7 @@ def verify_password(password_hash: str, password: str) -> bool:
         bcrypt_hash = "$2b$" + password_hash[4:]
         try:
             return bcrypt.checkpw(password.encode("utf-8"), bcrypt_hash.encode("ascii"))
-        except (ValueError, TypeError, bcrypt.error):
+        except (ValueError, TypeError):
             return False
 
     try:

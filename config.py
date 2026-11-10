@@ -24,6 +24,10 @@ class Config:
     DB_DATABASE = os.getenv("DB_DATABASE", "barangay_request_system")
     DB_USERNAME = os.getenv("DB_USERNAME", "root")
     DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    PUBLIC_STORAGE_ROOT = os.getenv(
+        "PUBLIC_STORAGE_ROOT",
+        os.path.join(os.path.dirname(__file__), "storage", "app", "public"),
+    )
 
     SQLALCHEMY_DATABASE_URI = (
         f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}"

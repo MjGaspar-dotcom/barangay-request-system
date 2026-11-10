@@ -10,7 +10,7 @@ class Notification(db.Model):
     user_id = db.Column(
         db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False
     )
-    type = db.Column(db.String(100), nullable=True)
+    type = db.Column(db.String(100), default="general", nullable=False)
     staff_id = db.Column(
         db.Integer, db.ForeignKey("staff.staff_id", ondelete="SET NULL"), nullable=True
     )
@@ -25,9 +25,31 @@ class Notification(db.Model):
     read_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    def __init__(
+        self,
+        *,
+        user_id: int,
+        title: str,
+        message: str,
+        type: str | None = None,
+        staff_id: int | None = None,
+        request_id: int | None = None,
+        is_read: bool = False,
+        read_at: datetime | None = None,
+    ) -> None:
+        self.user_id = user_id
+        self.title = title
+        self.message = message
+        self.type = type or "general"
+        self.staff_id = staff_id
+        self.request_id = request_id
+        self.is_read = is_read
+        self.read_at = read_at
+
     def to_dict(self):
         return {
             "id": self.id,
+            "notification_id": self.id,
             "user_id": self.user_id,
             "type": self.type,
             "staff_id": self.staff_id,

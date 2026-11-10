@@ -1,0 +1,1 @@
+# Laravel RequestSeeder currently contains no records.

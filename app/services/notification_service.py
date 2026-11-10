@@ -27,6 +27,8 @@ class NotificationService:
             db.session.add(
                 Notification(
                     user_id=staff.user_id,
+                    type="new_request_for_staff",
+                    request_id=request.id,
                     title="New Request Submitted",
                     message=f"A new {document_name} request ({request.tracking_number}) has been submitted.",
                 )

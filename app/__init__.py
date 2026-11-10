@@ -2,6 +2,7 @@
 import os
 from flask import Flask, jsonify
 from config import config_by_name
+from .cors_config import get_cors_resources
 from app.extensions import db, migrate, jwt, cors
 from app.utils.responses import error_response
 from app.utils.exceptions import APIException
@@ -23,7 +24,7 @@ def create_app(config_name=None):
     db.init_app(flask_app)
     migrate.init_app(flask_app, db)
     jwt.init_app(flask_app)
-    cors.init_app(flask_app, resources={r"/api/*": {"origins": "*"}})
+    cors.init_app(flask_app, resources=get_cors_resources())
 
     # Import models for Flask-Migrate / SQLAlchemy metadata
     from . import models

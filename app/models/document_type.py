@@ -1,12 +1,17 @@
 ﻿# Debug: Database model for request document types.
 from datetime import datetime
+
+from sqlalchemy.orm import Mapped
+
 from app.extensions import db
 
 
 class DocumentType(db.Model):
     __tablename__ = "document_types"
 
-    document_type_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    document_type_id: Mapped[int] = db.Column(
+        db.Integer, primary_key=True, autoincrement=True
+    )
     document_name = db.Column(db.String(255), unique=True, nullable=False, index=True)
     description = db.Column(db.Text, nullable=True)
     processing_days = db.Column(db.Integer, default=1, nullable=False)
@@ -18,8 +23,24 @@ class DocumentType(db.Model):
 
     # Relationships
     barangay_requests = db.relationship(
-        "BarangayRequest", backref="document_type", lazy=True
+        "BarangayRequest",
+        back_populates="document_type",
+        foreign_keys="BarangayRequest.document_type_id",
+        lazy=True,
     )
+
+    def __init__(
+        self,
+        *,
+        document_name: str,
+        description: str | None = None,
+        processing_days: int = 1,
+        is_active: bool = True,
+    ) -> None:
+        self.document_name = document_name
+        self.description = description
+        self.processing_days = processing_days
+        self.is_active = is_active
 
     @property
     def fee(self):

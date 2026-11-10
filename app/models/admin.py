@@ -1,6 +1,13 @@
 ﻿# Debug: Database model for administrator accounts.
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy.orm import Mapped, relationship
+
 from app.extensions import db
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Admin(db.Model):
@@ -16,6 +23,11 @@ class Admin(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="admin_profile",
+        foreign_keys=[user_id],
     )
 
     @property

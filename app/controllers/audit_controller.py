@@ -21,7 +21,8 @@ from app.models import (
 from app.services.tracking_number_service import TrackingNumberService
 from app.services.request_status_service import RequestStatusService
 from app.utils.passwords import hash_password, verify_password
-from app.controllers.base import success, failure, role_required
+from app.controllers.base import success, failure
+from app.middleware.roles import role_required
 
 
 @role_required("admin")

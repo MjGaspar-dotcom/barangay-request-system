@@ -3,7 +3,6 @@ from flask import request
 from flask_jwt_extended import get_jwt_identity
 from app.extensions import db
 from app.models.audit_log import AuditLog
-from app.models.user import User
 
 
 class AuditService:

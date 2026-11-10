@@ -1,27 +1,13 @@
 ﻿# Debug: Document type endpoints.
-from datetime import datetime, date
-import re
-from flask import jsonify, request
-from flask_jwt_extended import (
-    create_access_token,
-    get_jwt,
-    get_jwt_identity,
-    jwt_required,
-)
+from flask import request
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 
 from app.extensions import db
 from app.models import (
     User,
     DocumentType,
-    BarangayRequest,
-    Notification,
-    AuditLog,
-    Staff,
 )
-from app.services.tracking_number_service import TrackingNumberService
-from app.services.request_status_service import RequestStatusService
-from app.utils.passwords import hash_password, verify_password
-from app.controllers.base import success, failure, role_required
+from app.controllers.base import success, failure
 
 
 @jwt_required(optional=True)
@@ -104,10 +90,10 @@ def document_type_detail(document_type_id):
         errors["document_name"] = [
             "The document name may not be greater than 255 characters."
         ]
-    elif DocumentType.query.filter(
-        DocumentType.document_name == name,
-        DocumentType.document_type_id != item.document_type_id,
-    ).first():
+    elif (
+        (existing := DocumentType.query.filter_by(document_name=name).first())
+        and existing.document_type_id != item.document_type_id
+    ):
         errors["document_name"] = ["The document name has already been taken."]
     try:
         processing_days = int(processing_days)

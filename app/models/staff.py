@@ -1,6 +1,13 @@
 ﻿# Debug: Database model for staff accounts.
 from datetime import datetime
+from typing import TYPE_CHECKING
+
 from app.extensions import db
+from sqlalchemy.orm import Mapped, relationship
+
+if TYPE_CHECKING:
+    from app.models.admin import Admin
+    from app.models.user import User
 
 
 class Staff(db.Model):
@@ -14,17 +21,33 @@ class Staff(db.Model):
         nullable=False,
     )
     assigned_by = db.Column(
-        db.Integer, db.ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True
+        db.Integer, db.ForeignKey("admins.admin_id", ondelete="CASCADE"), nullable=True
     )
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
-    user = db.relationship(
-        "User", foreign_keys=[user_id], backref="staff_profile", uselist=False
+    user: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[user_id],
+        back_populates="staff_profile",
+        uselist=False,
     )
-    assigned_by_user = db.relationship("User", foreign_keys=[assigned_by])
+    assigned_by_admin: Mapped["Admin | None"] = relationship(
+        "Admin", foreign_keys=[assigned_by]
+    )
+
+    def __init__(
+        self,
+        *,
+        user_id: int,
+        assigned_by: int | None = None,
+        position: str = "Staff",
+    ) -> None:
+        self.user_id = user_id
+        self.assigned_by = assigned_by
+        self.position = position
 
     @property
     def position(self):

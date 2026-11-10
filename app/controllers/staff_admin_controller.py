@@ -8,6 +8,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
+from sqlalchemy import inspect, text
 
 from app.extensions import db
 from app.models import (
@@ -21,7 +22,8 @@ from app.models import (
 from app.services.tracking_number_service import TrackingNumberService
 from app.services.request_status_service import RequestStatusService
 from app.utils.passwords import hash_password, verify_password
-from app.controllers.base import success, failure, role_required
+from app.controllers.base import success, failure
+from app.middleware.roles import role_required
 
 
 @role_required("staff", "admin")
@@ -37,12 +39,34 @@ def staff_requests(user):
 
 @role_required("admin")
 def admin_stats(user):
+    request_query = BarangayRequest.query
+    request_columns = {
+        column["name"]
+        for column in inspect(db.engine).get_columns("barangay_requests")
+    }
+    if "deleted_at" in request_columns:
+        request_query = request_query.filter(
+            text("barangay_requests.deleted_at IS NULL")
+        )
+
     return success(
         {
             "users": User.query.count(),
             "requests": BarangayRequest.query.count(),
             "pending": BarangayRequest.query.filter_by(status="Pending").count(),
             "document_types": DocumentType.query.count(),
+            "total_registered_requests": request_query.count(),
+            "total_residents": User.query.filter(
+                ~User.admin_profile.has(),
+                ~User.staff_profile.has(),
+            ).count(),
+            "total_staff": Staff.query.count(),
+            "active_document_types": DocumentType.query.filter_by(
+                is_active=True
+            ).count(),
+            "total_audit_logs": AuditLog.query.count(),
+            "pending_requests": request_query.filter_by(status="Pending").count(),
+            "completed_requests": request_query.filter_by(status="Completed").count(),
         }
     )
 
@@ -184,11 +208,31 @@ def delete_staff(user, staff_id):
 
 @role_required("admin")
 def recent_activity(user):
+    try:
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 20))
+    except ValueError:
+        return failure("Page and per_page must be integers.", 422)
+
+    if page < 1 or per_page < 1 or per_page > 100:
+        return failure("Page must be positive and per_page must be between 1 and 100.", 422)
+
+    query = AuditLog.query
+    action = request.args.get("action")
+    if action and action != "all":
+        query = query.filter_by(action=action)
+
+    pagination = query.order_by(AuditLog.created_at.desc()).paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False,
+    )
     return success(
-        [
-            item.to_dict()
-            for item in AuditLog.query.order_by(AuditLog.created_at.desc())
-            .limit(20)
-            .all()
-        ]
+        {
+            "data": [item.to_dict() for item in pagination.items],
+            "current_page": pagination.page,
+            "last_page": max(1, pagination.pages),
+            "per_page": pagination.per_page,
+            "total": pagination.total,
+        }
     )

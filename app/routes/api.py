@@ -8,6 +8,7 @@ from app.controllers.auth_controller import (
     login,
     logout,
     ocr_test,
+    profile_image,
     register,
     test_qr,
     update_profile,
@@ -17,9 +18,15 @@ from app.controllers.document_controller import (
     document_types,
 )
 from app.controllers.request_controller import (
+    authorize_request_document,
     barangay_request_detail,
     barangay_requests,
+    request_valid_id,
+    resubmit_request_requirements,
     track,
+    upload_prepared_document,
+    verify_request_requirements,
+    view_request_document,
 )
 from app.controllers.notification_controller import (
     notifications,
@@ -39,6 +46,7 @@ from app.controllers.staff_admin_controller import (
     verify_user,
 )
 from app.controllers.audit_controller import audit_log_detail, audit_logs
+from app.controllers.analytics_controller import document_request_trends
 
 api_bp = Blueprint("api", __name__)
 
@@ -52,6 +60,7 @@ api_bp.post("/login")(login)
 api_bp.get("/user")(current_user)
 api_bp.post("/logout")(logout)
 api_bp.patch("/profile")(update_profile)
+api_bp.get("/profile/image/<image_field>")(profile_image)
 
 # Document type endpoints.
 api_bp.route("/document-types", methods=["GET", "POST"])(document_types)
@@ -67,6 +76,24 @@ api_bp.route(
     "/barangay-requests/<int:request_id>",
     methods=["GET", "PUT", "PATCH", "DELETE"],
 )(barangay_request_detail)
+api_bp.get("/barangay-requests/<int:request_id>/valid-id/<side>")(
+    request_valid_id
+)
+api_bp.post("/barangay-requests/<int:request_id>/requirements/verify")(
+    verify_request_requirements
+)
+api_bp.post("/barangay-requests/<int:request_id>/requirements/resubmit")(
+    resubmit_request_requirements
+)
+api_bp.post("/barangay-requests/<int:request_id>/documents/prepared")(
+    upload_prepared_document
+)
+api_bp.post("/barangay-requests/<int:request_id>/documents/authorize")(
+    authorize_request_document
+)
+api_bp.get(
+    "/barangay-requests/<int:request_id>/documents/<int:document_id>/view"
+)(view_request_document)
 
 # Notification endpoints.
 api_bp.get("/notifications")(notifications)
@@ -78,6 +105,7 @@ api_bp.patch("/notifications/<int:notification_id>/read")(read_notification)
 api_bp.get("/staff")(staff_list)
 api_bp.get("/staff/requests")(staff_requests)
 api_bp.get("/admin/stats")(admin_stats)
+api_bp.get("/admin/analytics/document-request-trends")(document_request_trends)
 api_bp.get("/admin/users")(admin_users)
 api_bp.route("/admin/users/<int:user_id>", methods=["GET", "DELETE"])(admin_user_detail)
 api_bp.patch("/admin/users/<int:user_id>/verification")(verify_user)

@@ -1,0 +1,11 @@
+{
+    "include": [
+        ".",
+        "../tests",
+        "../config.py",
+        "../run.py"
+    ],
+    "extraPaths": [
+        ".."
+    ]
+}

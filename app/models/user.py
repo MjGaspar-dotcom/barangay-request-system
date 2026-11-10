@@ -15,6 +15,7 @@ class User(db.Model):
     gender = db.Column(db.String(50), nullable=True)
     civil_status = db.Column(db.String(50), nullable=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    google_id = db.Column(db.String(255), unique=True, nullable=True)
     password_hash = db.Column("password", db.String(255), nullable=False)
     contact_number = db.Column(db.String(20), nullable=True)
     address = db.Column(db.Text, nullable=True)
@@ -31,17 +32,73 @@ class User(db.Model):
     barangay_requests = db.relationship(
         "BarangayRequest",
         foreign_keys="BarangayRequest.user_id",
-        backref="user",
+        back_populates="user",
         lazy=True,
         cascade="all, delete-orphan",
     )
     notifications = db.relationship(
         "Notification", backref="user", lazy=True, cascade="all, delete-orphan"
     )
-    audit_logs = db.relationship("AuditLog", backref="user", lazy=True)
     admin_profile = db.relationship(
-        "Admin", backref="user", uselist=False, cascade="all, delete-orphan"
+        "Admin",
+        back_populates="user",
+        foreign_keys="Admin.user_id",
+        uselist=False,
+        cascade="all, delete-orphan",
     )
+    staff_profile = db.relationship(
+        "Staff",
+        back_populates="user",
+        foreign_keys="Staff.user_id",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    def __init__(
+        self,
+        *,
+        username: str | None = None,
+        name: str | None = None,
+        first_name: str = "Resident",
+        middle_name: str | None = None,
+        last_name: str = "User",
+        birth_date: date | None = None,
+        gender: str | None = None,
+        civil_status: str | None = None,
+        email: str,
+        google_id: str | None = None,
+        password_hash: str,
+        phone: str | None = None,
+        contact_number: str | None = None,
+        address: str | None = None,
+        profile_picture: str | None = None,
+        valid_id_type: str | None = None,
+        valid_id_front: str | None = None,
+        valid_id_back: str | None = None,
+        verification_status: str = "pending",
+        role: str = "resident",
+        is_active: bool = True,
+    ) -> None:
+        self.username = username
+        self.name = name
+        self.first_name = first_name
+        self.middle_name = middle_name
+        self.last_name = last_name
+        self.birth_date = birth_date
+        self.gender = gender
+        self.civil_status = civil_status
+        self.email = email
+        self.google_id = google_id
+        self.password_hash = password_hash
+        self.contact_number = contact_number or phone
+        self.address = address
+        self.profile_picture = profile_picture
+        self.valid_id_type = valid_id_type
+        self.valid_id_front = valid_id_front
+        self.valid_id_back = valid_id_back
+        self.verification_status = verification_status
+        self.role = role
+        self.is_active = is_active
 
     @property
     def name(self):
@@ -98,6 +155,7 @@ class User(db.Model):
             "gender": self.gender,
             "civil_status": self.civil_status,
             "email": self.email,
+            "google_id": self.google_id,
             "phone": self.phone or self.contact_number,
             "contact_number": self.contact_number or self.phone,
             "address": self.address,
