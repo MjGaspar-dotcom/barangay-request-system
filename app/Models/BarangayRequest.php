@@ -110,6 +110,15 @@ class BarangayRequest extends Model
         );
     }
 
+    public function generatedDocuments()
+    {
+        return $this->hasMany(
+            GeneratedDocument::class,
+            'request_id',
+            'request_id'
+        )->orderByDesc('version_number');
+    }
+
     public function preparedDocument()
     {
         return $this->belongsTo(

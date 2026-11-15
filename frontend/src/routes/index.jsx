@@ -15,24 +15,22 @@ import RequestDetails from "../pages/user/RequestDetails";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
 
-const Landing = lazy(() => import("../pages/public/Landing"));
 const UserRequest = lazy(() => import("../pages/user/Request"));
 const UserProfile = lazy(() => import("../pages/user/Profile"));
 const TrackRequest = lazy(() => import("../pages/user/TrackRequest"));
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
 const AdminAnalytics = lazy(() => import("../pages/staff/Reports"));
-const AdminLogin = lazy(() => import("../pages/admin/Login"));
 const ManageUsers = lazy(() => import("../pages/admin/ManageUsers"));
 const ManageStaff = lazy(() => import("../pages/admin/ManageStaff"));
 const ManageRequests = lazy(() => import("../pages/admin/ManageRequests"));
 const ManageDocumentTypes = lazy(
     () => import("../pages/admin/ManageDocumentTypes"),
 );
+const DocumentTemplates = lazy(
+    () => import("../pages/admin/DocumentTemplates"),
+);
 const ManageRecommendations = lazy(
     () => import("../pages/admin/ManageRecommendations"),
-);
-const BarangaySettings = lazy(
-    () => import("../pages/admin/BarangaySettings"),
 );
 const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
@@ -43,9 +41,6 @@ const RequestProcessingPage = lazy(
 );
 const GeneratedDocumentPage = lazy(
     () => import("../pages/shared/GeneratedDocumentPage"),
-);
-const SchoolDemoDocumentPage = lazy(
-    () => import("../pages/shared/SchoolDemoDocumentPage"),
 );
 
 function RouteScrollReset() {
@@ -81,7 +76,10 @@ export default function AppRoutes() {
             <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                     {/* PUBLIC */}
-                    <Route path="/" element={<Landing />} />
+                    <Route
+                        path="/"
+                        element={<Navigate to="/staff/login" replace />}
+                    />
                     <Route path="/track-request" element={<TrackRequest />} />
 
                     {/* AUTH */}
@@ -148,14 +146,6 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
-                        path="/staff/barangay-settings"
-                        element={
-                            <ProtectedRoute allowedRoles={["staff"]}>
-                                <Navigate to="/staff/dashboard" replace />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
                         path="/staff/recent-activity"
                         element={
                             <ProtectedRoute allowedRoles={["staff"]}>
@@ -203,15 +193,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-                    <Route
-                        path="/staff/document-template-sample"
-                        element={
-                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
-                                <SchoolDemoDocumentPage />
-                            </ProtectedRoute>
-                        }
-                    />
-
                     {/* ADMIN */}
                     <Route
                         path="/admin/dashboard"
@@ -278,6 +259,14 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/admin/document-templates"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <DocumentTemplates />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/admin/recommendations"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
@@ -287,19 +276,7 @@ export default function AppRoutes() {
                     />
                     <Route
                         path="/admin/barangay-settings"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <BarangaySettings />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/document-template-sample"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <SchoolDemoDocumentPage />
-                            </ProtectedRoute>
-                        }
+                        element={<Navigate to="/admin/dashboard" replace />}
                     />
                     <Route
                         path="/admin/recent-activity"
@@ -309,8 +286,11 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-                    {/* ROLE-SPECIFIC LOGIN */}
-                    <Route path="/admin/login" element={<AdminLogin />} />
+                    {/* Both staff and administrators use the shared login form. */}
+                    <Route
+                        path="/admin/login"
+                        element={<Navigate to="/staff/login" replace />}
+                    />
                     <Route path="/staff/login" element={<StaffLogin />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

@@ -40,13 +40,6 @@ function RoleSection() {
                         description="Process, review, and manage submitted document requests."
                         onClick={() => navigate("/staff/login")}
                     />
-
-                    <RoleCard
-                        icon="⚙️"
-                        title="Administrator"
-                        description="Manage users, staff, documents, and system operations."
-                        onClick={() => navigate("/admin/login")}
-                    />
                 </RoleGrid>
             </SectionContainer>
         </RoleSectionRoot>

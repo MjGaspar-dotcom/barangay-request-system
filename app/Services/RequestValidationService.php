@@ -15,14 +15,18 @@ class RequestValidationService
     {
         $errors = [];
 
-        // Check for duplicate pending request
-        $existing = BarangayRequest::where('user_id', $user->id)
+        $existing = BarangayRequest::query()
+            ->where('user_id', $user->user_id)
             ->where('document_type_id', $documentTypeId)
-            ->whereIn('status', ['pending', 'processing'])
-            ->first();
+            ->whereIn('status', [
+                RequestStatusService::STATUS_REQUEST_SUBMITTED,
+                RequestStatusService::STATUS_APPROVED,
+                RequestStatusService::STATUS_READY_FOR_PICKUP,
+            ])
+            ->exists();
 
         if ($existing) {
-            $errors[] = "You already have a pending request for this document.";
+            $errors[] = 'You already have an open request for this document type.';
         }
 
         return $errors;
@@ -33,6 +37,6 @@ class RequestValidationService
      */
     public static function isUserVerified(User $user): bool
     {
-        return (bool) $user->is_verified;
+        return $user->verification_status === 'verified';
     }
 }

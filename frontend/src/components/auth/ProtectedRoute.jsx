@@ -5,11 +5,11 @@ import LoadingState from "../ui/LoadingState";
 function ProtectedRoute({ children, allowedRoles = [] }) {
     const { user, isAuthenticated, authLoading } = useAuth();
     const location = useLocation();
-    const loginPath = location.pathname.startsWith("/admin/")
-        ? "/admin/login"
-        : location.pathname.startsWith("/staff/")
-          ? "/staff/login"
-          : "/login";
+    const loginPath =
+        location.pathname.startsWith("/admin/") ||
+        location.pathname.startsWith("/staff/")
+            ? "/staff/login"
+            : "/login";
 
     if (authLoading) {
         return (

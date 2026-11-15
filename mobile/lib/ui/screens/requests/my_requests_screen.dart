@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/request_provider.dart';
 import '../../../core/models/request_model.dart';
 import '../../widgets/status_chip.dart';
 import 'create_request_screen.dart';
+import 'generated_document_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
@@ -45,8 +47,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         ),
         backgroundColor: const Color(0xFF1A6B4A),
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('New Request',
-            style: TextStyle(color: Colors.white)),
+        label: const Text('New Request', style: TextStyle(color: Colors.white)),
       ),
       body: Builder(
         builder: (_) {
@@ -177,6 +178,71 @@ class _RequestListItem extends StatelessWidget {
             _formatDate(request.createdAt),
             style: TextStyle(fontSize: 11, color: Colors.grey[400]),
           ),
+          if (request.qrCode != null && request.qrCode!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: Key('btn_request_receipt_${request.id}'),
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Request QR Receipt'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.string(
+                        request.qrCode!,
+                        width: 180,
+                        height: 180,
+                        semanticsLabel: 'Request tracking QR code',
+                      ),
+                      const SizedBox(height: 12),
+                      SelectableText(
+                        request.trackingNumber ?? '',
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ),
+              icon: const Icon(Icons.qr_code_2),
+              label: const Text('View QR Receipt'),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF1A6B4A),
+              ),
+            ),
+          ],
+          if ([
+            'ready_for_pickup',
+            'completed',
+          ].contains(request.status.toLowerCase())) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              key: Key('btn_generated_document_${request.id}'),
+              onPressed: request.id <= 0
+                  ? null
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => GeneratedDocumentScreen(
+                            requestId: request.id,
+                            documentName:
+                                request.documentType?.name ?? 'Generated PDF',
+                          ),
+                        ),
+                      ),
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              label: const Text('View Generated Document'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1A6B4A),
+                side: const BorderSide(color: Color(0xFF1A6B4A)),
+              ),
+            ),
+          ],
         ],
       ),
     );

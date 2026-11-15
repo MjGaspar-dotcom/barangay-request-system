@@ -1,0 +1,484 @@
+.document-template-management {
+    display: grid;
+    gap: 20px;
+}
+
+.document-template-page-header,
+.document-template-card-heading,
+.document-template-modal-header,
+.document-template-field-heading,
+.document-template-modal-actions,
+.document-template-history-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.document-template-page-header {
+    align-items: flex-start;
+}
+
+.document-template-page-header h1,
+.document-template-modal-header h2 {
+    margin: 0;
+    color: var(--admin-ink, var(--system-forest, #123b28));
+}
+
+.document-template-page-header p:not(.section-label),
+.document-template-modal-header p:not(.section-label) {
+    margin: 6px 0 0;
+    color: var(--text-muted, #67736b);
+}
+
+.document-template-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 16px;
+}
+
+.document-template-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 18px;
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 16px;
+    padding: 20px;
+    background: var(--surface, #fff);
+    box-shadow: 0 8px 24px rgba(18, 59, 40, 0.06);
+}
+
+.document-template-card-heading {
+    align-items: flex-start;
+}
+
+.document-template-card h2 {
+    margin: 10px 0 0;
+    color: var(--admin-ink, var(--system-forest, #123b28));
+    font-size: 1.05rem;
+}
+
+.document-template-status,
+.document-template-version {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    background: var(--system-ivory, #f5f4eb);
+    color: var(--system-forest, #123b28);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.document-template-status.status-active {
+    background: #e7f2e9;
+    color: #14532d;
+}
+
+.document-template-status.status-deleted {
+    background: #f3e8e4;
+    color: #7f1d1d;
+}
+
+.document-template-metadata {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.document-template-metadata > div {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.8fr) minmax(0, 1.2fr);
+    gap: 10px;
+}
+
+.document-template-metadata dt {
+    color: var(--text-muted, #67736b);
+    font-size: 0.85rem;
+}
+
+.document-template-metadata dd {
+    overflow-wrap: anywhere;
+    margin: 0;
+    color: var(--text-main, #243128);
+    font-size: 0.88rem;
+    text-align: right;
+}
+
+.document-template-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.document-template-modal-backdrop {
+    position: fixed;
+    z-index: 1200;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(13, 30, 21, 0.62);
+}
+
+.document-template-modal {
+    display: flex;
+    width: min(1120px, 100%);
+    max-height: min(94vh, 1080px);
+    flex-direction: column;
+    gap: 16px;
+    overflow: auto;
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 18px;
+    padding: clamp(16px, 2.5vw, 28px);
+    background: var(--surface, #fff);
+    box-shadow: 0 24px 70px rgba(7, 25, 16, 0.3);
+}
+
+.document-template-editor-modal {
+    width: min(1440px, 100%);
+}
+
+.document-template-modal-header {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border, #dce4dc);
+    padding-bottom: 14px;
+}
+
+.document-template-close,
+.document-template-remove-field {
+    border: 0;
+    background: transparent;
+    color: var(--system-forest, #123b28);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.document-template-close {
+    padding: 0 8px;
+    font-size: 1.8rem;
+}
+
+.document-template-editor-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.document-template-canvas-panel,
+.document-template-fields-panel {
+    min-width: 0;
+}
+
+.document-template-canvas-panel {
+    display: grid;
+    gap: 12px;
+}
+
+.document-template-page-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.document-template-page-picker .app-select {
+    max-width: 180px;
+}
+
+.document-template-add-field {
+    justify-self: start;
+}
+
+.document-template-editor-help,
+.document-template-muted {
+    color: var(--text-muted, #67736b);
+    font-size: 0.88rem;
+}
+
+.document-template-fields-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.document-template-fields-panel h3,
+.document-template-history h3 {
+    margin: 0 0 10px;
+    color: var(--admin-ink, var(--system-forest, #123b28));
+    font-size: 1rem;
+}
+
+.document-template-field-row {
+    display: grid;
+    gap: 9px;
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--surface, #fff);
+}
+
+.document-template-field-row + .document-template-field-row {
+    margin-top: 10px;
+}
+
+.document-template-field-row.is-selected {
+    border-color: var(--system-gold-muted, #c8a957);
+    box-shadow: 0 0 0 2px rgba(200, 169, 87, 0.18);
+}
+
+.document-template-field-row strong {
+    overflow: hidden;
+    color: var(--text-main, #243128);
+    font-size: 0.87rem;
+    text-overflow: ellipsis;
+}
+
+.document-template-mapping-select {
+    width: 100%;
+}
+
+.document-template-field-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.document-template-field-options label {
+    display: grid;
+    gap: 5px;
+    color: var(--text-muted, #67736b);
+    font-size: 0.78rem;
+}
+
+.document-template-field-options .app-input,
+.document-template-field-options .app-select {
+    min-width: 0;
+}
+
+.document-template-required {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-muted, #67736b);
+    font-size: 0.82rem;
+}
+
+.document-template-required input {
+    accent-color: var(--system-forest, #123b28);
+}
+
+.document-template-warning {
+    margin: 0 0 8px;
+    color: #9a5c00;
+    font-size: 0.83rem;
+}
+
+.document-template-save-mappings {
+    justify-self: start;
+}
+
+.document-template-history {
+    border-top: 1px solid var(--border, #dce4dc);
+    padding-top: 16px;
+}
+
+.document-template-history-list {
+    display: grid;
+    gap: 8px;
+}
+
+.document-template-history-list > div {
+    flex-wrap: wrap;
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.document-template-history-list span {
+    color: var(--text-muted, #67736b);
+    font-size: 0.84rem;
+}
+
+.document-template-modal-actions {
+    justify-content: flex-start;
+}
+
+.document-template-progress {
+    position: relative;
+    height: 24px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--system-ivory, #f5f4eb);
+}
+
+.document-template-progress span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--system-forest, #123b28);
+    transition: width 120ms ease-out;
+}
+
+.document-template-progress strong {
+    position: relative;
+    z-index: 1;
+    display: block;
+    color: var(--text-main, #243128);
+    font-size: 0.8rem;
+    line-height: 24px;
+    text-align: center;
+}
+
+.pdf-canvas-viewer {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+
+.pdf-canvas-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-muted, #67736b);
+    font-size: 0.85rem;
+}
+
+.pdf-canvas-toolbar button {
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 8px;
+    padding: 6px 10px;
+    background: white;
+    color: var(--system-forest, #123b28);
+    cursor: pointer;
+}
+
+.pdf-canvas-toolbar button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pdf-canvas-scroll {
+    overflow: auto;
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 12px;
+    padding: 12px;
+    background: #e8ebe7;
+}
+
+.pdf-canvas-page {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 3px 14px rgba(14, 33, 22, 0.15);
+}
+
+.pdf-canvas-page canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.pdf-canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.pdf-canvas-overlay.is-editable {
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.pdf-mapped-field {
+    position: absolute;
+    overflow: visible;
+    border: 1px dashed rgba(18, 59, 40, 0.85);
+    background: rgba(229, 199, 124, 0.25);
+    color: #17231b;
+    cursor: move;
+    line-height: 1.15;
+    touch-action: none;
+}
+
+.pdf-mapped-field.is-selected {
+    border: 2px solid var(--system-forest, #123b28);
+    background: rgba(229, 199, 124, 0.36);
+}
+
+.pdf-mapped-field-label {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.pdf-mapped-field-resize {
+    position: absolute;
+    right: -5px;
+    bottom: -5px;
+    width: 11px;
+    height: 11px;
+    border: 1px solid white;
+    border-radius: 50%;
+    background: var(--system-forest, #123b28);
+    cursor: nwse-resize;
+    touch-action: none;
+}
+
+.document-template-empty-preview {
+    padding: 24px;
+    color: var(--text-muted, #67736b);
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .document-template-editor-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .document-template-fields-panel {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        align-items: start;
+    }
+
+    .document-template-save-mappings {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 600px) {
+    .document-template-page-header {
+        flex-direction: column;
+    }
+
+    .document-template-card-actions .app-button {
+        flex: 1 1 100%;
+    }
+
+    .document-template-field-options {
+        grid-template-columns: 1fr;
+    }
+
+    .document-template-modal-backdrop {
+        padding: 0;
+    }
+
+    .document-template-modal {
+        width: 100%;
+        max-height: 100dvh;
+        border-radius: 0;
+    }
+
+    .document-template-metadata > div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .document-template-metadata dd {
+        text-align: left;
+    }
+}

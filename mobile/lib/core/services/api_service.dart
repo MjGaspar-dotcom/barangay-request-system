@@ -115,6 +115,17 @@ class ApiService {
     return dio.post('/barangay-requests', data: data);
   }
 
+  static Future<Response> getGeneratedDocument(int requestId) {
+    return dio.get('/barangay-requests/$requestId/generated-document');
+  }
+
+  static Future<Response<List<int>>> getGeneratedDocumentFile(int requestId) {
+    return dio.get<List<int>>(
+      '/barangay-requests/$requestId/generated-document/file',
+      options: Options(responseType: ResponseType.bytes),
+    );
+  }
+
   // --- Track ---
   static Future<Response> trackRequest(String trackingNumber) {
     return dio.get('/track/$trackingNumber');

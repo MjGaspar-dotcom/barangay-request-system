@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/models/recommendation.dart';
@@ -63,13 +64,50 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
             );
     if (!mounted) return;
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request submitted successfully!'),
-          backgroundColor: Color(0xFF1A6B4A),
+      final request = context.read<RequestProvider>().submittedRequest;
+      if (request == null || request.qrCode == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('The request receipt could not be loaded.')),
+        );
+        return;
+      }
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Request Submitted'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Save this QR receipt to track your request.'),
+                const SizedBox(height: 16),
+                SvgPicture.string(
+                  request.qrCode!,
+                  width: 200,
+                  height: 200,
+                  semanticsLabel: 'Request tracking QR code',
+                ),
+                const SizedBox(height: 12),
+                SelectableText(
+                  request.trackingNumber ?? '',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Done'),
+            ),
+          ],
         ),
       );
-      Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop();
     } else {
       final msg = context.read<RequestProvider>().errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(

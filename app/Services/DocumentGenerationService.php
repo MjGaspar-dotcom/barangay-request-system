@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\BarangayRequest;
-use App\Models\BarangaySettings;
+use App\Models\DocumentGenerationProfile;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +18,7 @@ class DocumentGenerationService
         'certificate of indigency' => 'certificate_of_indigency',
         'barangay business clearance' => 'barangay_business_clearance',
         'certificate of first-time job seeker' => 'certificate_of_first_time_job_seeker',
+        'first-time job seeker certificate' => 'certificate_of_first_time_job_seeker',
         'certificate of good moral character' => 'certificate_of_good_moral_character',
         'certificate of low income' => 'certificate_of_low_income',
         'certificate of no income' => 'certificate_of_no_income',
@@ -61,9 +62,9 @@ class DocumentGenerationService
             $issuedAt ??= CarbonImmutable::now('Asia/Manila');
             $template = $this->templateFor($request->documentType?->document_name);
 
-            $settings = BarangaySettings::query()->find(1);
+            $profile = DocumentGenerationProfile::query()->find(1);
             $resident = $request->user;
-            $this->validateSourceData($request, $resident, $settings, $template, $issuedAt);
+            $this->validateSourceData($request, $resident, $profile, $template, $issuedAt);
 
             $sequenceId = DB::table('barangay_document_number_sequences')
                 ->insertGetId([
@@ -84,14 +85,14 @@ class DocumentGenerationService
             $birthDate = CarbonImmutable::parse($resident->birth_date);
             $generatedAt = $issuedAt;
             $barangay = [
-                'barangay_name' => $settings->barangay_name,
-                'municipality' => $settings->municipality,
-                'province' => $settings->province,
-                'punong_barangay_name' => $settings->punong_barangay_name,
-                'seal_path' => $settings->seal_path,
-                'office_address' => $settings->office_address,
-                'contact_information' => $settings->contact_information,
-                'council_roster' => $settings->council_roster ?? [],
+                'barangay_name' => $profile->barangay_name,
+                'municipality' => $profile->municipality,
+                'province' => $profile->province,
+                'punong_barangay_name' => $profile->punong_barangay_name,
+                'seal_path' => $profile->seal_path,
+                'office_address' => $profile->office_address,
+                'contact_information' => $profile->contact_information,
+                'council_roster' => $profile->council_roster ?? [],
             ];
             $documentData = [
                 'template_identifier' => $template,
@@ -177,7 +178,7 @@ class DocumentGenerationService
         $request->loadMissing(['user', 'documentType']);
         $template = $this->templateFor($request->documentType?->document_name);
         $resident = $request->user;
-        $settings = BarangaySettings::query()->find(1);
+        $profile = DocumentGenerationProfile::query()->find(1);
         $issuedAt = CarbonImmutable::now('Asia/Manila');
         $birthDate = $resident?->birth_date
             ? CarbonImmutable::parse($resident->birth_date)
@@ -211,14 +212,14 @@ class DocumentGenerationService
                 'purpose' => trim($request->purpose) ?: 'Not recorded',
             ],
             'barangay' => [
-                'barangay_name' => $settings?->barangay_name ?: 'Not configured',
-                'municipality' => $settings?->municipality ?: 'Not configured',
-                'province' => $settings?->province ?: 'Not configured',
-                'punong_barangay_name' => $settings?->punong_barangay_name ?: 'Not configured',
-                'seal_path' => $settings?->seal_path,
-                'office_address' => $settings?->office_address,
-                'contact_information' => $settings?->contact_information,
-                'council_roster' => $settings?->council_roster ?? [],
+                'barangay_name' => $profile?->barangay_name ?: 'Not configured',
+                'municipality' => $profile?->municipality ?: 'Not configured',
+                'province' => $profile?->province ?: 'Not configured',
+                'punong_barangay_name' => $profile?->punong_barangay_name ?: 'Not configured',
+                'seal_path' => $profile?->seal_path,
+                'office_address' => $profile?->office_address,
+                'contact_information' => $profile?->contact_information,
+                'council_roster' => $profile?->council_roster ?? [],
             ],
             'official_receipt_information' => null,
         ];
@@ -239,7 +240,7 @@ class DocumentGenerationService
     private function validateSourceData(
         BarangayRequest $request,
         mixed $resident,
-        ?BarangaySettings $settings,
+        ?DocumentGenerationProfile $profile,
         string $template,
         CarbonImmutable $issuedAt
     ): void {
@@ -266,8 +267,8 @@ class DocumentGenerationService
         if (!is_string($request->purpose) || trim($request->purpose) === '') {
             $missing[] = 'request purpose';
         }
-        if (!$settings) {
-            $missing[] = 'barangay settings';
+        if (!$profile) {
+            $missing[] = 'document-generation profile';
         } else {
             foreach ([
                 'barangay_name' => 'barangay name',
@@ -275,7 +276,7 @@ class DocumentGenerationService
                 'province' => 'province',
                 'punong_barangay_name' => 'Punong Barangay name',
             ] as $field => $label) {
-                if (!is_string($settings->{$field}) || trim($settings->{$field}) === '') {
+                if (!is_string($profile->{$field}) || trim($profile->{$field}) === '') {
                     $missing[] = $label;
                 }
             }

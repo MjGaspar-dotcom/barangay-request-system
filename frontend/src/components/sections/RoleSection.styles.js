@@ -7,7 +7,7 @@ export const RoleSectionRoot = styled(SectionRoot)(({ theme }) => ({
 
 export const RoleGrid = styled("div")(({ theme }) => ({
     display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
     gap: 24,
 
     [theme.breakpoints.down("md")]: {

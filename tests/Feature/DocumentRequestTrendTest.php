@@ -34,7 +34,7 @@ class DocumentRequestTrendTest extends TestCase
             'assigned_by' => Admin::query()->value('admin_id'),
         ]);
         $this->resident = User::factory()->create();
-        $this->documentType = DocumentType::create([
+        $this->documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Certificate',
             'fee' => 50,

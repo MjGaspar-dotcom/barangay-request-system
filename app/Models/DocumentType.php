@@ -34,4 +34,13 @@ class DocumentType extends Model
     {
         return $this->hasMany(BarangayRequest::class, 'document_type_id', 'document_type_id');
     }
+
+    public function template()
+    {
+        return $this->hasOne(
+            DocumentTemplate::class,
+            'document_type_id',
+            'document_type_id'
+        );
+    }
 }

@@ -76,7 +76,8 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
       final payload = QRCodeReader().decode(bitmap).text;
       final trackingNumber = _trackingNumberFromQr(payload);
       if (trackingNumber.isEmpty) {
-        throw const FormatException('The QR code does not contain a tracking number.');
+        throw const FormatException(
+            'The QR code does not contain a tracking number.');
       }
 
       _trackingCtrl.text = trackingNumber;
@@ -172,9 +173,8 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
                       key: const Key('btn_upload_tracking_qr'),
-                      onPressed: isLoading || _isReadingQr
-                          ? null
-                          : _uploadQrCode,
+                      onPressed:
+                          isLoading || _isReadingQr ? null : _uploadQrCode,
                       icon: _isReadingQr
                           ? const SizedBox(
                               width: 18,
@@ -262,12 +262,13 @@ class _TrackResultCard extends StatelessWidget {
           if (result.documentTypeName != null)
             _InfoRow(label: 'Document', value: result.documentTypeName!),
           if (result.createdAt != null)
-            _InfoRow(label: 'Date Filed', value: _formatDate(result.createdAt!)),
+            _InfoRow(
+                label: 'Date Filed', value: _formatDate(result.createdAt!)),
           if (result.remarks != null && result.remarks!.isNotEmpty)
             _InfoRow(label: 'Remarks', value: result.remarks!),
           const SizedBox(height: 8),
           // Status Progress
-          _StatusTimeline(status: result.status),
+          _StatusTimeline(status: result.status, remarks: result.remarks),
         ],
       ),
     );
@@ -320,26 +321,40 @@ class _InfoRow extends StatelessWidget {
 
 class _StatusTimeline extends StatelessWidget {
   final String status;
-  const _StatusTimeline({required this.status});
+  final String? remarks;
+  const _StatusTimeline({required this.status, this.remarks});
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['pending', 'processing', 'completed'];
-    final currentIdx = steps.indexOf(status.toLowerCase());
+    const steps = [
+      'request_submitted',
+      'approved',
+      'ready_for_pickup',
+      'completed',
+    ];
+    final normalizedStatus = status.toLowerCase();
+    final currentIdx = steps.indexOf(normalizedStatus);
+    final isRejected = normalizedStatus == 'rejected';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(height: 24),
-        const Text(
-          'Progress',
+        Text(
+          isRejected ? 'Request Rejected' : 'Progress',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         ),
+        if (isRejected && remarks != null && remarks!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            remarks!,
+            style: const TextStyle(color: Color(0xFFC62828), fontSize: 12),
+          ),
+        ],
         const SizedBox(height: 12),
         Row(
           children: steps.asMap().entries.map((entry) {
             final idx = entry.key;
-            final step = entry.value;
             final isDone = currentIdx >= idx;
             return Expanded(
               child: Row(
@@ -359,15 +374,17 @@ class _StatusTimeline extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        step[0].toUpperCase() + step.substring(1),
+                        const [
+                          'Submitted',
+                          'Approved',
+                          'Ready for Pickup',
+                          'Completed',
+                        ][idx],
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDone
-                              ? const Color(0xFF1A6B4A)
-                              : Colors.grey,
-                          fontWeight: isDone
-                              ? FontWeight.w700
-                              : FontWeight.normal,
+                          color: isDone ? const Color(0xFF1A6B4A) : Colors.grey,
+                          fontWeight:
+                              isDone ? FontWeight.w700 : FontWeight.normal,
                         ),
                       ),
                     ],

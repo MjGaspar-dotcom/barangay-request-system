@@ -53,6 +53,7 @@ class BarangayRequest {
   final String status;
   final String? remarks;
   final String? trackingNumber;
+  final String? qrCode;
   final String createdAt;
   final String? updatedAt;
   final DocumentType? documentType;
@@ -63,6 +64,7 @@ class BarangayRequest {
     required this.status,
     this.remarks,
     this.trackingNumber,
+    this.qrCode,
     required this.createdAt,
     this.updatedAt,
     this.documentType,
@@ -71,16 +73,22 @@ class BarangayRequest {
 
   factory BarangayRequest.fromJson(Map<String, dynamic> json) {
     return BarangayRequest(
-      id: json['id'] ?? 0,
-      status: json['status'] ?? 'pending',
-      remarks: json['remarks'],
-      trackingNumber: json['tracking_number'],
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'],
+      id: int.tryParse(
+            (json['id'] ?? json['request_id'])?.toString() ?? '',
+          ) ??
+          0,
+      status: json['status']?.toString() ?? 'request_submitted',
+      remarks: json['remarks']?.toString(),
+      trackingNumber: json['tracking_number']?.toString(),
+      qrCode: json['qr_code']?.toString(),
+      createdAt: json['created_at']?.toString() ?? '',
+      updatedAt: json['updated_at']?.toString(),
       documentType: json['document_type'] != null
-          ? DocumentType.fromJson(json['document_type'])
+          ? DocumentType.fromJson(
+              Map<String, dynamic>.from(json['document_type'] as Map),
+            )
           : null,
-      purpose: json['purpose'] ?? '',
+      purpose: json['purpose']?.toString() ?? '',
     );
   }
 }

@@ -29,6 +29,8 @@ const templateIdentifiersByName = Object.freeze({
     "barangay business clearance": "barangay_business_clearance",
     "certificate of first-time job seeker":
         "certificate_of_first_time_job_seeker",
+    "first-time job seeker certificate":
+        "certificate_of_first_time_job_seeker",
     "certificate of good moral character":
         "certificate_of_good_moral_character",
     "certificate of low income": "certificate_of_low_income",

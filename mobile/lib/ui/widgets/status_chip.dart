@@ -26,35 +26,41 @@ class StatusChip extends StatelessWidget {
 
   _StatusConfig _getConfig(String s) {
     switch (s) {
+      case 'request_submitted':
       case 'pending':
         return _StatusConfig(
-          label: 'Pending',
+          label: s == 'request_submitted' ? 'Submitted' : 'Pending',
           background: const Color(0xFFFFF3CD),
           foreground: const Color(0xFFB8860B),
         );
+      case 'approved':
       case 'processing':
         return _StatusConfig(
-          label: 'Processing',
+          label: s == 'approved' ? 'Approved' : 'Processing',
           background: const Color(0xFFE3F2FD),
           foreground: const Color(0xFF1565C0),
         );
-      case 'completed':
-      case 'approved':
+      case 'ready_for_pickup':
         return _StatusConfig(
-          label: s == 'completed' ? 'Completed' : 'Approved',
+          label: 'Ready for Pickup',
+          background: const Color(0xFFE8F5E9),
+          foreground: const Color(0xFF2E7D32),
+        );
+      case 'completed':
+        return _StatusConfig(
+          label: 'Completed',
           background: const Color(0xFFE8F5E9),
           foreground: const Color(0xFF2E7D32),
         );
       case 'rejected':
-      case 'cancelled':
         return _StatusConfig(
-          label: s == 'rejected' ? 'Rejected' : 'Cancelled',
+          label: 'Rejected',
           background: const Color(0xFFFFEBEE),
           foreground: const Color(0xFFC62828),
         );
       default:
         return _StatusConfig(
-          label: s[0].toUpperCase() + s.substring(1),
+          label: s.isEmpty ? 'Unknown' : s[0].toUpperCase() + s.substring(1),
           background: const Color(0xFFF5F5F5),
           foreground: Colors.grey,
         );

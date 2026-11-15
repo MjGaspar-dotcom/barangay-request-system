@@ -76,17 +76,24 @@ export function AuthProvider({ children }) {
         localStorage.setItem("auth_token", authToken);
         setToken(authToken);
 
-        await refreshUser();
-
-        return responseData;
+        try {
+            return await refreshUser();
+        } catch (error) {
+            localStorage.removeItem("auth_token");
+            setToken(null);
+            setUser(null);
+            throw error;
+        }
     };
 
     // =========================================
     // LOGOUT
     // =========================================
     const logout = async () => {
+        const activeToken = localStorage.getItem("auth_token");
+
         try {
-            if (token) {
+            if (activeToken) {
                 await api.post("/logout");
             }
         } catch (error) {

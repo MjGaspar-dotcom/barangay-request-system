@@ -4,7 +4,7 @@
 @import "../pages/user/resident-auth.css";
 @import "../layouts/dashboard-shell.css";
 @import "../pages/admin/admin-shared.css";
-@import "../layouts/portal-auth.css";
+@import "../assets/styles/layouts/portal-auth.css";
 @import "../pages/shared/staff-admin-landing.css";
 @import "../pages/user/resident-landing.css";
 @import "../pages/staff/staff-landing.css";

@@ -1,6 +1,5 @@
 import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
@@ -18,7 +17,6 @@ const EMPTY_FORM = {
 };
 
 export default function ManageDocumentTypes({ isAdmin = true }) {
-    const navigate = useNavigate();
     const Layout = isAdmin ? AdminLayout : StaffLayout;
     const [documentTypes, setDocumentTypes] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -471,28 +469,6 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                                                 </td>
                                                 <td className="document-type-actions-cell">
                                                     <div className="table-action-group document-type-action-group">
-                                                        <Button
-                                                            type="button"
-                                                            className="app-button app-button-outline-primary app-button-sm"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    isAdmin
-                                                                        ? "/admin/document-template-sample"
-                                                                        : "/staff/document-template-sample",
-                                                                    {
-                                                                        state: {
-                                                                            from: isAdmin
-                                                                                ? "/admin/document-types"
-                                                                                : "/staff/document-types",
-                                                                            documentType:
-                                                                                docType,
-                                                                        },
-                                                                    },
-                                                                )
-                                                            }
-                                                        >
-                                                            View Template
-                                                        </Button>
                                                         {isAdmin && (
                                                             <>
                                                                 <Button

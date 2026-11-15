@@ -1,7 +1,7 @@
 import Icon from "../../components/ui/Icon.jsx";
 import { useState } from "react";
 import BrandMark from "../../components/ui/BrandMark";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
 import { validateForm } from "../../utils/validateForm";
@@ -10,7 +10,7 @@ function StaffLogin() {
     // This sends the username and password to the Laravel API.
     const { login, logout } = useAuth();
 
-    // Used to redirect the Staff after successful login.
+    // Used to redirect the authenticated account to its role-specific dashboard.
     const navigate = useNavigate();
 
     // Store the values entered into the login form.
@@ -24,7 +24,7 @@ function StaffLogin() {
     // Prevents multiple submissions while login is processing.
     const [loading, setLoading] = useState(false);
 
-    // Handles submission of the Staff login form.
+    // Handles submission of the shared staff and administrator login form.
     const handleSubmit = async (event) => {
         // Prevent the browser from refreshing the page.
         event.preventDefault();
@@ -39,16 +39,16 @@ function StaffLogin() {
 
         try {
             // Send the credentials to the shared authentication function.
-            const response = await login(username, password);
+            const user = await login(username, password);
 
-            if (response.role !== "staff") {
+            if (user.role === "admin") {
+                navigate("/admin/dashboard");
+            } else if (user.role === "staff") {
+                navigate("/staff/dashboard");
+            } else {
                 await logout();
-                setError("This account does not have staff access.");
-                return;
+                setError("This account does not have staff or administrator access.");
             }
-
-            // Login succeeded, so redirect the Staff to their dashboard.
-            navigate("/staff/dashboard");
         } catch (error) {
             // HTTP 401 means the username or password is incorrect.
             if (error.response?.status === 401) {
@@ -64,109 +64,119 @@ function StaffLogin() {
     };
 
     return (
-        <div className="portal-auth-page">
-            <div className="portal-auth-card">
-                <Link
-                    to="/"
-                    className="auth-back-arrow"
-                    aria-label="Back to BarangayEase"
-                    title="Back to BarangayEase"
-                >
-                    <Icon name="arrow-left" />
-                </Link>
-
-                <div className="portal-auth-header">
-                    <BrandMark className="auth-logo" />
-
-                    <span className="portal-auth-label">
-                        STAFF PORTAL
-                    </span>
-
-                    <h1>BarangayEase</h1>
-
-                    <p>
-                        Barangay document requests and processing in one
-                        system.
-                    </p>
-                </div>
-
-                <div className="portal-auth-body">
-                    <div className="portal-auth-welcome">
-                        <h2>Welcome Back!</h2>
-                        <p>Please sign in to continue</p>
+        <div className="portal-auth-page portal-auth-split">
+            <div className="portal-auth-card portal-auth-split-card">
+                <aside className="portal-auth-brand">
+                    <div className="portal-auth-brand-lockup">
+                        <BrandMark className="portal-auth-brand-logo" />
+                        <div>
+                            <strong>BarangayEase</strong>
+                            <span>Barangay Aurora</span>
+                        </div>
                     </div>
 
-                    {error && (
-                        <div className="portal-auth-error" role="alert">
-                            <Icon name="exclamation-circle-fill" />
-                            <span>{error}</span>
-                        </div>
-                    )}
+                    <div className="portal-auth-brand-seal">
+                        <BrandMark className="portal-auth-seal" />
+                    </div>
 
-                    <form noValidate onSubmit={handleSubmit}>
-                        <div className="portal-form-group">
-                            <label htmlFor="staff-username">Username</label>
-                            <input
-                                id="staff-username"
-                                name="username"
-                                type="text"
-                                autoComplete="username"
-                                value={username}
-                                onChange={(event) => {
-                                    setUsername(event.target.value);
-                                    setError("");
-                                }}
-                                placeholder="Enter staff username"
-                                required
-                            />
+                    <div className="portal-auth-brand-description">
+                        <span>BARANGAY AURORA</span>
+                        <p>
+                            Barangay document requests and processing in one
+                            system.
+                        </p>
+                    </div>
+                </aside>
+
+                <section
+                    className="portal-auth-content"
+                    aria-labelledby="staff-login-title"
+                >
+                    <div className="portal-auth-form">
+                        <div className="portal-auth-welcome">
+                            <span className="portal-auth-label">
+                                STAFF LOGIN
+                            </span>
+                            <h1 id="staff-login-title">Sign In</h1>
+                            <p>Sign in to continue to BarangayEase</p>
                         </div>
 
-                        <div className="portal-form-group">
-                            <label htmlFor="staff-password">Password</label>
-                            <div className="portal-form-password">
+                        {error && (
+                            <div className="portal-auth-error" role="alert">
+                                <Icon name="exclamation-circle-fill" />
+                                <span>{error}</span>
+                            </div>
+                        )}
+
+                        <form noValidate onSubmit={handleSubmit}>
+                            <div className="portal-form-group">
+                                <label htmlFor="staff-username">Username</label>
                                 <input
-                                    id="staff-password"
-                                    name="password"
-                                    type={showPassword ? "text" : "password"}
-                                    autoComplete="current-password"
-                                    value={password}
+                                    id="staff-username"
+                                    name="username"
+                                    type="text"
+                                    autoComplete="username"
+                                    value={username}
                                     onChange={(event) => {
-                                        setPassword(event.target.value);
+                                        setUsername(event.target.value);
                                         setError("");
                                     }}
-                                    placeholder="Enter your password"
+                                    placeholder="Enter your username"
                                     required
                                 />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() =>
-                                        setShowPassword((visible) => !visible)
-                                    }
-                                    aria-label={
-                                        showPassword
-                                            ? "Hide password"
-                                            : "Show password"
-                                    }
-                                    aria-pressed={showPassword}
-                                >
-                                    <Icon name={showPassword ? "eye-slash" : "eye"} />
-                                </button>
                             </div>
-                        </div>
 
-                        <button
-                            type="submit"
-                            className="portal-login-button"
-                            disabled={loading}
-                            aria-busy={loading || undefined}
-                            aria-label={loading ? "Signing in" : undefined}
-                        >
-                            {loading ? "Signing in..." : "Sign in to staff portal"}
-                        </button>
-                    </form>
+                            <div className="portal-form-group">
+                                <label htmlFor="staff-password">Password</label>
+                                <div className="portal-form-password">
+                                    <input
+                                        id="staff-password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        autoComplete="current-password"
+                                        value={password}
+                                        onChange={(event) => {
+                                            setPassword(event.target.value);
+                                            setError("");
+                                        }}
+                                        placeholder="Enter your password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle"
+                                        onClick={() =>
+                                            setShowPassword((visible) => !visible)
+                                        }
+                                        aria-label={
+                                            showPassword
+                                                ? "Hide password"
+                                                : "Show password"
+                                        }
+                                        aria-pressed={showPassword}
+                                    >
+                                        <Icon
+                                            name={showPassword ? "eye-slash" : "eye"}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
 
-                </div>
+                            <button
+                                type="submit"
+                                className="portal-login-button"
+                                disabled={loading}
+                                aria-busy={loading || undefined}
+                                aria-label={loading ? "Signing in" : undefined}
+                            >
+                                {loading ? "Signing in..." : "Sign in"}
+                            </button>
+                        </form>
+                    </div>
+                    <p className="portal-auth-note">
+                        Barangay Aurora · Alicia, Isabela
+                    </p>
+                </section>
             </div>
         </div>
     );

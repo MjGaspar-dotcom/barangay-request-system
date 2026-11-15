@@ -1,21 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../ui/Button";
 import DocumentPreview from "../documents/DocumentPreview";
+import PdfDocumentCanvas from "../documents/PdfDocumentCanvas";
 import api from "../../services/api";
 import { canonicalRequestStatus } from "../../utils/requestWorkflow";
 
 const REJECTION_REASONS = [
     "Incomplete Requirements",
-    "Invalid or Incorrect Information",
+    "Invalid Information",
     "Unverified Residency",
     "Duplicate Request",
-    "Document Requirements Not Met",
+    "Requirements Not Met",
     "Other",
 ];
 
 export default function RequestWorkflowPanel({
     request,
     documentPreview,
+    pdfTemplate,
     onRefresh,
 }) {
     const [busy, setBusy] = useState(false);
@@ -24,6 +26,117 @@ export default function RequestWorkflowPanel({
     const [rejecting, setRejecting] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
     const [rejectionOther, setRejectionOther] = useState("");
+    const [pdfPreview, setPdfPreview] = useState(null);
+    const [pdfVersions, setPdfVersions] = useState([]);
+    const [selectedGeneratedDocumentId, setSelectedGeneratedDocumentId] =
+        useState(null);
+    const [pdfVersionsError, setPdfVersionsError] = useState("");
+    const hasPdfDocument =
+        request.document_template_identifier === "uploaded_pdf_template";
+    const currentPdfPreview =
+        hasPdfDocument &&
+        pdfPreview?.requestId === request.request_id &&
+        pdfPreview?.requestUpdatedAt === request.updated_at &&
+        String(pdfPreview?.generatedDocumentId) ===
+            String(selectedGeneratedDocumentId)
+            ? pdfPreview
+            : null;
+    const pdfPreviewUrl = currentPdfPreview?.url || null;
+    const pdfPreviewLoading = Boolean(
+        hasPdfDocument && !currentPdfPreview && !pdfVersionsError,
+    );
+    const pdfPreviewError = currentPdfPreview?.error || "";
+
+    useEffect(() => {
+        let active = true;
+        if (!hasPdfDocument) {
+            return undefined;
+        }
+
+        api.get(
+            `/barangay-requests/${request.request_id}/generated-documents`,
+        )
+            .then((response) => {
+                if (!active) return;
+                const versions = response.data.data.versions;
+                setPdfVersions(versions);
+                setSelectedGeneratedDocumentId(versions[0]?.generated_document_id ?? null);
+                setPdfVersionsError(
+                    versions.length
+                        ? ""
+                        : "No generated PDF versions are recorded for this request.",
+                );
+            })
+            .catch((historyError) => {
+                console.error(historyError);
+                if (active) {
+                    setPdfVersionsError(
+                        historyError.response?.data?.message ||
+                            "Generated PDF history could not be loaded.",
+                    );
+                }
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [
+        hasPdfDocument,
+        request.request_id,
+        request.updated_at,
+    ]);
+
+    useEffect(() => {
+        let active = true;
+        let objectUrl = null;
+
+        if (!hasPdfDocument || !selectedGeneratedDocumentId) {
+            return undefined;
+        }
+
+        api.get(
+            `/barangay-requests/${request.request_id}/generated-documents/${selectedGeneratedDocumentId}/file`,
+            { responseType: "blob" },
+        )
+            .then((response) => {
+                objectUrl = URL.createObjectURL(response.data);
+                if (active) {
+                    setPdfPreview({
+                        requestId: request.request_id,
+                        requestUpdatedAt: request.updated_at,
+                        generatedDocumentId: selectedGeneratedDocumentId,
+                        url: objectUrl,
+                        error: "",
+                    });
+                } else {
+                    URL.revokeObjectURL(objectUrl);
+                }
+            })
+            .catch((previewError) => {
+                console.error(previewError);
+                if (active) {
+                    setPdfPreview({
+                        requestId: request.request_id,
+                        requestUpdatedAt: request.updated_at,
+                        generatedDocumentId: selectedGeneratedDocumentId,
+                        url: null,
+                        error:
+                            previewError.response?.data?.message ||
+                            "The generated PDF preview could not be loaded.",
+                    });
+                }
+            });
+
+        return () => {
+            active = false;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [
+        hasPdfDocument,
+        request.request_id,
+        request.updated_at,
+        selectedGeneratedDocumentId,
+    ]);
 
     const status = canonicalRequestStatus(request.status);
     const isSubmitted = status === "request_submitted";
@@ -91,32 +204,55 @@ export default function RequestWorkflowPanel({
         }
     };
 
-    const generateLegacyDocument = () =>
+    const generateTemplateDocument = (regenerate = false) =>
         runAction(
             () =>
                 api.post(
                     `/barangay-requests/${request.request_id}/generated-document/generate`,
-                    {},
+                    { regenerate },
                 ),
-            "Official document generated.",
+            regenerate
+                ? "Document regenerated. The previous version remains available in history."
+                : "Document generated and saved.",
         );
 
     const printGeneratedDocument = async () => {
+        const printWindow = pdfPreviewUrl
+            ? window.open("about:blank", "_blank")
+            : null;
+        if (pdfPreviewUrl && !printWindow) {
+            setError("Allow pop-ups to open and print the generated PDF.");
+            return;
+        }
         setBusy(true);
         setError("");
         setMessage("");
         try {
             const response = await api.post(
                 `/barangay-requests/${request.request_id}/generated-document/print`,
+                { generated_document_id: selectedGeneratedDocumentId },
             );
             setMessage(
                 response.data.data.action === "document_reprinted"
                     ? "Reprint activity recorded."
                     : "Print activity recorded.",
             );
-            window.requestAnimationFrame(() => window.print());
+            if (printWindow) {
+                printWindow.addEventListener(
+                    "load",
+                    () => {
+                        printWindow.focus();
+                        printWindow.print();
+                    },
+                    { once: true },
+                );
+                printWindow.location.href = pdfPreviewUrl;
+            } else {
+                window.requestAnimationFrame(() => window.print());
+            }
         } catch (printError) {
             console.error(printError);
+            printWindow?.close();
             setError(
                 printError.response?.data?.message ||
                     "The document could not be sent to print.",
@@ -297,7 +433,18 @@ export default function RequestWorkflowPanel({
                                 <div className="request-decision-actions">
                                     <Button
                                         className="app-button app-button-workflow-approved"
-                                        disabled={busy}
+                                        disabled={
+                                            busy ||
+                                            Boolean(
+                                                pdfTemplate &&
+                                                    !pdfTemplate.mapping_count,
+                                            ) ||
+                                            Boolean(
+                                                pdfTemplate &&
+                                                    (!hasPdfDocument ||
+                                                        !pdfPreviewUrl),
+                                            )
+                                        }
                                         loading={busy}
                                         onClick={approveForPickup}
                                     >
@@ -312,20 +459,95 @@ export default function RequestWorkflowPanel({
                                     </Button>
                                 </div>
                             )}
+                            {pdfTemplate && !rejecting && (
+                                <div className="request-pdf-generation-actions">
+                                    {pdfTemplate.mapping_count === 0 && (
+                                        <p
+                                            className="app-alert app-alert-warning"
+                                            role="status"
+                                        >
+                                            The Administrator must configure
+                                            PDF field mappings before a
+                                            document can be generated.
+                                        </p>
+                                    )}
+                                    <Button
+                                        className="app-button app-button-outline-primary"
+                                        disabled={
+                                            busy ||
+                                            pdfTemplate.mapping_count === 0
+                                        }
+                                        loading={busy}
+                                        onClick={() =>
+                                            generateTemplateDocument(
+                                                hasPdfDocument,
+                                            )
+                                        }
+                                        type="button"
+                                    >
+                                        {hasPdfDocument
+                                            ? "Regenerate Document"
+                                            : "Generate & Preview PDF"}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {isApproved && (
                         <div className="admin-form-card request-action-card">
                             <h2 className="form-section-title">Approved</h2>
-                            <Button
-                                className="app-button app-button-workflow-ready"
-                                disabled={busy}
-                                loading={busy}
-                                onClick={() => updateStatus("ready_for_pickup")}
-                            >
-                                Generate Document &amp; Mark Ready
-                            </Button>
+                            {pdfTemplate ? (
+                                <div className="request-pdf-generation-actions">
+                                    {pdfTemplate.mapping_count === 0 && (
+                                        <p
+                                            className="app-alert app-alert-warning"
+                                            role="status"
+                                        >
+                                            The Administrator must configure
+                                            PDF field mappings before a
+                                            document can be generated.
+                                        </p>
+                                    )}
+                                    {!hasPdfDocument ? (
+                                        <Button
+                                            className="app-button app-button-outline-primary"
+                                            disabled={
+                                                busy ||
+                                                pdfTemplate.mapping_count === 0
+                                            }
+                                            loading={busy}
+                                            onClick={() =>
+                                                generateTemplateDocument(false)
+                                            }
+                                        >
+                                            Generate &amp; Preview PDF
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            className="app-button app-button-workflow-ready"
+                                            disabled={busy || !pdfPreviewUrl}
+                                            loading={busy}
+                                            onClick={() =>
+                                                updateStatus("ready_for_pickup")
+                                            }
+                                        >
+                                            Mark Ready for Pickup
+                                        </Button>
+                                    )}
+                                </div>
+                            ) : (
+                                <Button
+                                    className="app-button app-button-workflow-ready"
+                                    disabled={busy}
+                                    loading={busy}
+                                    onClick={() =>
+                                        updateStatus("ready_for_pickup")
+                                    }
+                                >
+                                    Generate Document &amp; Mark Ready
+                                </Button>
+                            )}
                         </div>
                     )}
 
@@ -333,9 +555,34 @@ export default function RequestWorkflowPanel({
                         <div className="admin-form-card request-action-card">
                             <h2 className="form-section-title">Ready for Pickup</h2>
                             <div className="flex flex-wrap gap-2">
+                                {pdfTemplate && (
+                                    <Button
+                                        className="app-button app-button-outline-primary"
+                                        disabled={
+                                            busy ||
+                                            pdfTemplate.mapping_count === 0
+                                        }
+                                        loading={busy}
+                                        onClick={() =>
+                                            generateTemplateDocument(
+                                                hasPdfDocument,
+                                            )
+                                        }
+                                    >
+                                        {hasPdfDocument
+                                            ? "Regenerate Document"
+                                            : "Generate Document"}
+                                    </Button>
+                                )}
                                 <Button
                                     className="app-button app-button-success"
-                                    disabled={busy}
+                                    disabled={
+                                        busy ||
+                                        Boolean(
+                                            hasPdfDocument &&
+                                                !pdfPreviewUrl,
+                                        )
+                                    }
                                     loading={busy}
                                     onClick={() => updateStatus("completed")}
                                 >
@@ -375,7 +622,62 @@ export default function RequestWorkflowPanel({
                     </div>
                 )}
 
-                {documentPreview ? (
+                {pdfPreviewError && (
+                    <div className="app-alert app-alert-danger" role="alert">
+                        {pdfPreviewError}
+                    </div>
+                )}
+                {hasPdfDocument && pdfVersionsError && (
+                    <div className="app-alert app-alert-danger" role="alert">
+                        {pdfVersionsError}
+                    </div>
+                )}
+                {pdfPreviewLoading && (
+                    <div className="app-alert app-alert-info" role="status">
+                        Loading generated PDF preview…
+                    </div>
+                )}
+                {pdfPreviewUrl ? (
+                    <>
+                        {pdfVersions.length > 1 && (
+                            <label className="app-label mb-3 block">
+                                Generated PDF version
+                                <select
+                                    className="app-select mt-1"
+                                    onChange={(event) =>
+                                        setSelectedGeneratedDocumentId(
+                                            Number(event.target.value),
+                                        )
+                                    }
+                                    value={selectedGeneratedDocumentId}
+                                >
+                                    {pdfVersions.map((version) => (
+                                        <option
+                                            key={version.generated_document_id}
+                                            value={version.generated_document_id}
+                                        >
+                                            Version {version.version_number} ·{" "}
+                                            {new Date(
+                                                version.generated_at,
+                                            ).toLocaleString()}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        )}
+                        <PdfDocumentCanvas
+                            key={pdfPreviewUrl}
+                            source={pdfPreviewUrl}
+                        />
+                    </>
+                ) : pdfTemplate && !hasPdfDocument ? (
+                    <div className="app-alert app-alert-info" role="status">
+                        {pdfTemplate.filename} · Version{" "}
+                        {pdfTemplate.version_number} is ready. Generate the
+                        document to preview the resident information in the
+                        uploaded PDF.
+                    </div>
+                ) : documentPreview ? (
                     <div>
                         <DocumentPreview document={documentPreview} />
                         {isReady && documentPreview.is_preview && (
@@ -383,7 +685,7 @@ export default function RequestWorkflowPanel({
                                 className="app-button app-button-primary mt-3 document-preview-toolbar"
                                 disabled={busy}
                                 loading={busy}
-                                onClick={generateLegacyDocument}
+                                onClick={() => generateTemplateDocument(false)}
                             >
                                 Generate Official Document
                             </Button>

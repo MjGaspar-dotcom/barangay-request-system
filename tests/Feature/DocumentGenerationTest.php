@@ -4,12 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\BarangayRequest;
-use App\Models\BarangaySettings;
+use App\Models\DocumentGenerationProfile;
+use App\Models\DocumentTemplate;
+use App\Models\DocumentTemplateVersion;
 use App\Models\DocumentType;
+use App\Models\GeneratedDocument;
 use App\Models\Staff;
 use App\Models\User;
 use App\Services\DocumentGenerationService;
+use App\Services\DocumentTemplateDataFieldService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -46,7 +52,7 @@ class DocumentGenerationTest extends TestCase
             'assigned_by' => $admin->admin_id,
         ]);
 
-        BarangaySettings::query()->whereKey(1)->update([
+        DocumentGenerationProfile::query()->whereKey(1)->update([
             'municipality' => 'Test Municipality',
             'province' => 'Test Province',
             'punong_barangay_name' => 'Test Punong Barangay',
@@ -70,7 +76,7 @@ class DocumentGenerationTest extends TestCase
         $numbers = [];
 
         foreach ($templates as $name => $template) {
-            $documentType = DocumentType::create([
+            $documentType = $this->createDocumentType([
                 'document_name' => $name,
                 'description' => $name,
             ]);
@@ -109,13 +115,47 @@ class DocumentGenerationTest extends TestCase
                     ->count()
             );
         }
+    }
 
+    public function test_document_generation_profile_preserves_configuration_and_dynamic_field_values(): void
+    {
+        $profile = DocumentGenerationProfile::query()->findOrFail(1);
+
+        $this->assertFalse(Schema::hasTable('barangay_settings'));
+        $this->assertSame('Barangay Aurora', $profile->barangay_name);
+        $this->assertSame('Test Municipality', $profile->municipality);
+        $this->assertSame('Test Province', $profile->province);
+        $this->assertSame('Test Punong Barangay', $profile->punong_barangay_name);
+        $this->assertSame(
+            [
+                ['name' => 'Test Council Member', 'position' => 'Council Member'],
+                ['name' => 'Test Secretary', 'position' => 'Barangay Secretary'],
+            ],
+            $profile->council_roster
+        );
+
+        $documentType = $this->createDocumentType([
+            'document_name' => 'Barangay Clearance',
+            'description' => 'Barangay clearance',
+        ]);
+        $request = $this->readyRequest($documentType, 'profile-values');
+        $values = app(DocumentTemplateDataFieldService::class)->values(
+            $request,
+            'BA-2026-000001',
+            CarbonImmutable::parse('2026-11-15')
+        );
+
+        $this->assertSame('Barangay Aurora', $values['barangay.name']);
+        $this->assertSame('Test Municipality', $values['barangay.municipality']);
+        $this->assertSame('Test Province', $values['barangay.province']);
+        $this->assertSame('Test Office', $values['barangay.address']);
+        $this->assertSame('Test Punong Barangay', $values['barangay.captain']);
     }
 
     public function test_official_document_generation_does_not_require_a_barangay_seal(): void
     {
-        BarangaySettings::query()->whereKey(1)->update(['seal_path' => null]);
-        $documentType = DocumentType::create([
+        DocumentGenerationProfile::query()->whereKey(1)->update(['seal_path' => null]);
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Barangay clearance',
         ]);
@@ -130,7 +170,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_staff_can_complete_pickup_without_entering_a_recipient_name(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Barangay clearance',
         ]);
@@ -151,7 +191,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_indigency_can_be_approved_without_manual_checkbox_confirmation(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Certificate of Indigency',
             'description' => 'Indigency certificate',
         ]);
@@ -169,7 +209,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_approval_uses_mobile_account_verification_without_request_level_id_check(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -186,7 +226,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_template_preview_is_marked_as_unissued_until_generation(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -222,7 +262,7 @@ class DocumentGenerationTest extends TestCase
 
         $this->actingAs($this->staffUser);
         foreach ($templates as $name => $template) {
-            $documentType = DocumentType::create([
+            $documentType = $this->createDocumentType([
                 'document_name' => $name,
                 'description' => "Document service description for {$name}.",
             ]);
@@ -243,7 +283,7 @@ class DocumentGenerationTest extends TestCase
                 );
         }
 
-        $customType = DocumentType::create([
+        $customType = $this->createDocumentType([
             'document_name' => 'Custom Barangay Certificate',
             'description' => 'Custom service description.',
         ]);
@@ -260,7 +300,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_request_with_a_new_template_can_be_approved_without_extra_confirmation(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Certificate of Good Moral Character',
             'description' => 'School or employment requirements',
         ]);
@@ -291,7 +331,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_approval_rejects_unverified_or_missing_mobile_ids(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -318,7 +358,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_verified_uploaded_id_does_not_require_a_separate_id_type_label(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -356,7 +396,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_approval_rechecks_the_current_mobile_id_verification_status(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -379,7 +419,7 @@ class DocumentGenerationTest extends TestCase
 
     public function test_approve_and_prepare_generates_document_and_notifies_resident_to_pick_up(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -411,8 +451,8 @@ class DocumentGenerationTest extends TestCase
 
     public function test_approve_and_prepare_rolls_back_if_required_barangay_details_are_missing(): void
     {
-        BarangaySettings::query()->whereKey(1)->update(['province' => null]);
-        $documentType = DocumentType::create([
+        DocumentGenerationProfile::query()->whereKey(1)->update(['province' => null]);
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -435,8 +475,8 @@ class DocumentGenerationTest extends TestCase
 
     public function test_missing_barangay_configuration_prevents_ready_transition_atomically(): void
     {
-        BarangaySettings::query()->whereKey(1)->update(['province' => null]);
-        $documentType = DocumentType::create([
+        DocumentGenerationProfile::query()->whereKey(1)->update(['province' => null]);
+        $documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance',
         ]);
@@ -460,9 +500,9 @@ class DocumentGenerationTest extends TestCase
         $this->assertDatabaseCount('barangay_document_number_sequences', 0);
     }
 
-    public function test_only_staff_and_admin_can_access_generated_documents(): void
+    public function test_resident_can_access_their_ready_generated_document_only(): void
     {
-        $documentType = DocumentType::create([
+        $documentType = $this->createDocumentType([
             'document_name' => 'Certificate of Residency',
             'description' => 'Residency certificate',
         ]);
@@ -473,7 +513,15 @@ class DocumentGenerationTest extends TestCase
 
         $this->actingAs($this->resident)
             ->getJson("/api/barangay-requests/{$generated->request_id}/generated-document")
-            ->assertForbidden();
+            ->assertOk()
+            ->assertJsonPath('data.document.document_type', 'Certificate of Residency');
+
+        $otherResident = User::factory()->create([
+            'verification_status' => 'verified',
+        ]);
+        $this->actingAs($otherResident)
+            ->getJson("/api/barangay-requests/{$generated->request_id}/generated-document")
+            ->assertNotFound();
 
         $this->actingAs($this->staffUser)
             ->getJson("/api/barangay-requests/{$generated->request_id}/generated-document")
@@ -481,34 +529,102 @@ class DocumentGenerationTest extends TestCase
             ->assertJsonPath('data.document.document_type', 'Certificate of Residency');
     }
 
-    public function test_admin_can_update_barangay_settings_without_a_seal_upload(): void
+    public function test_staff_can_retrieve_and_print_only_versions_for_the_request(): void
     {
-        Storage::fake('public');
-        $settings = BarangaySettings::query()->findOrFail(1);
-        $oldPath = $settings->seal_path;
-        Storage::disk('public')->put($oldPath, 'old-seal');
+        $documentType = $this->createDocumentType([
+            'document_name' => 'Certificate of Residency',
+            'description' => 'Residency certificate',
+        ]);
+        $request = $this->readyRequest($documentType, 'pdf-version-history');
+        $template = DocumentTemplate::create([
+            'document_type_id' => $documentType->document_type_id,
+        ]);
+        $templateVersion = DocumentTemplateVersion::create([
+            'template_id' => $template->template_id,
+            'version_number' => 1,
+            'storage_disk' => 'local',
+            'storage_path' => 'templates/residency-v1.pdf',
+            'original_name' => 'residency.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 8,
+            'sha256' => hash('sha256', 'template'),
+            'page_count' => 1,
+            'has_acroform' => false,
+            'is_active' => true,
+        ]);
+        $disk = config('filesystems.private_upload_disk');
+        Storage::fake($disk);
+        $documents = [];
+        foreach ([1 => 'pdf-v1', 2 => 'pdf-v2'] as $version => $contents) {
+            $path = "generated-documents/{$request->request_id}/v{$version}.pdf";
+            Storage::disk($disk)->put($path, $contents);
+            $documents[$version] = GeneratedDocument::create([
+                'request_id' => $request->request_id,
+                'template_version_id' => $templateVersion->template_version_id,
+                'version_number' => $version,
+                'document_number' => 'BA-2026-000001',
+                'storage_disk' => $disk,
+                'storage_path' => $path,
+                'original_name' => "residency-v{$version}.pdf",
+                'mime_type' => 'application/pdf',
+                'file_size' => strlen($contents),
+                'sha256' => hash('sha256', $contents),
+                'data_snapshot' => ['document_number' => 'BA-2026-000001'],
+                'generated_by' => $this->staffUser->user_id,
+                'generated_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($this->resident)
+            ->getJson("/api/barangay-requests/{$request->request_id}/generated-documents")
+            ->assertForbidden();
+
+        $this->actingAs($this->staffUser)
+            ->getJson("/api/barangay-requests/{$request->request_id}/generated-documents")
+            ->assertOk()
+            ->assertJsonPath('data.versions.0.generated_document_id', $documents[2]->generated_document_id)
+            ->assertJsonPath('data.versions.1.version_number', 1);
+
+        $fileResponse = $this->get(
+            "/api/barangay-requests/{$request->request_id}/generated-documents/{$documents[1]->generated_document_id}/file"
+        );
+        $fileResponse->assertOk();
+        $this->assertSame('pdf-v1', $fileResponse->streamedContent());
+
+        $anotherRequest = $this->readyRequest($documentType, 'different-pdf-request');
+        $this->get(
+            "/api/barangay-requests/{$anotherRequest->request_id}/generated-documents/{$documents[1]->generated_document_id}/file"
+        )->assertNotFound();
+
+        $printUrl = "/api/barangay-requests/{$request->request_id}/generated-document/print";
+        $this->postJson($printUrl, [
+            'generated_document_id' => $documents[1]->generated_document_id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.action', 'document_printed');
+        $this->postJson($printUrl, [
+            'generated_document_id' => $documents[1]->generated_document_id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.action', 'document_reprinted');
+        $this->postJson($printUrl, [
+            'generated_document_id' => $documents[2]->generated_document_id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.action', 'document_printed');
+    }
+
+    public function test_barangay_settings_api_endpoints_are_removed(): void
+    {
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/admin/barangay-settings')
+            ->assertNotFound();
 
         $this->actingAs($this->adminUser)
-            ->post('/api/admin/barangay-settings', [
-                '_method' => 'PUT',
-                'barangay_name' => 'Barangay Aurora',
-                'municipality' => 'Alicia',
-                'province' => 'Isabela',
-                'punong_barangay_name' => 'Configured Official',
-                'office_address' => 'Municipal Road',
-                'contact_information' => '09123456789',
-                'council_roster' => "Council Member | Sangguniang Barangay Member\nSecretary | Barangay Secretary",
-            ], ['Accept' => 'application/json'])
-            ->assertOk()
-            ->assertJsonPath('data.municipality', 'Alicia')
-            ->assertJsonPath('data.province', 'Isabela')
-            ->assertJsonPath('data.council_roster.0.name', 'Council Member')
-            ->assertJsonPath('data.council_roster.1.position', 'Barangay Secretary');
-
-        $settings->refresh();
-        $this->assertSame($oldPath, $settings->seal_path);
-        Storage::disk('public')->assertExists($oldPath);
-        Storage::disk('public')->assertExists($settings->seal_path);
+            ->putJson('/api/admin/barangay-settings', [
+                'barangay_name' => 'Should not be accepted',
+            ])
+            ->assertNotFound();
     }
 
     private function submittedRequest(

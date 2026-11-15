@@ -95,6 +95,26 @@
     font-size: 1.5rem;
 }
 
+.request-pdf-generation-actions {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.request-pdf-generation-actions .app-alert {
+    margin: 0;
+}
+
+.generated-pdf-frame {
+    display: block;
+    width: 100%;
+    min-height: min(82vh, 1100px);
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 12px;
+    background: #e8ebe7;
+}
+
 @media (max-width: 760px) {
     .request-processing-page .request-processing-grid {
         grid-template-columns: minmax(0, 1fr);

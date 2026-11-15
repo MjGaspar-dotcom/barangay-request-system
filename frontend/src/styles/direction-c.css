@@ -1241,9 +1241,9 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 /* Keep the administrative console visually authoritative; staff stays operational and restrained. */
 .portal-admin-workspace,
 .admin-management-layout {
-  --admin-ink: #123b28;
-  --admin-gold: #c8a957;
-  --admin-surface: #f5f4eb;
+  --admin-ink: var(--system-forest);
+  --admin-gold: var(--system-gold-muted);
+  --admin-surface: var(--system-ivory);
 }
 .portal-admin-workspace .portal-main,
 .admin-management-layout .dashboard-content {

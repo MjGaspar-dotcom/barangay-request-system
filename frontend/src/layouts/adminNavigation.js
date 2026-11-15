@@ -24,6 +24,12 @@ export const ADMIN_NAV_ITEMS = [
         icon: "file-earmark-text",
     },
     {
+        label: "Document Templates",
+        group: "REQUESTS",
+        to: "/admin/document-templates",
+        icon: "file-earmark-text",
+    },
+    {
         label: "Programs & Recommendations",
         group: "COMMUNITY",
         to: "/admin/recommendations",
@@ -41,12 +47,6 @@ export const ADMIN_NAV_ITEMS = [
         group: "PEOPLE",
         to: "/admin/staff",
         icon: "person-badge",
-    },
-    {
-        label: "Barangay Settings",
-        group: "SYSTEM",
-        to: "/admin/barangay-settings",
-        icon: "gear",
     },
     {
         label: "Recent Activity",

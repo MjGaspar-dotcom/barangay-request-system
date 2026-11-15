@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\BarangayRequest;
 use App\Models\AuditLog;
+use App\Models\GeneratedDocument;
 use App\Models\Staff;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
@@ -19,10 +20,10 @@ class RequestStatusService
 
     public const REJECTION_REASONS = [
         'Incomplete Requirements',
-        'Invalid or Incorrect Information',
+        'Invalid Information',
         'Unverified Residency',
         'Duplicate Request',
-        'Document Requirements Not Met',
+        'Requirements Not Met',
         'Other',
     ];
 
@@ -185,11 +186,10 @@ class RequestStatusService
                 }
                 $readyAt = CarbonImmutable::now();
                 $documentIssuedAt = CarbonImmutable::now('Asia/Manila');
-                app(DocumentGenerationService::class)
-                    ->generateForReadyPickup(
-                        $request,
-                        $documentIssuedAt
-                    );
+                self::generateDocumentForPickup(
+                    $request,
+                    $documentIssuedAt
+                );
                 $request->update([
                     'status' => self::STATUS_READY_FOR_PICKUP,
                     'ready_for_pickup_at' => $readyAt,
@@ -271,7 +271,7 @@ class RequestStatusService
             );
 
             $readyAt = now();
-            app(DocumentGenerationService::class)->generateForReadyPickup(
+            self::generateDocumentForPickup(
                 $request,
                 CarbonImmutable::now('Asia/Manila')
             );
@@ -337,9 +337,10 @@ class RequestStatusService
     }
 
     public static function recordGeneratedDocumentPrint(
-        BarangayRequest $request
+        BarangayRequest $request,
+        ?int $generatedDocumentId = null
     ): string {
-        return DB::transaction(function () use ($request): string {
+        return DB::transaction(function () use ($request, $generatedDocumentId): string {
             $request = BarangayRequest::query()
                 ->lockForUpdate()
                 ->findOrFail($request->request_id);
@@ -349,11 +350,23 @@ class RequestStatusService
                     'Only requests ready for pickup can be printed.'
                 );
             }
-            if (!$request->document_number || !$request->generated_document_data) {
+            $generatedDocument = $generatedDocumentId
+                ? GeneratedDocument::query()
+                    ->where('request_id', $request->request_id)
+                    ->lockForUpdate()
+                    ->find($generatedDocumentId)
+                : $request->generatedDocuments()->lockForUpdate()->first();
+            if (
+                !$generatedDocument &&
+                ($generatedDocumentId || !$request->document_number ||
+                    !$request->generated_document_data)
+            ) {
                 throw new \InvalidArgumentException(
                     'Generate the official document before printing.'
                 );
             }
+            $documentNumber = $generatedDocument?->document_number
+                ?? $request->document_number;
 
             $printEvents = AuditLog::query()
                 ->where('table_name', 'barangay_requests')
@@ -362,24 +375,40 @@ class RequestStatusService
                 ->get(['new_values']);
             $printCount = $printEvents->filter(
                 fn (AuditLog $event): bool =>
-                    ($event->new_values['document_number'] ?? null) ===
-                    $request->document_number
+                    $generatedDocument &&
+                    isset($event->new_values['generated_document_id'])
+                        ? (int) $event->new_values['generated_document_id'] ===
+                            $generatedDocument->generated_document_id
+                        : (
+                            !isset($event->new_values['generated_document_id']) &&
+                            ($event->new_values['document_number'] ?? null) ===
+                                $documentNumber
+                        )
             )->count();
             $action = $printCount > 0
                 ? 'document_reprinted'
                 : 'document_printed';
+            $versionDescription = $generatedDocument
+                ? " version {$generatedDocument->version_number}"
+                : '';
+            $auditValues = [
+                'document_number' => $documentNumber,
+                'print_number' => $printCount + 1,
+            ];
+            if ($generatedDocument) {
+                $auditValues['generated_document_id'] =
+                    $generatedDocument->generated_document_id;
+                $auditValues['version_number'] = $generatedDocument->version_number;
+            }
 
             AuditService::log(
                 $action,
                 $request,
                 $action === 'document_reprinted'
-                    ? "The generated document {$request->document_number} was reprinted."
-                    : "The generated document {$request->document_number} was sent for printing.",
+                    ? "The generated document {$documentNumber}{$versionDescription} was reprinted."
+                    : "The generated document {$documentNumber}{$versionDescription} was sent for printing.",
                 [],
-                [
-                    'document_number' => $request->document_number,
-                    'print_number' => $printCount + 1,
-                ]
+                $auditValues
             );
 
             return $action;
@@ -461,6 +490,26 @@ class RequestStatusService
                 'The resident mobile profile does not contain an ID image.'
             );
         }
+    }
+
+    private static function generateDocumentForPickup(
+        BarangayRequest $request,
+        CarbonImmutable $issuedAt
+    ): void {
+        $pdfGeneration = app(PdfTemplateGenerationService::class);
+        if ($pdfGeneration->activeTemplateFor($request)) {
+            if (!$pdfGeneration->current($request)) {
+                throw new \InvalidArgumentException(
+                    'Generate and preview the completed PDF before approving the request.'
+                );
+            }
+            return;
+        }
+
+        app(DocumentGenerationService::class)->generateForReadyPickup(
+            $request,
+            $issuedAt
+        );
     }
 
     private static function assertTransitionAllowed(string $from, string $to): void

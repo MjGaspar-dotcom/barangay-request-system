@@ -5,12 +5,14 @@ namespace Tests\Feature;
 use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\BarangayRequest;
-use App\Models\BarangaySettings;
+use App\Models\DocumentGenerationProfile;
 use App\Models\DocumentType;
 use App\Models\Staff;
 use App\Models\User;
+use App\Services\QrCodeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -59,18 +61,41 @@ class BarangayRequestWorkflowTest extends TestCase
         ]);
 
         // Create document type
-        $this->documentType = DocumentType::create([
+        $this->documentType = $this->createDocumentType([
             'document_name' => 'Barangay Clearance',
             'description' => 'Clearance for employment',
             'fee' => 50.00,
         ]);
 
-        BarangaySettings::query()->whereKey(1)->update([
+        DocumentGenerationProfile::query()->whereKey(1)->update([
             'municipality' => 'Test Municipality',
             'province' => 'Test Province',
             'punong_barangay_name' => 'Test Punong Barangay',
             'seal_path' => 'barangay-seals/test-seal.png',
         ]);
+    }
+
+    public function test_staff_and_admin_login_roles_come_from_the_authenticated_user(): void
+    {
+        $password = 'shared-login-password';
+        $this->staffUser->forceFill(['password' => Hash::make($password)])->save();
+        $this->adminUser->forceFill(['password' => Hash::make($password)])->save();
+
+        $staffLogin = $this->postJson('/api/login', [
+            'username' => $this->staffUser->username,
+            'password' => $password,
+        ])
+            ->assertOk()
+            ->assertJsonPath('role', 'staff')
+            ->assertJsonPath('data.user_id', $this->staffUser->user_id);
+
+        $this->postJson('/api/login', [
+            'username' => $this->adminUser->username,
+            'password' => $password,
+        ])
+            ->assertOk()
+            ->assertJsonPath('role', 'admin')
+            ->assertJsonPath('data.user_id', $this->adminUser->user_id);
     }
 
     public function test_registered_user_can_submit_request(): void
@@ -272,6 +297,100 @@ class BarangayRequestWorkflowTest extends TestCase
             'document_type_id' => $this->documentType->document_type_id,
             'purpose' => 'Employment Application',
         ])->assertForbidden();
+    }
+
+    public function test_resident_can_have_only_one_open_request_per_document_type(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/barangay-requests', [
+                'document_type_id' => $this->documentType->document_type_id,
+                'purpose' => 'First open request',
+            ])
+            ->assertCreated();
+
+        $requestId = $response->json('data.request.request_id');
+        foreach ([
+            'request_submitted',
+            'approved',
+            'ready_for_pickup',
+        ] as $openStatus) {
+            BarangayRequest::query()
+                ->whereKey($requestId)
+                ->update(['status' => $openStatus]);
+
+            $this->actingAs($this->user)
+                ->postJson('/api/barangay-requests', [
+                    'document_type_id' => $this->documentType->document_type_id,
+                    'purpose' => "Duplicate while {$openStatus}",
+                ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('document_type_id');
+
+            $this->assertSame(
+                1,
+                BarangayRequest::query()
+                    ->where('user_id', $this->user->user_id)
+                    ->where('document_type_id', $this->documentType->document_type_id)
+                    ->count()
+            );
+        }
+
+        BarangayRequest::query()
+            ->whereKey($requestId)
+            ->update(['status' => 'completed']);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/barangay-requests', [
+                'document_type_id' => $this->documentType->document_type_id,
+                'purpose' => 'New request after completion',
+            ])
+            ->assertCreated();
+    }
+
+    public function test_created_request_qr_uses_the_public_tracking_page_and_is_returned_in_history(): void
+    {
+        config(['app.frontend_url' => 'https://barangay.example']);
+        $trackingNumber = 'BR-20261115-QRTEST';
+
+        $this->assertSame(
+            'https://barangay.example/track-request?tracking_number='.$trackingNumber,
+            QrCodeService::trackingUrl($trackingNumber)
+        );
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/barangay-requests', [
+                'document_type_id' => $this->documentType->document_type_id,
+                'purpose' => 'QR receipt',
+            ])
+            ->assertCreated();
+
+        $this->assertStringContainsString('<svg', $response->json('data.qr_code'));
+        $history = $this->actingAs($this->user)
+            ->getJson('/api/barangay-requests')
+            ->assertOk();
+        $this->assertSame(
+            $response->json('data.request.tracking_number'),
+            $history->json('data.0.tracking_number')
+        );
+        $this->assertStringContainsString(
+            '<svg',
+            $history->json('data.0.qr_code')
+        );
+    }
+
+    public function test_test_api_endpoints_are_removed_or_admin_protected(): void
+    {
+        $this->getJson('/api/test')->assertNotFound();
+        $this->get('/api/test-qr')->assertNotFound();
+        $this->postJson('/api/ocr/test')->assertUnauthorized();
+
+        $this->actingAs($this->staffUser)
+            ->postJson('/api/ocr/test')
+            ->assertForbidden();
+
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/ocr/test')
+            ->assertUnprocessable();
     }
 
     public function test_staff_can_view_registered_requester_details_and_id_images(): void
@@ -869,7 +988,6 @@ class BarangayRequestWorkflowTest extends TestCase
             '/api/admin/stats',
             '/api/admin/users',
             '/api/admin/staff',
-            '/api/admin/barangay-settings',
             '/api/admin/recent-activity',
             '/api/audit-logs',
             '/api/admin/analytics/document-request-trends',
@@ -896,6 +1014,10 @@ class BarangayRequestWorkflowTest extends TestCase
         // Admin can view staff list
         $response4 = $this->actingAs($this->adminUser)->getJson('/api/staff');
         $response4->assertStatus(200);
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/user')
+            ->assertOk()
+            ->assertJsonPath('role', 'admin');
     }
 
     public function test_staff_can_view_dashboard_summary_counts(): void
@@ -938,8 +1060,8 @@ class BarangayRequestWorkflowTest extends TestCase
         ]);
         AuditLog::create([
             'user_id' => $this->adminUser->user_id,
-            'action' => 'settings_updated',
-            'table_name' => 'barangay_settings',
+            'action' => 'user_verified',
+            'table_name' => 'users',
             'record_id' => 1,
             'description' => 'Settings were changed.',
         ]);
@@ -953,16 +1075,6 @@ class BarangayRequestWorkflowTest extends TestCase
         $this->assertSame('barangay_requests', $activity[0]['table_name']);
         $this->assertArrayNotHasKey('ip_address', $activity[0]);
         $this->assertArrayNotHasKey('new_values', $activity[0]);
-
-        $this->actingAs($this->staffUser)
-            ->getJson('/api/staff/barangay-settings')
-            ->assertNotFound();
-
-        $this->actingAs($this->staffUser)
-            ->putJson('/api/admin/barangay-settings', [
-                'barangay_name' => 'Unauthorized update',
-            ])
-            ->assertForbidden();
 
         $this->actingAs($this->staffUser)
             ->postJson('/api/document-types', [

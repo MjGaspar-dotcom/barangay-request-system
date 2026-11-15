@@ -11,9 +11,14 @@ class QrCodeService
      */
     public static function generate(string $trackingNumber): string
     {
-        $trackingUrl = url("/api/track/{$trackingNumber}");
+        return QrCode::svg(self::trackingUrl($trackingNumber));
+    }
 
-        return QrCode::svg($trackingUrl);
+    public static function trackingUrl(string $trackingNumber): string
+    {
+        return rtrim((string) config('app.frontend_url'), '/')
+            .'/track-request?'
+            .http_build_query(['tracking_number' => $trackingNumber]);
     }
 }
     

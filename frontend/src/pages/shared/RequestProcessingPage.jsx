@@ -19,6 +19,7 @@ export default function RequestProcessingPage() {
     const backPath = isAdmin ? "/admin/requests" : "/staff/queue";
     const [request, setRequest] = useState(null);
     const [documentPreview, setDocumentPreview] = useState(null);
+    const [pdfTemplate, setPdfTemplate] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshError, setRefreshError] = useState("");
@@ -29,6 +30,7 @@ export default function RequestProcessingPage() {
                 setLoading(true);
                 setError("");
                 setDocumentPreview(null);
+                setPdfTemplate(null);
             }
             setRefreshError("");
 
@@ -68,9 +70,11 @@ export default function RequestProcessingPage() {
                     `/barangay-requests/${requestId}/template-preview`,
                 );
                 setDocumentPreview(previewResponse.data.data.document);
+                setPdfTemplate(previewResponse.data.data.pdf_template);
             } catch (previewError) {
                 console.error(previewError);
                 setDocumentPreview(null);
+                setPdfTemplate(null);
                 setRefreshError(
                     previewError.response?.data?.message ||
                         "The document template preview is unavailable.",
@@ -143,6 +147,7 @@ export default function RequestProcessingPage() {
 
                     <RequestWorkflowPanel
                         documentPreview={documentPreview}
+                        pdfTemplate={pdfTemplate}
                         onRefresh={refreshRequest}
                         request={request}
                     />

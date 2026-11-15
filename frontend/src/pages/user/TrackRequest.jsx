@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 
 import { validateForm } from "../../utils/validateForm";
@@ -7,23 +8,22 @@ import {
     requestStatusLabel,
 } from "../../utils/requestWorkflow";
 export default function TrackRequest() {
-    const [trackingNumber, setTrackingNumber] = useState("");
+    const [searchParams] = useSearchParams();
+    const initialTrackingNumber = searchParams.get("tracking_number")?.trim() || "";
+    const [trackingNumber, setTrackingNumber] = useState(initialTrackingNumber);
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const initialLookupStarted = useRef(false);
 
-    const handleTrack = async (e) => {
-        e.preventDefault();
-
-        if (!validateForm(e.currentTarget)) return;
-
+    const track = useCallback(async (number) => {
         setError("");
         setResult(null);
         setLoading(true);
 
         try {
             const response = await api.get(
-                `/track/${trackingNumber.trim()}`
+                `/track/${number}`
             );
 
             if (!isInCurrentWorkflow(response.data.data)) {
@@ -46,6 +46,18 @@ export default function TrackRequest() {
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        if (!initialTrackingNumber || initialLookupStarted.current) return;
+        initialLookupStarted.current = true;
+        track(initialTrackingNumber);
+    }, [initialTrackingNumber, track]);
+
+    const handleTrack = async (e) => {
+        e.preventDefault();
+        if (!validateForm(e.currentTarget)) return;
+        await track(trackingNumber.trim());
     };
 
     return (

@@ -6,30 +6,18 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BarangayRequestController;
-use App\Http\Controllers\Api\BarangaySettingsController;
 use App\Http\Controllers\Api\DocumentRequestTrendController;
+use App\Http\Controllers\Api\DocumentTemplateController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OcrTestController;
 use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
-use App\Services\QrCodeService;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/ocr/test', [OcrTestController::class, 'test']);
-
-Route::get('/test-qr', function () {
-    return response(
-        QrCodeService::generate('BRGY-2026-TEST01')
-    )->header('Content-Type', 'image/svg+xml');
-});
-
-Route::get('/test', function () {
-    return response()->json([
-        'message' => 'API is working',
-    ]);
-});
+Route::post('/ocr/test', [OcrTestController::class, 'test'])
+    ->middleware(['auth:sanctum', 'admin.only', 'throttle:10,1']);
 
 // Document types are needed by mobile and web clients when submitting a
 // request. Management actions remain protected below.
@@ -94,6 +82,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get(
         '/barangay-requests/{barangayRequest}',
         [BarangayRequestController::class, 'show']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/generated-document',
+        [BarangayRequestController::class, 'showGeneratedDocument']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/generated-document/file',
+        [BarangayRequestController::class, 'showGeneratedDocumentFile']
     );
 
     Route::put(
@@ -166,12 +162,16 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
         [BarangayRequestController::class, 'generateDocument']
     );
     Route::get(
-        '/barangay-requests/{barangayRequest}/generated-document',
-        [BarangayRequestController::class, 'showGeneratedDocument']
+        '/barangay-requests/{barangayRequest}/generated-documents',
+        [BarangayRequestController::class, 'showGeneratedDocumentHistory']
     );
     Route::post(
         '/barangay-requests/{barangayRequest}/generated-document/print',
         [BarangayRequestController::class, 'recordGeneratedDocumentPrint']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/generated-documents/{generatedDocument}/file',
+        [BarangayRequestController::class, 'showGeneratedDocumentVersionFile']
     );
 
 });
@@ -181,6 +181,28 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 // ==========================
 
 Route::middleware(['auth:sanctum', 'admin.only'])->group(function () {
+
+    Route::get('/admin/document-templates', [DocumentTemplateController::class, 'index']);
+    Route::get(
+        '/admin/document-templates/{documentType}',
+        [DocumentTemplateController::class, 'show']
+    );
+    Route::post(
+        '/admin/document-templates/{documentType}/versions',
+        [DocumentTemplateController::class, 'store']
+    );
+    Route::delete(
+        '/admin/document-templates/{documentType}',
+        [DocumentTemplateController::class, 'destroy']
+    );
+    Route::put(
+        '/admin/document-template-versions/{version}/mappings',
+        [DocumentTemplateController::class, 'saveMappings']
+    );
+    Route::get(
+        '/admin/document-template-versions/{version}/file',
+        [DocumentTemplateController::class, 'file']
+    );
 
     Route::get('/staff', [StaffController::class, 'index']);
     Route::get('/admin/stats', [AdminController::class, 'stats']);
@@ -193,9 +215,6 @@ Route::middleware(['auth:sanctum', 'admin.only'])->group(function () {
     Route::post('/admin/recommendations', [RecommendationController::class, 'store']);
     Route::put('/admin/recommendations/{recommendation}', [RecommendationController::class, 'update']);
     Route::delete('/admin/recommendations/{recommendation}', [RecommendationController::class, 'destroy']);
-
-    Route::get('/admin/barangay-settings', [BarangaySettingsController::class, 'show']);
-    Route::put('/admin/barangay-settings', [BarangaySettingsController::class, 'update']);
 
     // --------------------------------------------------
     // Manage Document Types

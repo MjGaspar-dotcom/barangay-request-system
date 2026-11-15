@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BarangaySettings extends Model
+class DocumentGenerationProfile extends Model
 {
-    protected $table = 'barangay_settings';
+    protected $table = 'document_generation_profiles';
 
     protected $fillable = [
         'barangay_name',
