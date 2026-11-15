@@ -1,0 +1,196 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+
+import 'package:barangay_mobile/core/providers/auth_provider.dart';
+import 'package:barangay_mobile/main.dart';
+import 'package:barangay_mobile/ui/screens/landing_screen.dart';
+import 'package:barangay_mobile/ui/screens/auth/login_screen.dart';
+import 'package:barangay_mobile/ui/screens/auth/register_screen.dart';
+
+void main() {
+  testWidgets('startup failure is shown instead of a blank screen',
+      (WidgetTester tester) async {
+    final startup = Completer<void>();
+    await tester.pumpWidget(
+      BarangayApp(startup: startup.future),
+    );
+    startup.completeError(StateError('preferences unavailable'));
+    await tester.pump();
+
+    expect(find.text('Unable to start Barangay Mobile'), findsOneWidget);
+    expect(find.textContaining('preferences unavailable'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
+  });
+
+  testWidgets('landing screen omits guest requests but keeps request tracking',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: LandingScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.text('Guest Request (No Account)'), findsNothing);
+    expect(find.byKey(const Key('btn_guest_request')), findsNothing);
+    expect(find.text('Track an Existing Request'), findsOneWidget);
+  });
+
+  testWidgets('login screen shows the unconfigured Google sign-in option',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(home: LoginScreen()),
+      ),
+    );
+
+    expect(find.text('Continue with Google'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('btn_continue_with_google')));
+    await tester.pump();
+
+    expect(
+      find.textContaining('GOOGLE_WEB_CLIENT_ID'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('registration screen shows the Google sign-in option',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(home: RegisterScreen()),
+      ),
+    );
+
+    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.byKey(const Key('btn_register_with_google')), findsOneWidget);
+  });
+
+  testWidgets('registration requires account details before advancing',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(home: RegisterScreen()),
+      ),
+    );
+
+    final nextButton = find.byKey(const Key('btn_register_next')).first;
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, 0);
+    expect(find.text('Required'), findsOneWidget);
+    expect(find.text('Valid email required'), findsOneWidget);
+  });
+
+  testWidgets('registration rejects passwords shorter than eight characters',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(home: RegisterScreen()),
+      ),
+    );
+
+    expect(find.text('At least 8 characters'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('reg_username')), 'resident');
+    await tester.enterText(
+        find.byKey(const Key('reg_email')), 'resident@example.com');
+    await tester.enterText(find.byKey(const Key('reg_password')), '1234567');
+    await tester.enterText(
+        find.byKey(const Key('reg_confirm_password')), '1234567');
+
+    final nextButton = find.byKey(const Key('btn_register_next')).first;
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, 0);
+    expect(find.text('Password must be at least 8 characters'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('reg_password')), '12345678');
+    await tester.enterText(
+        find.byKey(const Key('reg_confirm_password')), '12345678');
+    await tester.ensureVisible(nextButton);
+    await tester.tap(nextButton);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, 1);
+  });
+
+  testWidgets('registration name fields stack on narrow mobile screens',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(
+          home: RegisterScreen(
+            googleIdToken: 'google-id-token',
+            googleEmail: 'resident@example.com',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final firstName = tester.getRect(find.byKey(const Key('reg_first_name')));
+    final lastName = tester.getRect(find.byKey(const Key('reg_last_name')));
+
+    expect(tester.takeException(), isNull);
+    expect(lastName.top, greaterThan(firstName.bottom));
+  });
+
+  testWidgets('Google registration skips password account fields',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(
+          home: RegisterScreen(
+            googleIdToken: 'google-id-token',
+            googleEmail: 'resident@example.com',
+            googleFirstName: 'Test',
+            googleLastName: 'Resident',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Google account connected'), findsOneWidget);
+    expect(find.text('resident@example.com'), findsOneWidget);
+    expect(find.byKey(const Key('reg_password')), findsNothing);
+    expect(find.byKey(const Key('reg_birth_date')), findsOneWidget);
+    expect(find.byKey(const Key('reg_middle_name')), findsOneWidget);
+    expect(find.text('I have no Middle name'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('reg_no_middle_name')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextFormField>(find.byKey(const Key('reg_middle_name')))
+          .enabled,
+      isFalse,
+    );
+
+    await tester.tap(find.byKey(const Key('reg_no_middle_name')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextFormField>(find.byKey(const Key('reg_middle_name')))
+          .enabled,
+      isTrue,
+    );
+  });
+}
