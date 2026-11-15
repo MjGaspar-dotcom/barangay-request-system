@@ -35,8 +35,8 @@ class AdminController extends Controller
             ], 403);
         }
 
-        $pendingRequests = BarangayRequest::where('status', 'Pending')->count();
-        $completedRequests = BarangayRequest::where('status', 'Completed')->count();
+        $submittedRequests = BarangayRequest::where('status', 'request_submitted')->count();
+        $completedRequests = BarangayRequest::where('status', 'completed')->count();
 
         $registeredResidents = User::whereDoesntHave('admin')
             ->whereDoesntHave('staff')
@@ -60,7 +60,7 @@ class AdminController extends Controller
                 'verified_residents' => $verifiedResidents,
                 'pending_verifications' => $pendingVerifications,
                 'total_staff' => Staff::count(),
-                'pending_requests' => $pendingRequests,
+                'submitted_requests' => $submittedRequests,
                 'completed_requests' => $completedRequests,
                 'document_types' => DocumentType::count(),
                 'active_document_types' => DocumentType::where('is_active', true)->count(),

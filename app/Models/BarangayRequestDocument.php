@@ -14,7 +14,13 @@ class BarangayRequestDocument extends Model
         'purpose',
         'original_name',
         'storage_path',
+        'storage_disk',
         'mime_type',
+    ];
+
+    protected $hidden = [
+        'storage_path',
+        'storage_disk',
     ];
 
     public function request()

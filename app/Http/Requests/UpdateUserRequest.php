@@ -12,8 +12,10 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // This request will be used inside an authenticated route.
-        return $this->user() !== null;
+        $privilegeFields = ['role', 'role_id', 'admin', 'staff', 'is_admin', 'is_staff'];
+
+        return $this->user() !== null
+            && count(array_intersect($privilegeFields, array_keys($this->all()))) === 0;
     }
 
     /**
@@ -50,6 +52,12 @@ class UpdateUserRequest extends FormRequest
                 'email',
                 'max:255',
                 'unique:users,email,' . $userId . ',user_id',
+            ],
+            'profile_picture' => [
+                'sometimes',
+                'file',
+                'image',
+                'max:5120',
             ],
 
             // Verification documents

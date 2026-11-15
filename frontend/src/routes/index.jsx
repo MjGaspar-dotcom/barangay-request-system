@@ -17,6 +17,7 @@ import LoadingState from "../components/ui/LoadingState";
 
 const Landing = lazy(() => import("../pages/public/Landing"));
 const UserRequest = lazy(() => import("../pages/user/Request"));
+const UserProfile = lazy(() => import("../pages/user/Profile"));
 const TrackRequest = lazy(() => import("../pages/user/TrackRequest"));
 const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
 const AdminAnalytics = lazy(() => import("../pages/staff/Reports"));
@@ -27,18 +28,24 @@ const ManageRequests = lazy(() => import("../pages/admin/ManageRequests"));
 const ManageDocumentTypes = lazy(
     () => import("../pages/admin/ManageDocumentTypes"),
 );
-const AdminRequestDetails = lazy(
-    () => import("../pages/admin/AdminRequestDetails"),
+const ManageRecommendations = lazy(
+    () => import("../pages/admin/ManageRecommendations"),
+);
+const BarangaySettings = lazy(
+    () => import("../pages/admin/BarangaySettings"),
 );
 const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
-const WorkflowAnalysis = lazy(() => import("../pages/admin/WorkflowAnalysis"));
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
 const StaffDashboard = lazy(() => import("../pages/staff/Dashboard"));
-const StaffAllRequests = lazy(() => import("../pages/staff/AllRequests"));
 const StaffRequestQueue = lazy(() => import("../pages/staff/RequestQueue"));
-const StaffReports = lazy(() => import("../pages/staff/Reports"));
-const StaffRequestDetails = lazy(
-    () => import("../pages/staff/RequestDetails"),
+const RequestProcessingPage = lazy(
+    () => import("../pages/shared/RequestProcessingPage"),
+);
+const GeneratedDocumentPage = lazy(
+    () => import("../pages/shared/GeneratedDocumentPage"),
+);
+const SchoolDemoDocumentPage = lazy(
+    () => import("../pages/shared/SchoolDemoDocumentPage"),
 );
 
 function RouteScrollReset() {
@@ -99,6 +106,14 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute allowedRoles={["user"]}>
+                                <UserProfile />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/requests/:requestId"
                         element={
                             <ProtectedRoute allowedRoles={["user"]}>
@@ -117,10 +132,42 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
-                        path="/staff/reports"
+                        path="/staff/analytics"
                         element={
                             <ProtectedRoute allowedRoles={["staff"]}>
-                                <StaffReports />
+                                <AdminAnalytics />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/staff/document-types"
+                        element={
+                            <ProtectedRoute allowedRoles={["staff"]}>
+                                <ManageDocumentTypes isAdmin={false} />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/staff/barangay-settings"
+                        element={
+                            <ProtectedRoute allowedRoles={["staff"]}>
+                                <Navigate to="/staff/dashboard" replace />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/staff/recent-activity"
+                        element={
+                            <ProtectedRoute allowedRoles={["staff"]}>
+                                <RecentActivity isAdmin={false} />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/staff/reports"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <Navigate to="/admin/analytics" replace />
                             </ProtectedRoute>
                         }
                     />
@@ -128,7 +175,7 @@ export default function AppRoutes() {
                         path="/staff/requests"
                         element={
                             <ProtectedRoute allowedRoles={["staff", "admin"]}>
-                                <StaffAllRequests />
+                                <ManageRequests isAdmin={false} />
                             </ProtectedRoute>
                         }
                     />
@@ -144,7 +191,23 @@ export default function AppRoutes() {
                         path="/staff/requests/:requestId"
                         element={
                             <ProtectedRoute allowedRoles={["staff", "admin"]}>
-                                <StaffRequestDetails />
+                                <RequestProcessingPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/staff/requests/:requestId/document"
+                        element={
+                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                                <GeneratedDocumentPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/staff/document-template-sample"
+                        element={
+                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                                <SchoolDemoDocumentPage />
                             </ProtectedRoute>
                         }
                     />
@@ -194,7 +257,15 @@ export default function AppRoutes() {
                         path="/admin/requests/:requestId"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
-                                <AdminRequestDetails />
+                                <RequestProcessingPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/requests/:requestId/document"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <GeneratedDocumentPage />
                             </ProtectedRoute>
                         }
                     />
@@ -207,6 +278,30 @@ export default function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/admin/recommendations"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <ManageRecommendations />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/barangay-settings"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <BarangaySettings />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/document-template-sample"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <SchoolDemoDocumentPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/admin/recent-activity"
                         element={
                             <ProtectedRoute allowedRoles={["admin"]}>
@@ -214,15 +309,6 @@ export default function AppRoutes() {
                             </ProtectedRoute>
                         }
                     />
-                    <Route
-                        path="/admin/workflow-analysis"
-                        element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                                <WorkflowAnalysis />
-                            </ProtectedRoute>
-                        }
-                    />
-
                     {/* ROLE-SPECIFIC LOGIN */}
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/staff/login" element={<StaffLogin />} />

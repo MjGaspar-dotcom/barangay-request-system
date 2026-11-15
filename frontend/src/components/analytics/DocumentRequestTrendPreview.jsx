@@ -29,7 +29,7 @@ function PreviewTooltip({ active, payload }) {
 
 export default function DocumentRequestTrendPreview({
     completedRequests,
-    pendingRequests,
+    submittedRequests,
     dashboardLoading,
     dashboardError,
 }) {
@@ -95,7 +95,7 @@ export default function DocumentRequestTrendPreview({
                     />
                 ) : (
                     <span className="admin-trend-preview-pending">
-                        {dashboardError ? "—" : pendingRequests} pending
+                        {dashboardError ? "—" : submittedRequests} submitted
                     </span>
                 )}
             </div>

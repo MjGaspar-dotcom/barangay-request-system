@@ -6,6 +6,12 @@ import StatusBadge from "../../components/ui/StatusBadge";
 import StaffLayout from "../../layouts/StaffLayout";
 import api from "../../services/api";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
+import useLiveRefresh from "../../hooks/useLiveRefresh";
+import {
+    canonicalRequestStatus,
+    isInCurrentWorkflow,
+    REQUEST_STATUS_OPTIONS,
+} from "../../utils/requestWorkflow";
 
 const formatRequesterName = (request) =>
     [request.user?.first_name, request.user?.last_name]
@@ -66,21 +72,10 @@ const REQUEST_QUEUE_COLUMNS = [
     },
 ];
 
-const STATUS_FILTERS = [
-    "All statuses",
-    "Pending",
-    "Additional Requirements",
-    "Approved",
-    "Processing",
-    "Ready for Pickup",
-    "Completed",
-    "Rejected",
-];
-
 export default function StaffRequestQueue() {
     const [requests, setRequests] = useState([]);
     const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("All statuses");
+    const [statusFilter, setStatusFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [retryKey, setRetryKey] = useState(0);
@@ -91,41 +86,34 @@ export default function StaffRequestQueue() {
         if (!Array.isArray(data)) {
             throw new Error("Unexpected staff requests response.");
         }
-        return data;
+        return data.filter(isInCurrentWorkflow);
     }, []);
 
-    useEffect(() => {
-        let active = true;
-
-        const loadRequests = async () => {
-            setLoading(true);
+    const loadRequests = useCallback(async () => {
+        try {
+            const data = await fetchRequests();
+            setRequests(data);
             setError("");
-            try {
-                const data = await fetchRequests();
-                if (active) setRequests(data);
-            } catch (loadError) {
-                console.error("Failed to load staff request queue:", loadError);
-                if (active) {
-                    setError("Unable to load the request queue. Please try again.");
-                }
-            } finally {
-                if (active) setLoading(false);
-            }
-        };
+        } catch (loadError) {
+            console.error("Failed to load staff request queue:", loadError);
+            setError("Unable to load the request queue. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchRequests]);
 
-        loadRequests();
-        return () => {
-            active = false;
-        };
-    }, [fetchRequests, retryKey]);
+    useEffect(() => {
+        Promise.resolve().then(loadRequests);
+    }, [loadRequests, retryKey]);
+
+    useLiveRefresh(loadRequests);
 
     const filteredRequests = useMemo(() => {
         const term = search.trim().toLowerCase();
         return requests.filter((request) => {
-            const status = String(request.status || "").toLowerCase();
             const matchesStatus =
-                statusFilter === "All statuses" ||
-                status === statusFilter.toLowerCase();
+                statusFilter === "all" ||
+                canonicalRequestStatus(request.status) === statusFilter;
             const searchable = [
                 request.tracking_number,
                 formatRequesterName(request),
@@ -165,9 +153,10 @@ export default function StaffRequestQueue() {
                         <button
                             type="button"
                             className="app-button app-button-sm app-button-outline-danger ms-2"
-                            onClick={() =>
+                            onClick={() => {
+                                setLoading(true);
                                 setRetryKey((current) => current + 1)
-                            }
+                            }}
                         >
                             Retry
                         </button>
@@ -201,9 +190,9 @@ export default function StaffRequestQueue() {
                                 setStatusFilter(event.target.value)
                             }
                         >
-                            {STATUS_FILTERS.map((status) => (
-                                <option key={status} value={status}>
-                                    {status}
+                            {REQUEST_STATUS_OPTIONS.map((status) => (
+                                <option key={status.value} value={status.value}>
+                                    {status.label}
                                 </option>
                             ))}
                         </select>

@@ -6,10 +6,12 @@ use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BarangayRequestController;
+use App\Http\Controllers\Api\BarangaySettingsController;
 use App\Http\Controllers\Api\DocumentRequestTrendController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OcrTestController;
+use App\Http\Controllers\Api\RecommendationController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\UserController;
 use App\Services\QrCodeService;
@@ -60,11 +62,17 @@ Route::get(
 // PROTECTED API
 // ==========================
 
+Route::get(
+    '/users/{user}/files/{field}',
+    [UserController::class, 'showFile']
+)->middleware('signed')->name('api.user-file');
+
 Route::middleware('auth:sanctum')->group(function () {
 
     // Current authenticated user — returns user data WITH role.
     // Used by AuthContext on page refresh to restore the session.
     Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/recommendations', [RecommendationController::class, 'index']);
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -98,13 +106,17 @@ Route::middleware('auth:sanctum')->group(function () {
         [BarangayRequestController::class, 'update']
     );
 
-    Route::post(
-        '/barangay-requests/{barangayRequest}/requirements/resubmit',
-        [BarangayRequestController::class, 'resubmitRequirements']
-    );
     Route::get(
         '/barangay-requests/{barangayRequest}/documents/{document}/view',
         [BarangayRequestController::class, 'showDocument']
+    );
+    Route::put(
+        '/barangay-requests/{barangayRequest}/documents/{document}',
+        [BarangayRequestController::class, 'replaceSupportingDocument']
+    );
+    Route::delete(
+        '/barangay-requests/{barangayRequest}/documents/{document}',
+        [BarangayRequestController::class, 'deleteSupportingDocument']
     );
 
     // --------------------------------------------------
@@ -130,25 +142,38 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 
-    Route::get('/staff', [StaffController::class, 'index']);
+    Route::get('/staff/dashboard-stats', [StaffController::class, 'dashboardStats']);
     Route::get('/staff/requests', [StaffController::class, 'allRequests']);
+    Route::get('/staff/recent-activity', [AdminUserController::class, 'recentActivity']);
     Route::post(
-        '/barangay-requests/{barangayRequest}/requirements/verify',
-        [BarangayRequestController::class, 'verifyRequirements']
+        '/barangay-requests/{barangayRequest}/approve-and-prepare',
+        [BarangayRequestController::class, 'approveAndPrepareForPickup']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/template-preview',
+        [BarangayRequestController::class, 'showTemplatePreview']
     );
     Route::post(
         '/barangay-requests/{barangayRequest}/documents/prepared',
         [BarangayRequestController::class, 'storePreparedDocument']
     );
-
-    // Delete is staff/admin only — moved out of the registered-user route group.
-    Route::delete(
-        '/barangay-requests/{barangayRequest}',
-        [BarangayRequestController::class, 'destroy']
+    Route::post(
+        '/barangay-requests/{barangayRequest}/documents/{document}/print',
+        [BarangayRequestController::class, 'recordDocumentPrint']
+    );
+    Route::post(
+        '/barangay-requests/{barangayRequest}/generated-document/generate',
+        [BarangayRequestController::class, 'generateDocument']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/generated-document',
+        [BarangayRequestController::class, 'showGeneratedDocument']
+    );
+    Route::post(
+        '/barangay-requests/{barangayRequest}/generated-document/print',
+        [BarangayRequestController::class, 'recordGeneratedDocumentPrint']
     );
 
-    // Admin statistics — only admin users
-    Route::get('/admin/stats', [AdminController::class, 'stats']);
 });
 
 // ==========================
@@ -157,10 +182,27 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'admin.only'])->group(function () {
 
-    Route::post(
-        '/barangay-requests/{barangayRequest}/documents/authorize',
-        [BarangayRequestController::class, 'authorizeDocument']
+    Route::get('/staff', [StaffController::class, 'index']);
+    Route::get('/admin/stats', [AdminController::class, 'stats']);
+    Route::delete(
+        '/barangay-requests/{barangayRequest}',
+        [BarangayRequestController::class, 'destroy']
     );
+
+    Route::get('/admin/recommendations', [RecommendationController::class, 'adminIndex']);
+    Route::post('/admin/recommendations', [RecommendationController::class, 'store']);
+    Route::put('/admin/recommendations/{recommendation}', [RecommendationController::class, 'update']);
+    Route::delete('/admin/recommendations/{recommendation}', [RecommendationController::class, 'destroy']);
+
+    Route::get('/admin/barangay-settings', [BarangaySettingsController::class, 'show']);
+    Route::put('/admin/barangay-settings', [BarangaySettingsController::class, 'update']);
+
+    // --------------------------------------------------
+    // Manage Document Types
+    // --------------------------------------------------
+    Route::post('/document-types', [DocumentTypeController::class, 'store']);
+    Route::put('/document-types/{id}', [DocumentTypeController::class, 'update']);
+    Route::delete('/document-types/{id}', [DocumentTypeController::class, 'destroy']);
 
     Route::get(
         '/admin/analytics/document-request-trends',

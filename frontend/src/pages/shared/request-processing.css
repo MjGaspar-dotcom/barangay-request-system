@@ -1,0 +1,122 @@
+.request-processing-page {
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.request-processing-toolbar {
+    display: flex;
+    min-height: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.request-processing-toolbar > .app-button {
+    margin-bottom: 0;
+}
+
+.request-processing-page .request-processing-grid {
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    gap: 20px;
+}
+
+.request-processing-page .request-progress-card {
+    position: sticky;
+    top: 16px;
+    padding: 18px;
+}
+
+.request-processing-page .request-processing-top-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.request-processing-page .request-code-card,
+.request-processing-page .request-action-card {
+    min-width: 0;
+    margin: 0;
+}
+
+.request-processing-page .request-action-card {
+    padding: 18px 20px;
+}
+
+.request-processing-page .request-decision-card {
+    padding: 18px 20px;
+}
+
+.request-processing-page .request-decision-card .form-section-title {
+    margin-bottom: 12px;
+}
+
+.request-processing-page .request-decision-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.request-processing-page .generated-document {
+    width: 210mm;
+    max-width: none;
+    margin: 0 auto;
+}
+
+.generated-document-page {
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+}
+
+.generated-document-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 16px 20px;
+    border: 1px solid #d6ddcf;
+    border-radius: 16px;
+    border-top: 5px solid #17472b;
+    background: linear-gradient(125deg, #fff 0%, #fbfcf8 72%, #f5f0df 100%);
+    box-shadow: 0 9px 24px rgba(15, 45, 30, .09);
+}
+
+.generated-document-toolbar h1,
+.generated-document-toolbar p {
+    margin: 0;
+}
+
+.generated-document-toolbar h1 {
+    margin-top: 4px;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 760px) {
+    .request-processing-page .request-processing-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .request-processing-page .request-processing-top-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .request-processing-page .request-progress-card {
+        position: static;
+    }
+
+    .request-processing-page .request-progress-card ol {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        gap: 10px 14px;
+    }
+
+    .generated-document-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

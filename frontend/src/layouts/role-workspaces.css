@@ -393,6 +393,19 @@
     letter-spacing: 1px;
 }
 
+.sidebar-section-label {
+    padding: 12px 12px 2px;
+    color: rgba(217, 238, 226, 0.68);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+}
+
+.sidebar-navigation > .sidebar-section-label:first-child {
+    padding-top: 0;
+}
+
 .portal-staff-workspace .sidebar-account-card {
     padding: 8px;
     border: 1px solid rgba(var(--accent-gold-rgb), 0.25);

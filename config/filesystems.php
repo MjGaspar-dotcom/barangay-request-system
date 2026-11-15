@@ -2,6 +2,12 @@
 
 return [
 
+    'private_upload_disk' => env('PRIVATE_UPLOAD_DISK') ?:
+        (env('APP_ENV') === 'production' ? 's3' : 'local'),
+    'legacy_profile_picture_disk' => 'public',
+    'legacy_valid_id_disk' => 'public',
+    'legacy_request_document_disk' => 'local',
+
     /*
     |--------------------------------------------------------------------------
     | Default Filesystem Disk
@@ -53,11 +59,12 @@ return [
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
+            'visibility' => 'private',
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
-            'report' => false,
+            'throw' => true,
+            'report' => true,
         ],
 
     ],

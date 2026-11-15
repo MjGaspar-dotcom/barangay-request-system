@@ -17,16 +17,19 @@ function UserLayout({ children }) {
     const navigationItems = [
         {
             label: "Dashboard",
+            group: "OVERVIEW",
             to: "/dashboard",
             icon: "⌂",
         },
         {
             label: "Request Document",
+            group: "REQUESTS",
             to: "/request",
             icon: "＋",
         },
         {
             label: "Track Request",
+            group: "REQUESTS",
             to: "/track-request",
             icon: "◷",
         },

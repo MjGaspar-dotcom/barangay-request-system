@@ -85,8 +85,8 @@ function StaffLogin() {
                     <h1>BarangayEase</h1>
 
                     <p>
-                        Barangay document requests, processing, and analytics
-                        in one system.
+                        Barangay document requests and processing in one
+                        system.
                     </p>
                 </div>
 

@@ -24,7 +24,7 @@ class BarangayRequest extends Model
         'purpose',
         'tracking_number',
 
-        // Processing
+        // Workflow
         'status',
         'remarks',
         'verified_by',
@@ -36,13 +36,26 @@ class BarangayRequest extends Model
         'processing_by',
         'document_prepared_at',
         'document_prepared_by',
-        'document_signed_at',
-        'document_signed_by',
         'release_recipient_name',
         'released_by',
         'prepared_document_id',
-        'signed_document_id',
         'requirements_complete',
+        'rejection_reason',
+        'rejection_other',
+        'decision_by',
+        'decision_at',
+        'document_number',
+        'generated_document_data',
+        'document_template_identifier',
+        'document_template_version',
+        'document_generated_at',
+        'document_generated_by',
+        'indigency_verified_at',
+        'indigency_verified_by',
+    ];
+
+    protected $hidden = [
+        'generated_document_data',
     ];
 
     protected $casts = [
@@ -53,7 +66,10 @@ class BarangayRequest extends Model
         'claimed_at' => 'datetime',
         'processing_started_at' => 'datetime',
         'document_prepared_at' => 'datetime',
-        'document_signed_at' => 'datetime',
+        'decision_at' => 'datetime',
+        'generated_document_data' => 'array',
+        'document_generated_at' => 'datetime',
+        'indigency_verified_at' => 'datetime',
     ];
 
     /*
@@ -103,12 +119,23 @@ class BarangayRequest extends Model
         );
     }
 
-    public function signedDocument()
+    public function workflowMigrationIssue()
     {
-        return $this->belongsTo(
-            BarangayRequestDocument::class,
-            'signed_document_id',
-            'request_document_id'
+        return $this->hasOne(
+            RequestWorkflowMigrationIssue::class,
+            'request_id',
+            'request_id'
         );
     }
+
+    public function documentGenerator()
+    {
+        return $this->belongsTo(User::class, 'document_generated_by', 'user_id');
+    }
+
+    public function indigencyVerifier()
+    {
+        return $this->belongsTo(User::class, 'indigency_verified_by', 'user_id');
+    }
+
 }

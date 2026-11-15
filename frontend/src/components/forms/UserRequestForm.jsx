@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 
@@ -10,10 +10,12 @@ export default function UserRequestForm({ initialDocument = "" }) {
     const [documentTypes, setDocumentTypes] = useState([]);
     const [documentTypeId, setDocumentTypeId] = useState("");
     const [purpose, setPurpose] = useState("");
+    const [supportingDocuments, setSupportingDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
     const [error, setError] = useState("");
     const [submittedRequest, setSubmittedRequest] = useState(null);
+    const supportingDocumentsInput = useRef(null);
 
     useEffect(() => {
         const fetchDocumentTypes = async () => {
@@ -50,6 +52,11 @@ export default function UserRequestForm({ initialDocument = "" }) {
         setError("");
         setSubmittedRequest(null);
 
+        if (supportingDocuments.length > 5) {
+            setError("You can attach up to five supporting documents.");
+            return;
+        }
+
         if (user?.verification_status !== "verified") {
             setError(
                 user?.verification_status === "rejected"
@@ -62,10 +69,14 @@ export default function UserRequestForm({ initialDocument = "" }) {
         setLoading(true);
 
         try {
-            const response = await api.post("/barangay-requests", {
-                document_type_id: documentTypeId,
-                purpose: purpose,
+            const formData = new FormData();
+            formData.append("document_type_id", documentTypeId);
+            formData.append("purpose", purpose);
+            supportingDocuments.forEach((file) => {
+                formData.append("supporting_documents[]", file);
             });
+
+            const response = await api.post("/barangay-requests", formData);
 
             const requestData = response.data?.data;
             const trackingNumber = requestData?.request?.tracking_number;
@@ -82,6 +93,10 @@ export default function UserRequestForm({ initialDocument = "" }) {
 
             setDocumentTypeId("");
             setPurpose("");
+            setSupportingDocuments([]);
+            if (supportingDocumentsInput.current) {
+                supportingDocumentsInput.current.value = "";
+            }
         } catch (error) {
             console.error(error);
 
@@ -155,6 +170,30 @@ export default function UserRequestForm({ initialDocument = "" }) {
                     }
                     required
                 />
+            </div>
+
+            <div className="mb-4">
+                <label htmlFor="supporting_documents" className="app-label">
+                    Supporting Documents (optional)
+                </label>
+                <input
+                    id="supporting_documents"
+                    name="supporting_documents"
+                    type="file"
+                    className="app-input"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    multiple
+                    ref={supportingDocumentsInput}
+                    onChange={(event) =>
+                        setSupportingDocuments(
+                            Array.from(event.target.files || [])
+                        )
+                    }
+                />
+                <p className="text-sm text-muted-foreground">
+                    Attach up to five PDF or image files. Each file must be
+                    10 MB or smaller.
+                </p>
             </div>
 
             {verificationStatus !== "verified" && (

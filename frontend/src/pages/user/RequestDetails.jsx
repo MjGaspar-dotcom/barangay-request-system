@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { Button, LinearProgress } from "@mui/material";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import { useNavigate, useParams } from "react-router-dom";
 import StatusBadge from "../../components/ui/StatusBadge";
+import RequestTimeline from "../../components/requests/RequestTimeline";
 import api from "../../services/api";
+import {
+    isInCurrentWorkflow,
+    requestStatusLabel,
+} from "../../utils/requestWorkflow";
 import {
     RequestBackRow,
     RequestDetailItem,
@@ -31,17 +36,23 @@ function RequestDetails() {
     const [request, setRequest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [notes, setNotes] = useState("");
-    const [files, setFiles] = useState([]);
-    const [submitting, setSubmitting] = useState(false);
-    const [actionMessage, setActionMessage] = useState("");
     const [actionError, setActionError] = useState("");
+    const [actionMessage, setActionMessage] = useState("");
+    const [busyDocumentId, setBusyDocumentId] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const replacementInput = useRef(null);
+    const replacementDocumentId = useRef(null);
 
     useEffect(() => {
         let active = true;
         api.get(`/barangay-requests/${requestId}`)
             .then((response) => {
-                if (active) setRequest(response.data.data);
+                if (!active) return;
+                if (isInCurrentWorkflow(response.data.data)) {
+                    setRequest(response.data.data);
+                } else {
+                    setError("Request not found.");
+                }
             })
             .catch((requestError) => {
                 console.error(requestError);
@@ -62,62 +73,9 @@ function RequestDetails() {
         };
     }, [requestId]);
 
-    const fetchRequest = useCallback(async () => {
-        try {
-            const response = await api.get(
-                `/barangay-requests/${requestId}`,
-            );
-            setRequest(response.data.data);
-        } catch (requestError) {
-            console.error(requestError);
-            setActionError(
-                "Requirements were submitted, but request details could not be refreshed.",
-            );
-        }
-    }, [requestId]);
-
-    const submitRequirements = async (event) => {
-        event.preventDefault();
-        setActionMessage("");
-        setActionError("");
-        if (!notes.trim() || !files.length) {
-            setActionError(
-                "Add a note and attach at least one requested requirement.",
-            );
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("notes", notes.trim());
-        files.forEach((file, index) => {
-            formData.append(`documents[${index}]`, file);
-        });
-
-        setSubmitting(true);
-        try {
-            await api.post(
-                `/barangay-requests/${requestId}/requirements/resubmit`,
-                formData,
-            );
-            setNotes("");
-            setFiles([]);
-            setActionMessage(
-                "Your additional requirements have been submitted for review.",
-            );
-            await fetchRequest();
-        } catch (submitError) {
-            console.error(submitError);
-            setActionError(
-                submitError.response?.data?.message ||
-                    "Unable to submit the additional requirements.",
-            );
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const openDocument = async (document) => {
         setActionError("");
+        setActionMessage("");
         try {
             const response = await api.get(
                 `/barangay-requests/${requestId}/documents/${document.request_document_id}/view`,
@@ -138,6 +96,98 @@ function RequestDetails() {
                 openError.response?.data?.message ||
                     "The document could not be opened.",
             );
+        }
+    };
+
+    const chooseReplacement = (documentId) => {
+        replacementDocumentId.current = documentId;
+        replacementInput.current?.click();
+    };
+
+    const replaceSupportingDocument = async (event) => {
+        const file = event.target.files?.[0];
+        const documentId = replacementDocumentId.current;
+        event.target.value = "";
+        if (!file || !documentId) return;
+
+        if (file.size > 10 * 1024 * 1024) {
+            setActionError("Each supporting document must be 10 MB or smaller.");
+            return;
+        }
+
+        setActionError("");
+        setActionMessage("");
+        setBusyDocumentId(documentId);
+        setUploadProgress(0);
+        const formData = new FormData();
+        formData.append("_method", "PUT");
+        formData.append("document", file);
+
+        try {
+            const response = await api.post(
+                `/barangay-requests/${requestId}/documents/${documentId}`,
+                formData,
+                {
+                    onUploadProgress: (progressEvent) => {
+                        if (progressEvent.total) {
+                            setUploadProgress(
+                                Math.round(
+                                    (progressEvent.loaded / progressEvent.total) * 100,
+                                ),
+                            );
+                        }
+                    },
+                },
+            );
+            const replacement = response.data?.data;
+            setRequest((current) => ({
+                ...current,
+                documents: current.documents.map((document) =>
+                    document.request_document_id === documentId
+                        ? replacement
+                        : document,
+                ),
+            }));
+            setActionMessage("Supporting document replaced successfully.");
+        } catch (replaceError) {
+            console.error(replaceError);
+            setActionError(
+                replaceError.response?.data?.message ||
+                    "Could not replace the supporting document.",
+            );
+        } finally {
+            setBusyDocumentId(null);
+        }
+    };
+
+    const deleteSupportingDocument = async (document) => {
+        if (!window.confirm(`Remove "${document.original_name}" from this request?`)) {
+            return;
+        }
+
+        setActionError("");
+        setActionMessage("");
+        setBusyDocumentId(document.request_document_id);
+        try {
+            await api.delete(
+                `/barangay-requests/${requestId}/documents/${document.request_document_id}`,
+            );
+            setRequest((current) => ({
+                ...current,
+                documents: current.documents.filter(
+                    (item) =>
+                        item.request_document_id !== document.request_document_id,
+                ),
+            }));
+            setActionMessage("Supporting document removed.");
+        } catch (deleteError) {
+            console.error(deleteError);
+            setActionError(
+                deleteError.response?.data?.message ||
+                    "Could not remove the supporting document.",
+            );
+        } finally {
+            setBusyDocumentId(null);
         }
     };
 
@@ -169,8 +219,10 @@ function RequestDetails() {
 
     if (!request) return null;
 
-    const residentDocuments = (request.documents || []).filter(
-        (document) => document.purpose === "additional_requirement",
+    const preparedDocument = (request.documents || []).find(
+        (document) =>
+            document.purpose === "prepared_document" &&
+            document.request_document_id === request.prepared_document_id,
     );
 
     return (
@@ -186,16 +238,23 @@ function RequestDetails() {
                     <StatusBadge status={request.status} />
                 </RequestDetailsHeader>
 
-                {actionMessage && (
-                    <div className="app-alert app-alert-success" role="status">
-                        {actionMessage}
-                    </div>
-                )}
                 {actionError && (
                     <div className="app-alert app-alert-danger" role="alert">
                         {actionError}
                     </div>
                 )}
+                {actionMessage && (
+                    <div className="app-alert app-alert-success" role="status">
+                        {actionMessage}
+                    </div>
+                )}
+                <input
+                    ref={replacementInput}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    hidden
+                    onChange={replaceSupportingDocument}
+                />
 
                 <RequestDetailsSection>
                     <RequestDetailsSectionTitle>
@@ -210,7 +269,9 @@ function RequestDetails() {
                         </RequestDetailItem>
                         <RequestDetailItem>
                             <RequestDetailLabel>Status</RequestDetailLabel>
-                            <RequestDetailValue>{request.status}</RequestDetailValue>
+                            <RequestDetailValue>
+                                {requestStatusLabel(request.status)}
+                            </RequestDetailValue>
                         </RequestDetailItem>
                         <RequestDetailItem>
                             <RequestDetailLabel>Purpose</RequestDetailLabel>
@@ -222,17 +283,35 @@ function RequestDetails() {
                                 {formatDate(request.created_at)}
                             </RequestDetailValue>
                         </RequestDetailItem>
-                        {request.remarks && (
+                        {request.decision_at && request.remarks && (
                             <RequestDetailItem>
                                 <RequestDetailLabel>
-                                    Latest Administrative Remarks
+                                    Decision feedback
                                 </RequestDetailLabel>
                                 <RequestDetailValue>
                                     {request.remarks}
                                 </RequestDetailValue>
                             </RequestDetailItem>
                         )}
-                        {request.status === "Completed" && (
+                        {request.decision_at && request.rejection_reason && (
+                            <RequestDetailItem>
+                                <RequestDetailLabel>Rejection reason</RequestDetailLabel>
+                                <RequestDetailValue>
+                                    {request.rejection_reason}
+                                </RequestDetailValue>
+                            </RequestDetailItem>
+                        )}
+                        {request.decision_at && request.rejection_other && (
+                            <RequestDetailItem>
+                                <RequestDetailLabel>
+                                    Additional explanation
+                                </RequestDetailLabel>
+                                <RequestDetailValue>
+                                    {request.rejection_other}
+                                </RequestDetailValue>
+                            </RequestDetailItem>
+                        )}
+                        {request.status === "completed" && (
                             <RequestDetailItem>
                                 <RequestDetailLabel>Released to</RequestDetailLabel>
                                 <RequestDetailValue>
@@ -243,71 +322,36 @@ function RequestDetails() {
                     </RequestDetailsGrid>
                 </RequestDetailsSection>
 
-                {request.status === "Additional Requirements" && (
+                <RequestTimeline request={request} />
+
+                {preparedDocument &&
+                    ["ready_for_pickup", "completed"].includes(request.status) && (
                     <RequestDetailsSection>
                         <RequestDetailsSectionTitle>
-                            Submit Additional Requirements
+                            Approved Document
                         </RequestDetailsSectionTitle>
-                        <p>
-                            Your request needs the following information or
-                            documents: <strong>{request.remarks}</strong>
-                        </p>
-                        <form onSubmit={submitRequirements}>
-                            <label
-                                className="app-label"
-                                htmlFor="resubmission-notes"
-                            >
-                                Notes for the reviewer
-                            </label>
-                            <textarea
-                                className="app-input mb-4"
-                                id="resubmission-notes"
-                                maxLength={2000}
-                                onChange={(event) =>
-                                    setNotes(event.target.value)
-                                }
-                                required
-                                rows={3}
-                                value={notes}
-                            />
-                            <label
-                                className="app-label"
-                                htmlFor="resubmission-documents"
-                            >
-                                Attach requirements (PDF, JPG, or PNG; up to 5
-                                files, 10 MB each)
-                            </label>
-                            <input
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                className="app-input mb-4"
-                                id="resubmission-documents"
-                                multiple
-                                onChange={(event) =>
-                                    setFiles(Array.from(event.target.files || []))
-                                }
-                                required
-                                type="file"
-                            />
+                        <div className="flex items-center justify-between gap-2">
+                            <span>{preparedDocument.original_name}</span>
                             <Button
-                                disabled={submitting || !notes.trim() || !files.length}
-                                type="submit"
-                                variant="contained"
+                                onClick={() => openDocument(preparedDocument)}
+                                type="button"
+                                variant="outlined"
                             >
-                                {submitting
-                                    ? "Submitting requirements..."
-                                    : "Submit for Review"}
+                                Preview Document
                             </Button>
-                        </form>
+                        </div>
                     </RequestDetailsSection>
                 )}
 
-                {!!residentDocuments.length && (
+                {!!(request.documents || []).filter(
+                    (document) => document.purpose === "additional_requirement",
+                ).length && (
                     <RequestDetailsSection>
-                        <RequestDetailsSectionTitle>
-                            Submitted Requirements
-                        </RequestDetailsSectionTitle>
+                        <RequestDetailsSectionTitle>Supporting Documents</RequestDetailsSectionTitle>
                         <ul className="m-0 list-none p-0">
-                            {residentDocuments.map((document) => (
+                            {request.documents
+                                .filter((document) => document.purpose === "additional_requirement")
+                                .map((document) => (
                                 <li
                                     className="app-list-item flex justify-between items-center gap-2"
                                     key={document.request_document_id}
@@ -322,12 +366,47 @@ function RequestDetails() {
                                         onClick={() => openDocument(document)}
                                         type="button"
                                         variant="outlined"
+                                        disabled={busyDocumentId === document.request_document_id}
                                     >
                                         View
                                     </Button>
+                                    {request.status === "request_submitted" && (
+                                        <>
+                                            <Button
+                                                onClick={() => chooseReplacement(document.request_document_id)}
+                                                type="button"
+                                                variant="outlined"
+                                                disabled={busyDocumentId !== null}
+                                            >
+                                                Replace
+                                            </Button>
+                                            <Button
+                                                onClick={() => deleteSupportingDocument(document)}
+                                                type="button"
+                                                color="error"
+                                                disabled={busyDocumentId !== null}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </>
+                                    )}
+                                    {busyDocumentId === document.request_document_id && (
+                                        <span aria-live="polite">
+                                            {uploadProgress > 0
+                                                ? `${uploadProgress}%`
+                                                : "Saving..."}
+                                        </span>
+                                    )}
                                 </li>
                             ))}
                         </ul>
+                        {busyDocumentId !== null && (
+                            <LinearProgress
+                                variant="determinate"
+                                value={uploadProgress}
+                                sx={{ mt: 1 }}
+                            />
+                        )}
                     </RequestDetailsSection>
                 )}
 

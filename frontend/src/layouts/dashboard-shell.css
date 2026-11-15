@@ -115,6 +115,10 @@
     transition: background-color 0.2s ease;
 }
 
+.mobile-only-navigation-item {
+    display: none;
+}
+
 .sidebar-link:hover,
 .sidebar-link.active {
     background-color: rgba(255, 255, 255, 0.12);
@@ -166,6 +170,14 @@
 }
 
 @media (max-width: 768px) {
+    .sidebar-link.mobile-only-navigation-item {
+        display: flex;
+    }
+
+    .sidebar-section-label.mobile-only-navigation-item {
+        display: block;
+    }
+
     .hero-section {
         padding: 64px 0;
     }

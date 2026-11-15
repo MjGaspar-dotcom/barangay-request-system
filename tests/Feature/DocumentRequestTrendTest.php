@@ -166,7 +166,7 @@ class DocumentRequestTrendTest extends TestCase
             'document_type_id' => $this->documentType->document_type_id,
             'purpose' => 'Analytics test',
             'tracking_number' => 'BR-' . bin2hex(random_bytes(6)),
-            'status' => 'Pending',
+            'status' => 'request_submitted',
         ]);
         $request->created_at = CarbonImmutable::parse($createdAt);
         $request->updated_at = CarbonImmutable::parse($createdAt);

@@ -2,6 +2,10 @@ import { useState } from "react";
 import api from "../../services/api";
 
 import { validateForm } from "../../utils/validateForm";
+import {
+    isInCurrentWorkflow,
+    requestStatusLabel,
+} from "../../utils/requestWorkflow";
 export default function TrackRequest() {
     const [trackingNumber, setTrackingNumber] = useState("");
     const [result, setResult] = useState(null);
@@ -22,6 +26,12 @@ export default function TrackRequest() {
                 `/track/${trackingNumber.trim()}`
             );
 
+            if (!isInCurrentWorkflow(response.data.data)) {
+                setError(
+                    "No request found with that tracking number. Please check and try again.",
+                );
+                return;
+            }
             setResult(response.data.data);
         } catch (err) {
             console.error(err);
@@ -112,7 +122,7 @@ export default function TrackRequest() {
                                                 <th>Status</th>
                                                 <td>
                                                     <span className="app-badge bg-primary">
-                                                        {result.status}
+                                                        {requestStatusLabel(result.status)}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -131,8 +141,20 @@ export default function TrackRequest() {
 
                                             {result.remarks && (
                                                 <tr>
-                                                    <th>Remarks</th>
+                                                    <th>Decision feedback</th>
                                                     <td>{result.remarks}</td>
+                                                </tr>
+                                            )}
+                                            {result.rejection_reason && (
+                                                <tr>
+                                                    <th>Rejection reason</th>
+                                                    <td>{result.rejection_reason}</td>
+                                                </tr>
+                                            )}
+                                            {result.rejection_other && (
+                                                <tr>
+                                                    <th>Additional explanation</th>
+                                                    <td>{result.rejection_other}</td>
                                                 </tr>
                                             )}
                                         </tbody>

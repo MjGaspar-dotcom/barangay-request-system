@@ -1,27 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import { useAuth } from "../../hooks/useAuth";
+import useLiveRefresh from "../../hooks/useLiveRefresh";
 import StaffLayout from "../../layouts/StaffLayout";
+import StatusBadge from "../../components/ui/StatusBadge";
+import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import api from "../../services/api";
+import { isInCurrentWorkflow } from "../../utils/requestWorkflow";
 
-/*
-|--------------------------------------------------------------------------
-| Staff Landing Page
-|--------------------------------------------------------------------------
-| This is the main portal for authenticated barangay staff.
-|
-| The page is intentionally focused on daily operations:
-| - Pending requests
-| - Requests being processed
-| - Completed requests
-| - Overall request workload
-|
-|--------------------------------------------------------------------------
-*/
+const count = (value) =>
+    Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
 
 function Dashboard() {
     const { user } = useAuth();
     const [requests, setRequests] = useState([]);
+    const [stats, setStats] = useState(null);
+    const [activity, setActivity] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
@@ -33,47 +28,57 @@ function Dashboard() {
     const staffName =
         user?.first_name || user?.firstName || user?.name || "Staff";
 
-    const fetchRequests = useCallback(async () => {
-        const response = await api.get("/staff/requests");
-        const requestData = response.data?.data;
+    const fetchDashboard = useCallback(async () => {
+        const [requestsResponse, statsResponse, activityResponse] =
+            await Promise.all([
+                api.get("/staff/requests"),
+                api.get("/staff/dashboard-stats"),
+                api.get("/staff/recent-activity", {
+                    params: { per_page: 5 },
+                }),
+            ]);
+        const requestData = requestsResponse.data?.data;
+        const dashboardStats = statsResponse.data?.data;
+        const activityData = activityResponse.data?.data?.data;
 
-        if (!Array.isArray(requestData)) {
-            throw new Error("Unexpected staff requests response.");
+        if (
+            !Array.isArray(requestData) ||
+            !dashboardStats ||
+            !Array.isArray(activityData)
+        ) {
+            throw new Error("Unexpected staff dashboard response.");
         }
 
-        return requestData;
+        return {
+            requests: requestData.filter(isInCurrentWorkflow),
+            stats: dashboardStats,
+            activity: activityData,
+        };
     }, []);
 
+    const loadDashboard = useCallback(async () => {
+        try {
+            const dashboardData = await fetchDashboard();
+            setRequests(dashboardData.requests);
+            setStats(dashboardData.stats);
+            setActivity(dashboardData.activity);
+            setError("");
+        } catch (fetchError) {
+            console.error(
+                "Failed to load staff dashboard:",
+                fetchError,
+            );
+            setError("Failed to load dashboard data. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchDashboard]);
+
     useEffect(() => {
-        let active = true;
+        Promise.resolve().then(loadDashboard);
+    }, [loadDashboard, refreshKey]);
 
-        const loadRequests = async () => {
-            try {
-                const requestData = await fetchRequests();
-                if (active) {
-                    setRequests(requestData);
-                }
-            } catch (fetchError) {
-                console.error(
-                    "Failed to load staff dashboard requests:",
-                    fetchError,
-                );
-                if (active) {
-                    setError("Failed to load requests. Please try again.");
-                }
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        loadRequests();
-
-        return () => {
-            active = false;
-        };
-    }, [fetchRequests, refreshKey]);
+    useLiveRefresh(loadDashboard);
 
     const handleRetry = () => {
         setLoading(true);
@@ -81,19 +86,86 @@ function Dashboard() {
         setRefreshKey((current) => current + 1);
     };
 
-    const counts = requests.reduce(
-        (result, request) => {
-            result.total += 1;
-            const status = (request.status || "").toLowerCase();
+    if (loading) {
+        return (
+            <StaffLayout>
+                <section className="staff-portal staff-dashboard-page">
+                    <SkeletonLoader
+                        label="Loading staff dashboard"
+                        variant="dashboard"
+                    />
+                </section>
+            </StaffLayout>
+        );
+    }
 
-            if (status === "pending") result.pending += 1;
-            if (status === "processing") result.processing += 1;
-            if (status === "completed") result.completed += 1;
-
-            return result;
+    const recentRequests = requests.slice(0, 5);
+    const recentActivity = activity.slice(0, 3);
+    const formatDate = (value) => {
+        if (!value) return "—";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+    };
+    const formatDateTime = (value) => {
+        if (!value) return "—";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+    };
+    const requesterName = (request) =>
+        [request.user?.first_name, request.user?.last_name]
+            .filter(Boolean)
+            .join(" ") || "Unknown requester";
+    const overviewCards = [
+        {
+            label: "DOCUMENT REQUESTS",
+            value: stats?.total_registered_requests,
+            description: "Total requests",
         },
-        { total: 0, pending: 0, processing: 0, completed: 0 },
-    );
+        {
+            label: "USERS",
+            value: stats?.total_residents,
+            description: "Registered residents",
+        },
+        {
+            label: "STAFF",
+            value: stats?.total_staff,
+            description: "Active staff accounts",
+        },
+        {
+            label: "DOCUMENT TYPES",
+            value: stats?.active_document_types,
+            description: "Available services",
+        },
+        {
+            label: "AUDIT LOGS",
+            value: stats?.total_audit_logs,
+            description: "Recorded system actions",
+        },
+    ];
+    const workflowSteps = [
+        {
+            number: "01",
+            title: "Request Submitted",
+            description: "Resident submits a request for a barangay document.",
+        },
+        {
+            number: "02",
+            title: "Approve or Reject",
+            description:
+                "Review the request and approve it or provide a rejection reason.",
+        },
+        {
+            number: "03",
+            title: "Ready for Pickup",
+            description:
+                "Prepare the approved document and make it ready for collection.",
+        },
+        {
+            number: "04",
+            title: "Completed",
+            description: "Record the recipient when the document is released.",
+        },
+    ];
 
     return (
         <StaffLayout>
@@ -134,119 +206,165 @@ function Dashboard() {
                     </div>
                 </div>
 
-                {/* -------------------------------------------------------
-                    Request Overview
-                ------------------------------------------------------- */}
-                <div className="staff-stat-grid">
-                    <div className="staff-stat-card">
-                        <div className="staff-stat-top">
-                            <span className="staff-stat-label">PENDING</span>
-
-                            <span className="staff-stat-number">
-                                {loading || error ? "ΓÇö" : counts.pending}
+                <div className="admin-overview-grid staff-dashboard-overview-grid">
+                    {overviewCards.map((card) => (
+                        <article
+                            className="admin-overview-card"
+                            key={card.label}
+                        >
+                            <span className="admin-overview-label">
+                                {card.label}
                             </span>
-                        </div>
-
-                        <p>Requests waiting for processing</p>
-                    </div>
-
-                    <div className="staff-stat-card">
-                        <div className="staff-stat-top">
-                            <span className="staff-stat-label">PROCESSING</span>
-
-                            <span className="staff-stat-number">
-                                {loading || error ? "ΓÇö" : counts.processing}
-                            </span>
-                        </div>
-
-                        <p>Requests currently being handled</p>
-                    </div>
-
-                    <div className="staff-stat-card">
-                        <div className="staff-stat-top">
-                            <span className="staff-stat-label">COMPLETED</span>
-
-                            <span className="staff-stat-number">
-                                {loading || error ? "ΓÇö" : counts.completed}
-                            </span>
-                        </div>
-
-                        <p>Requests completed by the office</p>
-                    </div>
-
-                    <div className="staff-stat-card">
-                        <div className="staff-stat-top">
-                            <span className="staff-stat-label">TOTAL</span>
-
-                            <span className="staff-stat-number">
-                                {loading || error ? "ΓÇö" : counts.total}
-                            </span>
-                        </div>
-
-                        <p>Total requests in the system</p>
-                    </div>
+                            <strong>
+                                {error ? "—" : count(card.value)}
+                            </strong>
+                            <p>{error ? "Data unavailable" : card.description}</p>
+                        </article>
+                    ))}
                 </div>
 
-                {/* -------------------------------------------------------
-                    Work Area
-                ------------------------------------------------------- */}
-                <div className="staff-work-grid staff-dashboard-work-grid">
-                    {/* Processing Guide */}
-                    <div className="staff-work-card">
+                <section className="staff-work-card staff-dashboard-workflow-card">
+                    <div className="staff-work-header">
+                        <div>
+                            <span className="staff-section-label">
+                                REQUEST WORKFLOW
+                            </span>
+                            <h2>Four-stage request workflow</h2>
+                        </div>
+                    </div>
+                    <div className="staff-dashboard-workflow">
+                        {workflowSteps.map((step) => (
+                            <article
+                                className="staff-dashboard-workflow-step"
+                                key={step.number}
+                            >
+                                <span className="staff-dashboard-workflow-number">
+                                    {step.number}
+                                </span>
+                                <div>
+                                    <strong>{step.title}</strong>
+                                    <p>{step.description}</p>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+
+                <div className="staff-dashboard-preview-grid">
+                    <article className="staff-work-card staff-dashboard-requests-preview">
                         <div className="staff-work-header">
                             <div>
                                 <span className="staff-section-label">
-                                    WORKFLOW
+                                    MANAGE REQUESTS
                                 </span>
-
-                                <h2>Processing Steps</h2>
+                                <h2>Recent requests</h2>
                             </div>
+                            <Link
+                                className="staff-dashboard-preview-link"
+                                to="/staff/requests"
+                            >
+                                View all
+                            </Link>
                         </div>
 
-                        <div className="staff-workflow staff-dashboard-workflow">
-                            <div className="staff-workflow-item">
-                                <span className="staff-workflow-number">
-                                    01
-                                </span>
-
-                                <div>
-                                    <strong>Review</strong>
-
-                                    <p>Check submitted request information.</p>
-                                </div>
+                        {error ? (
+                            <p className="staff-dashboard-preview-message">
+                                Recent requests are unavailable.
+                            </p>
+                        ) : recentRequests.length === 0 ? (
+                            <p className="staff-dashboard-preview-message">
+                                New requests will appear here.
+                            </p>
+                        ) : (
+                            <div className="staff-dashboard-request-list">
+                                {recentRequests.map((request) => (
+                                    <div
+                                        className="staff-dashboard-request-row"
+                                        key={request.request_id}
+                                    >
+                                        <div className="staff-dashboard-request-copy">
+                                            <strong>
+                                                {requesterName(request)}
+                                            </strong>
+                                            <span>
+                                                {request.document_type
+                                                    ?.document_name ||
+                                                    "Unspecified document"}
+                                                {" · "}
+                                                {request.tracking_number ||
+                                                    `Request #${request.request_id}`}
+                                            </span>
+                                            <time dateTime={request.created_at}>
+                                                {formatDate(request.created_at)}
+                                            </time>
+                                        </div>
+                                        <div className="staff-dashboard-request-actions">
+                                            <StatusBadge
+                                                status={request.status}
+                                                size="sm"
+                                            />
+                                            <Link
+                                                to={`/staff/requests/${request.request_id}`}
+                                                aria-label={`View request ${request.tracking_number || request.request_id}`}
+                                            >
+                                                View
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
+                        )}
+                    </article>
 
-                            <div className="staff-workflow-item">
-                                <span className="staff-workflow-number">
-                                    02
+                    <article className="staff-work-card staff-dashboard-activity-preview">
+                        <div className="staff-work-header">
+                            <div>
+                                <span className="staff-section-label">
+                                    REQUEST ACTIVITY
                                 </span>
-
-                                <div>
-                                    <strong>Process</strong>
-
-                                    <p>
-                                        Verify and process the requested
-                                        document.
-                                    </p>
-                                </div>
+                                <h2>Recent activity</h2>
                             </div>
-
-                            <div className="staff-workflow-item">
-                                <span className="staff-workflow-number">
-                                    03
-                                </span>
-
-                                <div>
-                                    <strong>Complete</strong>
-
-                                    <p>
-                                        Update the request once processing is
-                                        finished.
-                                    </p>
-                                </div>
-                            </div>
+                            <Link
+                                className="staff-dashboard-preview-link"
+                                to="/staff/recent-activity"
+                            >
+                                View all
+                            </Link>
                         </div>
-                    </div>
+
+                        {error ? (
+                            <p className="staff-dashboard-preview-message">
+                                Recent activity is unavailable.
+                            </p>
+                        ) : recentActivity.length === 0 ? (
+                            <p className="staff-dashboard-preview-message">
+                                Request activity will appear here.
+                            </p>
+                        ) : (
+                            <div className="staff-dashboard-activity-list">
+                                {recentActivity.map((entry, index) => (
+                                    <div
+                                        className="staff-dashboard-activity-row"
+                                        key={
+                                            entry.audit_log_id ??
+                                            entry.id ??
+                                            `${entry.created_at}-${index}`
+                                        }
+                                    >
+                                        <div>
+                                            <strong>
+                                                {entry.description ||
+                                                    "System activity"}
+                                            </strong>
+                                            <time dateTime={entry.created_at}>
+                                                {formatDateTime(entry.created_at)}
+                                            </time>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </article>
                 </div>
 
                 <NotificationCenter />

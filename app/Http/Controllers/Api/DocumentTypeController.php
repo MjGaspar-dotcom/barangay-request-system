@@ -13,6 +13,7 @@ use App\Models\DocumentType;
 // Import Laravel's Request class.
 // This lets us receive data sent by the frontend.
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 
 // This controller handles API requests related to document types.
@@ -59,7 +60,7 @@ class DocumentTypeController extends Controller
      * The frontend sends information such as:
      * document_name
      * description
-     * processing_days
+     * processing_time_minutes
      * is_active
      */
     public function store(Request $request)
@@ -80,15 +81,16 @@ class DocumentTypeController extends Controller
             // If provided, it must be text.
             'description' => 'nullable|string',
 
-            // processing_days is required.
-            // It must be a whole number.
-            // The minimum allowed value is 1.
-            'processing_days' => 'required|integer|min:1',
+            // Processing time is stored in whole minutes.
+            'processing_time_minutes' => 'required|integer|min:1|max:65535',
+            'min_age' => 'nullable|integer|min:0|max:120',
+            'max_age' => 'nullable|integer|min:0|max:120',
 
             // is_active is optional.
             // If provided, it must be true/false.
             'is_active' => 'boolean',
         ]);
+        $this->validateAgeRange($validated);
 
         // Create a new DocumentType database record
         // using the validated information.
@@ -174,12 +176,15 @@ class DocumentTypeController extends Controller
             // Description is optional.
             'description' => 'nullable|string',
 
-            // Processing days must be at least 1.
-            'processing_days' => 'required|integer|min:1',
+            // Processing time is stored in whole minutes.
+            'processing_time_minutes' => 'required|integer|min:1|max:65535',
+            'min_age' => 'nullable|integer|min:0|max:120',
+            'max_age' => 'nullable|integer|min:0|max:120',
 
             // is_active must be true or false if provided.
             'is_active' => 'boolean',
         ]);
+        $this->validateAgeRange($validated);
 
         // Update the existing database record
         // using the validated information.
@@ -219,5 +224,17 @@ class DocumentTypeController extends Controller
             'success' => true,
             'message' => 'Document type deleted successfully.'
         ]);
+    }
+
+    private function validateAgeRange(array $validated): void
+    {
+        if (
+            isset($validated['min_age'], $validated['max_age']) &&
+            $validated['min_age'] > $validated['max_age']
+        ) {
+            throw ValidationException::withMessages([
+                'max_age' => 'The maximum age must be at least the minimum age.',
+            ]);
+        }
     }
 }

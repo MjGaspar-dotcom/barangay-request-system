@@ -1,12 +1,11 @@
 import Icon from "../../components/ui/Icon.jsx";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import StatusBadge from "../../components/ui/StatusBadge";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import StaffLayout from "../../layouts/StaffLayout";
-import RequestWorkflowPanel from "../../components/requests/RequestWorkflowPanel";
 
 export default function StaffRequestDetails() {
     const { requestId } = useParams();
@@ -14,7 +13,6 @@ export default function StaffRequestDetails() {
     const [request, setRequest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [refreshError, setRefreshError] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -23,7 +21,6 @@ export default function StaffRequestDetails() {
                 if (!active) return;
                 setRequest(response.data.data);
                 setError("");
-                setRefreshError("");
             })
             .catch((requestError) => {
                 console.error(requestError);
@@ -42,21 +39,6 @@ export default function StaffRequestDetails() {
         return () => {
             active = false;
         };
-    }, [requestId]);
-
-    const refreshRequest = useCallback(async () => {
-        try {
-            const response = await api.get(
-                `/barangay-requests/${requestId}`,
-            );
-            setRequest(response.data.data);
-            setRefreshError("");
-        } catch (requestError) {
-            console.error(requestError);
-            setRefreshError(
-                "The action succeeded, but the latest request details could not be refreshed.",
-            );
-        }
     }, [requestId]);
 
     if (
@@ -109,7 +91,24 @@ export default function StaffRequestDetails() {
                                 <Icon name="arrow-left" />
                                 Back to Request Queue
                             </Button>
-                            <StatusBadge status={request.status} />
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button
+                                    className="app-button app-button-primary"
+                                    onClick={() =>
+                                        navigate(`/staff/requests/${requestId}`)
+                                    }
+                                    type="button"
+                                >
+                                    {[
+                                        "completed",
+                                        "rejected",
+                                        "migration_review",
+                                    ].includes(request.status)
+                                        ? "View Workflow"
+                                        : "Process Request"}
+                                </Button>
+                                <StatusBadge status={request.status} />
+                            </div>
                         </div>
                         <div className="staff-request-header-copy">
                             <span className="section-label">REQUEST DETAILS</span>
@@ -119,14 +118,7 @@ export default function StaffRequestDetails() {
                     </header>
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        {refreshError && (
-                            <div className="col-span-full">
-                                <div className="app-alert app-alert-warning" role="status">
-                                    {refreshError}
-                                </div>
-                            </div>
-                        )}
-                        <div className="lg:col-span-6">
+                        <div className="lg:col-span-12">
                             <section className="flex flex-col gap-4">
                                 <div className="admin-form-card staff-detail-card">
                                     <h2 className="form-section-title">
@@ -213,14 +205,6 @@ export default function StaffRequestDetails() {
                             </section>
                         </div>
 
-                        <div className="lg:col-span-6">
-                            <RequestWorkflowPanel
-                                onRefresh={() =>
-                                    refreshRequest()
-                                }
-                                request={request}
-                            />
-                        </div>
                     </div>
                 </div>
             </main>

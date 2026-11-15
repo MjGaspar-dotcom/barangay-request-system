@@ -22,6 +22,91 @@ export default function SkeletonLoader({
         );
     }
 
+    if (variant === "dashboard") {
+        return (
+            <div
+                className="skeleton-loader skeleton-loader-dashboard"
+                role="status"
+                aria-label={label}
+            >
+                <div
+                    className="skeleton-loader-dashboard-heading"
+                    aria-hidden="true"
+                >
+                    <span />
+                    <span />
+                    <span />
+                </div>
+
+                <div
+                    className="skeleton-loader-dashboard-stats"
+                    aria-hidden="true"
+                >
+                    {Array.from({ length: 5 }, (_, index) => (
+                        <div key={index}>
+                            <span />
+                            <span />
+                            <span />
+                        </div>
+                    ))}
+                </div>
+
+                <div
+                    className="skeleton-loader-dashboard-workflow"
+                    aria-hidden="true"
+                >
+                    <span />
+                    <div>
+                        {Array.from({ length: 4 }, (_, index) => (
+                            <div key={index}>
+                                <span />
+                                <span />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div
+                    className="skeleton-loader-dashboard-panels"
+                    aria-hidden="true"
+                >
+                    <div className="skeleton-loader-dashboard-panel">
+                        <span />
+                        {Array.from({ length: 5 }, (_, index) => (
+                            <div key={index}>
+                                <span />
+                                <span />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="skeleton-loader-dashboard-panel">
+                        <span />
+                        {Array.from({ length: 3 }, (_, index) => (
+                            <div key={index}>
+                                <span />
+                                <span />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div
+                    className="skeleton-loader-dashboard-notifications"
+                    aria-hidden="true"
+                >
+                    <span />
+                    {Array.from({ length: 2 }, (_, index) => (
+                        <div key={index}>
+                            <span />
+                            <span />
+                            <span />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div
             className={`skeleton-loader skeleton-loader-${variant}`}

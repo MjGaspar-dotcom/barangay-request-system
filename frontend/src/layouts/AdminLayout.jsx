@@ -1,52 +1,10 @@
 import Icon from "../components/ui/Icon.jsx";
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import { ADMIN_NAV_ITEMS } from "./adminNavigation";
 
 function AdminLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-
-    const navigationItems = [
-        {
-            label: "Dashboard",
-            to: "/admin/dashboard",
-            icon: "speedometer2",
-        },
-        {
-            label: "System Analytics",
-            to: "/admin/analytics",
-            icon: "bar-chart-line",
-        },
-        {
-            label: "Manage Users",
-            to: "/admin/users",
-            icon: "users",
-        },
-        {
-            label: "Manage Staff",
-            to: "/admin/staff",
-            icon: "person-badge",
-        },
-        {
-            label: "Manage Requests",
-            to: "/admin/requests",
-            icon: "clipboard-check",
-        },
-        {
-            label: "Document Types",
-            to: "/admin/document-types",
-            icon: "file-earmark-text",
-        },
-        {
-            label: "Recent Activity",
-            to: "/admin/recent-activity",
-            icon: "activity",
-        },
-        {
-            label: "Workflow Analysis",
-            to: "/admin/workflow-analysis",
-            icon: "diagram-3",
-        },
-    ];
 
     return (
         <div className="dashboard-layout admin-management-layout">
@@ -55,7 +13,7 @@ function AdminLayout({ children }) {
                     }`}
             >
                 <Sidebar
-                    items={navigationItems}
+                    items={ADMIN_NAV_ITEMS}
                     onNavigate={() => setSidebarOpen(false)}
                 />
             </div>

@@ -1,0 +1,242 @@
+.document-template-clearance {
+    min-height: 297mm;
+    padding: 8mm;
+    font-size: 8pt;
+    line-height: 1.4;
+}
+
+.document-template-clearance.document-synthetic-sample {
+    position: relative;
+}
+
+.document-template-clearance.document-synthetic-sample::after {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    width: max-content;
+    max-width: 90%;
+    padding: 3mm 5mm;
+    border: 2px solid rgba(160, 35, 35, .55);
+    color: rgba(160, 35, 35, .55);
+    content: "SCHOOL DEMO - NOT OFFICIAL";
+    font: 700 17pt Arial, sans-serif;
+    text-align: center;
+    transform: translate(-50%, -50%) rotate(-32deg);
+    pointer-events: none;
+}
+
+.clearance-template-frame {
+    display: grid;
+    grid-template-columns: 39% minmax(0, 61%);
+    min-height: 281mm;
+    padding: 2mm;
+    border: 3px double #6c9d45;
+    break-inside: avoid;
+}
+
+.clearance-council-column {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 3mm 3mm 2mm 1mm;
+    border-right: 2px solid #6c9d45;
+    text-align: center;
+}
+
+.clearance-council-column h2 {
+    margin: 0 0 5mm;
+    padding-bottom: 2mm;
+    border-bottom: 1px solid #777;
+    font-size: 11pt;
+    text-decoration: underline;
+}
+
+.clearance-council-roster {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-evenly;
+    gap: 3mm;
+}
+
+.clearance-council-official {
+    display: flex;
+    flex-direction: column;
+    gap: 1mm;
+    overflow-wrap: anywhere;
+}
+
+.clearance-council-official strong {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+}
+
+.clearance-council-official span,
+.clearance-roster-empty {
+    font-size: 7pt;
+}
+
+.clearance-certificate-column {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 2mm 2mm 1mm;
+    overflow-wrap: anywhere;
+}
+
+.document-template-clearance .document-letterhead-compact {
+    grid-template-columns: 13mm minmax(0, 1fr);
+    gap: 2mm;
+    padding-bottom: 1mm;
+    border-bottom: 0;
+}
+
+.document-template-clearance .document-letterhead-compact.document-letterhead-no-seal {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.document-template-clearance .document-letterhead-copy h2 ~ p {
+    display: none;
+}
+
+.document-template-clearance .document-letterhead-compact .document-letterhead-copy {
+    width: 100%;
+    font-size: 7pt;
+    line-height: 1.2;
+}
+
+.document-template-clearance .document-letterhead-compact .document-seal {
+    width: 12mm;
+    height: 12mm;
+}
+
+.document-template-clearance .document-letterhead-compact .document-letterhead-copy p {
+    margin: 0;
+    font-size: 7pt;
+    line-height: 1.25;
+}
+
+.document-template-clearance .document-letterhead-compact .document-letterhead-copy h2 {
+    margin: 0;
+    font-size: 9pt;
+}
+
+.clearance-office-title {
+    margin: 1mm 0 0;
+    padding-bottom: 1mm;
+    border-bottom: 3px solid #333;
+    font-size: 8pt;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.document-template-clearance .document-title {
+    margin: 3mm 0 2mm;
+    font-size: 10pt;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.document-template-clearance .document-salutation {
+    margin: 2mm 0;
+    font-weight: 700;
+    text-transform: none;
+}
+
+.document-template-clearance p {
+    margin: 1.5mm 0;
+}
+
+.document-template-clearance .clearance-certificate-intro {
+    margin-top: 4mm;
+}
+
+.document-template-clearance .document-issuance {
+    margin-top: 4mm;
+    text-align: center;
+}
+
+.clearance-secretary {
+    display: flex;
+    min-height: 12mm;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 2mm;
+    text-align: center;
+}
+
+.clearance-secretary span {
+    font-size: 7pt;
+}
+
+.document-template-clearance .document-signature {
+    align-self: center;
+    width: 55mm;
+    margin-top: 8mm;
+    padding-top: 5mm;
+    font-size: 8pt;
+}
+
+.document-template-clearance .document-signature span {
+    font-size: 7pt;
+}
+
+.clearance-tax-record {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 21mm;
+    gap: 2mm;
+    min-width: 0;
+    min-height: 22mm;
+    margin-top: auto;
+    padding: 2mm;
+    border: 1px solid #444;
+    font-size: 6.5pt;
+    break-inside: avoid;
+}
+
+.clearance-tax-fields {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.clearance-tax-fields p {
+    margin: 0 0 1mm;
+}
+
+.clearance-thumbmark {
+    display: flex;
+    min-height: 21mm;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 5.5pt;
+    text-align: center;
+}
+
+.clearance-thumbmark::before {
+    width: 19mm;
+    height: 15mm;
+    border: 1px solid #444;
+    content: "";
+}
+
+@media print {
+    .generated-document.document-template-clearance {
+        box-sizing: border-box;
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        max-width: 210mm;
+        margin: 0;
+        padding: 8mm;
+    }
+
+    .document-template-clearance .clearance-template-frame {
+        box-sizing: border-box;
+        min-height: 281mm;
+    }
+}

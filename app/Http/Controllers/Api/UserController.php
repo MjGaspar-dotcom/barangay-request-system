@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\User;
+use App\Services\AuditService;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -12,21 +17,184 @@ class UserController extends Controller
     {
         $user = $request->user();
         $validated = $request->validated();
+        $identityDetailsChanged = false;
+        $newFiles = [];
+        $oldFiles = [];
 
-        foreach (['valid_id_front', 'valid_id_back'] as $field) {
-            if ($request->hasFile($field)) {
-                $validated[$field] = $request
-                    ->file($field)
-                    ->store('resident-valid-ids', 'public');
+        $uploadDirectories = [
+            'profile_picture' => 'resident-profile-pictures',
+            'valid_id_front' => 'resident-valid-ids',
+            'valid_id_back' => 'resident-valid-ids',
+        ];
+
+        try {
+            foreach ($uploadDirectories as $field => $directory) {
+                if (!$request->hasFile($field)) {
+                    continue;
+                }
+
+                $file = $request->file($field);
+                $disk = config('filesystems.private_upload_disk');
+                $path = $file->store($directory, $disk);
+                if (!is_string($path) || $path === '') {
+                    throw new RuntimeException("Unable to store {$field}.");
+                }
+
+                $newFiles[] = ['disk' => $disk, 'path' => $path];
+                $oldPath = $user->getRawOriginal($field);
+                if (is_string($oldPath) && $oldPath !== '') {
+                    $oldFiles[] = [
+                        'disk' => $user->getRawOriginal("{$field}_disk")
+                            ?: config(
+                                $field === 'profile_picture'
+                                    ? 'filesystems.legacy_profile_picture_disk'
+                                    : 'filesystems.legacy_valid_id_disk'
+                            ),
+                        'path' => $oldPath,
+                    ];
+                }
+
+                $validated[$field] = $path;
+                $validated["{$field}_disk"] = $disk;
+                $validated["{$field}_original_name"] = $file->getClientOriginalName();
+                $validated["{$field}_mime_type"] =
+                    $file->getMimeType() ?: 'application/octet-stream';
+                $validated["{$field}_uploaded_at"] = now();
+
+                if ($field !== 'profile_picture') {
+                    $identityDetailsChanged = true;
+                }
+            }
+
+            if (
+                array_key_exists('valid_id_type', $validated) &&
+                $validated['valid_id_type'] !== $user->valid_id_type
+            ) {
+                $identityDetailsChanged = true;
+            }
+
+            $verificationReset =
+                $identityDetailsChanged &&
+                $user->verification_status === 'verified';
+            if ($verificationReset) {
+                $validated['verification_status'] = 'pending';
+            }
+
+            $user->update($validated);
+        } catch (Throwable $exception) {
+            foreach ($newFiles as $storedFile) {
+                $this->deleteStoredFile($storedFile);
+            }
+            throw $exception;
+        }
+
+        foreach ($oldFiles as $storedFile) {
+            if (!in_array($storedFile, $newFiles, true)) {
+                $this->deleteStoredFile($storedFile);
             }
         }
 
-        $user->update($validated);
+        if ($verificationReset) {
+            AuditService::log(
+                'verification_updated',
+                $user,
+                'Resident ID information changed; account verification was returned to pending.',
+                ['verification_status' => 'verified'],
+                ['verification_status' => 'pending']
+            );
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'User profile updated successfully.',
+            'message' => $verificationReset
+                ? 'Profile updated. Your account verification is pending review because your ID details changed.'
+                : 'User profile updated successfully.',
             'data' => $user->fresh(),
         ]);
+    }
+
+    public function showFile(Request $request, User $user, string $field)
+    {
+        $allowedFields = [
+            'profile_picture',
+            'valid_id_front',
+            'valid_id_back',
+        ];
+        if (!in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The requested file is unavailable.',
+            ], 404);
+        }
+
+        $path = $user->getRawOriginal($field);
+        if (!is_string($path) || $path === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'The requested file is unavailable.',
+            ], 404);
+        }
+
+        $diskName = $user->getRawOriginal("{$field}_disk");
+        if (!$diskName) {
+            $diskName = config(
+                $field === 'profile_picture'
+                    ? 'filesystems.legacy_profile_picture_disk'
+                    : 'filesystems.legacy_valid_id_disk'
+            );
+        }
+
+        $disk = Storage::disk($diskName);
+        if (!$disk->exists($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The requested file is unavailable.',
+            ], 404);
+        }
+
+        $stream = $disk->readStream($path);
+        if (!is_resource($stream)) {
+            throw new RuntimeException('Unable to read the requested stored file.');
+        }
+
+        $originalName = $user->getRawOriginal("{$field}_original_name")
+            ?: basename($path);
+        $originalName = preg_replace('/[\r\n]/', '', $originalName);
+        $mimeType = $user->getRawOriginal("{$field}_mime_type")
+            ?: $disk->mimeType($path)
+            ?: 'application/octet-stream';
+
+        return response()->stream(
+            function () use ($stream): void {
+                try {
+                    fpassthru($stream);
+                } finally {
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                }
+            },
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' .
+                    addcslashes($originalName, '"\\') . '"',
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store',
+            ]
+        );
+    }
+
+    /**
+     * @param array{disk: string, path: string} $storedFile
+     */
+    private function deleteStoredFile(array $storedFile): void
+    {
+        $disk = Storage::disk($storedFile['disk']);
+        if ($disk->exists($storedFile['path']) && !$disk->delete($storedFile['path'])) {
+            throw new RuntimeException(
+                "Unable to remove replaced profile file {$storedFile['path']}."
+            );
+        }
     }
 }

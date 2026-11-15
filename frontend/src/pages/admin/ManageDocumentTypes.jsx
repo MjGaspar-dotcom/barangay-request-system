@@ -1,9 +1,11 @@
 import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
+import StaffLayout from "../../layouts/StaffLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
@@ -11,11 +13,13 @@ import { validateForm } from "../../utils/validateForm";
 const EMPTY_FORM = {
     document_name: "",
     description: "",
-    processing_days: 1,
+    processing_time_minutes: 10,
     is_active: true,
 };
 
-export default function ManageDocumentTypes() {
+export default function ManageDocumentTypes({ isAdmin = true }) {
+    const navigate = useNavigate();
+    const Layout = isAdmin ? AdminLayout : StaffLayout;
     const [documentTypes, setDocumentTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -61,8 +65,10 @@ export default function ManageDocumentTypes() {
             [name]:
                 type === "checkbox"
                     ? checked
-                    : name === "processing_days"
-                      ? Number(value)
+                    : type === "number"
+                      ? value === ""
+                          ? null
+                          : Number(value)
                       : value,
         }));
     };
@@ -71,7 +77,7 @@ export default function ManageDocumentTypes() {
         setForm({
             document_name: docType.document_name,
             description: docType.description || "",
-            processing_days: docType.processing_days,
+            processing_time_minutes: docType.processing_time_minutes,
             is_active: Boolean(docType.is_active),
         });
         setEditingId(docType.document_type_id);
@@ -150,7 +156,7 @@ export default function ManageDocumentTypes() {
             await api.put(`/document-types/${docType.document_type_id}`, {
                 document_name: docType.document_name,
                 description: docType.description || "",
-                processing_days: docType.processing_days,
+                processing_time_minutes: docType.processing_time_minutes,
                 is_active: !docType.is_active,
             });
             await fetchDocumentTypes();
@@ -178,27 +184,27 @@ export default function ManageDocumentTypes() {
 
     if (loading) {
         return (
-            <AdminLayout>
+            <Layout>
                 <SkeletonLoader
                     label="Loading document types"
                     variant="table"
                 />
-            </AdminLayout>
+            </Layout>
         );
     }
 
     if (error) {
         return (
-            <AdminLayout>
+            <Layout>
                 <div className="page-loading">
                     <p>{error}</p>
                 </div>
-            </AdminLayout>
+            </Layout>
         );
     }
 
     return (
-        <AdminLayout>
+        <Layout>
             <div className="admin-dashboard manage-document-types-page">
                 <div className="w-full">
                     <div className="dashboard-page-header">
@@ -208,33 +214,39 @@ export default function ManageDocumentTypes() {
                                     DOCUMENT TYPES
                                 </span>
 
-                                <h1>Manage Document Types</h1>
+                                <h1>
+                                    {isAdmin
+                                        ? "Manage Document Types"
+                                        : "Document Types"}
+                                </h1>
 
                                 <p>
-                                    Create, edit, and manage the document
-                                    services offered by the barangay to
-                                    registered residents.
+                                    {isAdmin
+                                        ? "Create, edit, and manage the document services offered by the barangay to registered residents."
+                                        : "View the document services offered by the barangay to registered residents."}
                                 </p>
                             </div>
 
-                            <Button
-                                type="button"
-                                className="app-button app-button-success document-type-create-button"
-                                onClick={() => {
-                                    if (showForm && !editingId) {
-                                        handleCancel();
-                                    } else {
-                                        setForm(EMPTY_FORM);
-                                        setEditingId(null);
-                                        setShowForm(true);
-                                    }
-                                    setFormError("");
-                                }}
-                            >
-                                {showForm && !editingId
-                                    ? "Close Form"
-                                    : "＋ New Document Type"}
-                            </Button>
+                            {isAdmin && (
+                                <Button
+                                    type="button"
+                                    className="app-button app-button-success document-type-create-button"
+                                    onClick={() => {
+                                        if (showForm && !editingId) {
+                                            handleCancel();
+                                        } else {
+                                            setForm(EMPTY_FORM);
+                                            setEditingId(null);
+                                            setShowForm(true);
+                                        }
+                                        setFormError("");
+                                    }}
+                                >
+                                    {showForm && !editingId
+                                        ? "Close Form"
+                                        : "＋ New Document Type"}
+                                </Button>
+                            )}
                         </div>
                     </div>
 
@@ -247,7 +259,7 @@ export default function ManageDocumentTypes() {
                         </div>
                     )}
 
-                    {showForm && (
+                    {isAdmin && showForm && (
                         <section className="dashboard-section">
                             <div className="admin-form-card">
                                 <h3 className="form-section-title mb-5-token">
@@ -274,15 +286,18 @@ export default function ManageDocumentTypes() {
 
                                         <div className="md:col-span-3">
                                             <label className="app-label">
-                                                Processing Days *
+                                                Processing Time (minutes) *
                                             </label>
                                             <input
                                                 type="number"
-                                                name="processing_days"
+                                                name="processing_time_minutes"
                                                 className="app-input"
-                                                value={form.processing_days}
+                                                value={
+                                                    form.processing_time_minutes
+                                                }
                                                 onChange={handleChange}
                                                 min={1}
+                                                max={65535}
                                                 required
                                             />
                                         </div>
@@ -390,8 +405,8 @@ export default function ManageDocumentTypes() {
                                 <h3>No Document Types Found</h3>
                                 <p>
                                     No document types match the current filters.
-                                    Use the "New Document Type" button to add
-                                    one.
+                                    {isAdmin &&
+                                        ' Use the "New Document Type" button to add one.'}
                                 </p>
                             </div>
                         ) : (
@@ -400,7 +415,7 @@ export default function ManageDocumentTypes() {
                                     <colgroup>
                                         <col className="document-type-name-column" />
                                         <col className="document-type-description-column" />
-                                        <col className="document-type-days-column" />
+                                        <col className="document-type-processing-time-column" />
                                         <col className="document-type-status-column" />
                                         <col className="document-type-actions-column" />
                                     </colgroup>
@@ -408,14 +423,16 @@ export default function ManageDocumentTypes() {
                                         <tr>
                                             <th>Name</th>
                                             <th>Description</th>
-                                            <th className="document-type-days-heading">
-                                                Processing Days
+                                            <th className="document-type-processing-time-heading">
+                                                Processing Time
                                             </th>
                                             <th className="document-type-status-heading">
                                                 Status
                                             </th>
                                             <th className="table-actions-heading document-type-actions-heading">
-                                                Actions
+                                                {isAdmin
+                                                    ? "Actions"
+                                                    : "Template"}
                                             </th>
                                         </tr>
                                     </thead>
@@ -435,13 +452,11 @@ export default function ManageDocumentTypes() {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="document-type-days-cell">
-                                                    {docType.processing_days}{" "}
-                                                    day
-                                                    {docType.processing_days ===
-                                                    1
-                                                        ? ""
-                                                        : "s"}
+                                                <td className="document-type-processing-time-cell">
+                                                    {
+                                                        docType.processing_time_minutes
+                                                    }{" "}
+                                                    minutes
                                                 </td>
                                                 <td className="document-type-status-cell">
                                                     {docType.is_active ? (
@@ -458,58 +473,84 @@ export default function ManageDocumentTypes() {
                                                     <div className="table-action-group document-type-action-group">
                                                         <Button
                                                             type="button"
-                                                            className="app-button app-button-outline-success app-button-sm"
-                                                            disabled={
-                                                                busyId ===
-                                                                docType.document_type_id
-                                                            }
+                                                            className="app-button app-button-outline-primary app-button-sm"
                                                             onClick={() =>
-                                                                handleEdit(
-                                                                    docType,
+                                                                navigate(
+                                                                    isAdmin
+                                                                        ? "/admin/document-template-sample"
+                                                                        : "/staff/document-template-sample",
+                                                                    {
+                                                                        state: {
+                                                                            from: isAdmin
+                                                                                ? "/admin/document-types"
+                                                                                : "/staff/document-types",
+                                                                            documentType:
+                                                                                docType,
+                                                                        },
+                                                                    },
                                                                 )
                                                             }
                                                         >
-                                                            Edit
+                                                            View Template
                                                         </Button>
+                                                        {isAdmin && (
+                                                            <>
+                                                                <Button
+                                                                    type="button"
+                                                                    className="app-button app-button-outline-success app-button-sm"
+                                                                    disabled={
+                                                                        busyId ===
+                                                                        docType.document_type_id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleEdit(
+                                                                            docType,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Edit
+                                                                </Button>
 
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant={
-                                                                docType.is_active
-                                                                    ? "outline-warning"
-                                                                    : "outline-success"
-                                                            }
-                                                            disabled={
-                                                                busyId ===
-                                                                docType.document_type_id
-                                                            }
-                                                            onClick={() =>
-                                                                handleToggleActive(
-                                                                    docType,
-                                                                )
-                                                            }
-                                                        >
-                                                            {docType.is_active
-                                                                ? "Deactivate"
-                                                                : "Activate"}
-                                                        </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    size="sm"
+                                                                    variant={
+                                                                        docType.is_active
+                                                                            ? "outline-warning"
+                                                                            : "outline-success"
+                                                                    }
+                                                                    disabled={
+                                                                        busyId ===
+                                                                        docType.document_type_id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleToggleActive(
+                                                                            docType,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {docType.is_active
+                                                                        ? "Deactivate"
+                                                                        : "Activate"}
+                                                                </Button>
 
-                                                        <Button
-                                                            type="button"
-                                                            className="app-button app-button-outline-danger app-button-sm"
-                                                            disabled={
-                                                                busyId ===
-                                                                docType.document_type_id
-                                                            }
-                                                            onClick={() =>
-                                                                setDeleteTarget(
-                                                                    docType,
-                                                                )
-                                                            }
-                                                        >
-                                                            Delete
-                                                        </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    className="app-button app-button-outline-danger app-button-sm"
+                                                                    disabled={
+                                                                        busyId ===
+                                                                        docType.document_type_id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        setDeleteTarget(
+                                                                            docType,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -521,21 +562,23 @@ export default function ManageDocumentTypes() {
                     </section>
                 </div>
             </div>
-            <ConfirmDialog
-                isOpen={Boolean(deleteTarget)}
-                onClose={() => setDeleteTarget(null)}
-                onConfirm={() => {
-                    const target = deleteTarget;
-                    setDeleteTarget(null);
-                    if (target) handleDelete(target);
-                }}
-                title="Delete document type?"
-                confirmLabel="Delete document type"
-                variant="danger"
-            >
-                Delete document type ΓÇ£{deleteTarget?.document_name}ΓÇ¥? This
-                cannot be undone.
-            </ConfirmDialog>
-        </AdminLayout>
+            {isAdmin && (
+                <ConfirmDialog
+                    isOpen={Boolean(deleteTarget)}
+                    onClose={() => setDeleteTarget(null)}
+                    onConfirm={() => {
+                        const target = deleteTarget;
+                        setDeleteTarget(null);
+                        if (target) handleDelete(target);
+                    }}
+                    title="Delete document type?"
+                    confirmLabel="Delete document type"
+                    variant="danger"
+                >
+                    Delete document type "{deleteTarget?.document_name}"?
+                    This cannot be undone.
+                </ConfirmDialog>
+            )}
+        </Layout>
     );
 }

@@ -16,31 +16,90 @@
 
 .staff-analytics-kpi {
     display: flex;
-    min-height: 154px;
+    min-height: 160px;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: center;
-    padding: 20px;
+    justify-content: space-between;
+    padding: 17px 18px 16px;
+    border-top: 3px solid #70a97a;
+}
+
+.staff-analytics-kpi:nth-child(2) {
+    border-top-color: #dfa844;
+}
+
+.staff-analytics-kpi:nth-child(3) {
+    border-top-color: #6592d2;
+}
+
+.staff-analytics-kpi:nth-child(4) {
+    border-top-color: #a17bc6;
+}
+
+.staff-analytics-kpi:nth-child(5) {
+    border-top-color: #43a99b;
+}
+
+.staff-analytics-kpi-heading {
+    display: flex;
+    width: 100%;
+    min-height: 34px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 }
 
 .staff-analytics-kpi-label,
 .staff-analytics-period {
     color: #64746a;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
-    letter-spacing: 0.09em;
+    letter-spacing: 0.075em;
+    line-height: 1.35;
+}
+
+.staff-analytics-kpi-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #edf5ef;
+    color: #287c4b;
+}
+
+.staff-analytics-kpi-icon-open {
+    background: #fbf3e4;
+    color: #a66e0c;
+}
+
+.staff-analytics-kpi-icon-rate {
+    background: #edf2fb;
+    color: #4a70ad;
+}
+
+.staff-analytics-kpi-icon-time {
+    background: #f3eef8;
+    color: #8056a7;
+}
+
+.staff-analytics-kpi-icon-total {
+    background: #eaf5f3;
+    color: #278578;
 }
 
 .staff-analytics-kpi strong {
-    margin: 8px 0 2px;
+    margin: 2px 0 0;
     color: #287c4b;
-    font-size: clamp(29px, 3vw, 38px);
+    font-size: clamp(27px, 2.6vw, 36px);
     font-weight: 800;
     line-height: 1.1;
 }
 
-.staff-analytics-kpi > span:last-child {
-    margin-top: 5px;
+.staff-analytics-kpi-note {
+    display: block;
+    margin-top: 8px;
     color: #64746a;
     font-size: 12px;
     line-height: 1.45;
@@ -500,8 +559,8 @@
     }
 
     .staff-analytics-kpi {
-        min-height: 135px;
-        padding: 16px;
+        min-height: 148px;
+        padding: 15px;
     }
 
     .staff-analytics-overview {
@@ -538,6 +597,16 @@
 
     .staff-status-name {
         font-size: 10px;
+    }
+}
+
+@media (max-width: 390px) {
+    .staff-analytics-overview {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .staff-analytics-kpi {
+        min-height: 136px;
     }
 }
 

@@ -19,14 +19,16 @@ class StoreBarangayRequest extends FormRequest
 
     /**
      * Validation rules for a registered-user barangay request.
-     * Personal info comes from the authenticated user's profile —
-     * only the document type and purpose are needed here.
+     * Personal info comes from the authenticated user's profile. Residents
+     * may also attach supporting documents with their request.
      */
     public function rules(): array
     {
         return [
             'document_type_id' => 'required|exists:document_types,document_type_id',
             'purpose' => 'required|string',
+            'supporting_documents' => 'sometimes|array|max:5',
+            'supporting_documents.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
     }
 

@@ -1,3 +1,5 @@
+import { canonicalRequestStatus } from "../../utils/requestWorkflow";
+
 const formatDate = (value) => {
     if (!value) return "Not recorded";
     const date = new Date(value);
@@ -5,139 +7,90 @@ const formatDate = (value) => {
 };
 
 export default function RequestTimeline({ request }) {
-    const history = request.history || [];
-    const resubmissionEvent = [...history]
-        .reverse()
-        .find((event) => event.action === "requirements_resubmitted");
-    const decisionEvent = [...history]
-        .reverse()
-        .find(
-            (event) =>
-                (!resubmissionEvent ||
-                    new Date(event.created_at) >
-                        new Date(resubmissionEvent.created_at)) &&
-                event.new_values?.status &&
-                ["Approved", "Additional Requirements", "Rejected"].includes(
-                    event.new_values.status,
-                ),
-        );
+    const status = canonicalRequestStatus(request.status);
+    if (status === "legacy_review") return null;
 
-    let currentStage = "requirements";
-    if (request.status === "Pending" && request.verified_at) {
-        currentStage = "decision";
-    } else if (request.status === "Additional Requirements") {
-        currentStage = "resubmission";
-    } else if (request.status === "Approved") {
-        currentStage = "processing";
-    } else if (request.status === "Processing") {
-        currentStage = request.document_prepared_at
-            ? request.document_signed_at
-                ? "ready"
-                : "authorization"
-            : "preparation";
-    } else if (request.status === "Ready for Pickup") {
-        currentStage = "release";
-    }
-
-    const timeline = [
+    const rejected = status === "rejected";
+    const ready = ["ready_for_pickup", "completed"].includes(status);
+    const completed = status === "completed";
+    const processingComplete = [
+        "approved",
+        "ready_for_pickup",
+        "completed",
+        "rejected",
+    ].includes(status);
+    const submittedDate = request.created_at;
+    const processingDate =
+        request.approved_at || request.decision_at || request.document_prepared_at;
+    const stages = [
         {
             key: "submitted",
-            label: "Submitted",
+            label: "Request Submitted",
             completed: true,
-            date: request.created_at,
-        },
-        {
-            key: "requirements",
-            label: "Requirements verified",
-            completed: Boolean(request.verified_at),
-            date: request.verified_at,
-        },
-        {
-            key: "decision",
-            label: "Administrative decision",
-            completed: Boolean(decisionEvent),
-            date: decisionEvent?.created_at,
-        },
-        {
-            key: "resubmission",
-            label: "Resident resubmission",
-            completed: Boolean(resubmissionEvent),
-            date: resubmissionEvent?.created_at,
-            applicable:
-                request.status === "Additional Requirements" ||
-                Boolean(resubmissionEvent),
+            date: submittedDate,
         },
         {
             key: "processing",
-            label: "Processing started",
-            completed: Boolean(request.processing_started_at),
-            date: request.processing_started_at,
-        },
-        {
-            key: "preparation",
-            label: "Document prepared and checked",
-            completed: Boolean(request.document_prepared_at),
-            date: request.document_prepared_at,
-        },
-        {
-            key: "authorization",
-            label: "Authorized and signed",
-            completed: Boolean(request.document_signed_at),
-            date: request.document_signed_at,
+            label: rejected
+                ? "Rejected"
+                : processingComplete
+                  ? "Approved"
+                  : "Awaiting decision",
+            completed: processingComplete,
+            date: processingDate,
         },
         {
             key: "ready",
             label: "Ready for Pickup",
-            completed: Boolean(request.ready_for_pickup_at),
+            completed: ready,
             date: request.ready_for_pickup_at,
         },
         {
-            key: "release",
-            label: "Released / Completed",
-            completed: Boolean(request.claimed_at),
+            key: "completed",
+            label: "Completed",
+            completed,
             date: request.claimed_at,
         },
     ];
 
     return (
         <section className="admin-form-card">
-            <h3 className="form-section-title">Processing Timeline</h3>
+            <h3 className="form-section-title">Request Progress</h3>
+            {rejected && (
+                <p className="app-alert app-alert-danger" role="status">
+                    This request was rejected.
+                </p>
+            )}
             <ul className="timeline">
-                {timeline.map((step) => {
+                {stages.map((stage) => {
                     const isCurrent =
-                        step.key === currentStage && !step.completed;
+                        !rejected &&
+                        ((stage.key === "processing" &&
+                            ["request_submitted", "approved"].includes(status)) ||
+                            (stage.key === "ready" &&
+                                ["approved", "ready_for_pickup"].includes(status)) ||
+                            (stage.key === "completed" && status === "completed"));
                     const notApplicable =
-                        request.status === "Rejected" &&
-                        [
-                            "resubmission",
-                            "processing",
-                            "preparation",
-                            "authorization",
-                            "ready",
-                            "release",
-                        ].includes(step.key);
-                    const notRequired = step.applicable === false;
+                        rejected && ["ready", "completed"].includes(stage.key);
 
                     return (
                         <li
                             className={`timeline-item ${
-                                step.completed ? "done" : "pending"
+                                stage.completed ? "done" : "pending"
                             }`}
-                            key={step.key}
+                            key={stage.key}
                         >
                             <span className="timeline-dot" />
                             <div>
-                                <strong>{step.label}</strong>
+                                <strong>{stage.label}</strong>
                                 <div className="timeline-date">
-                                    {step.completed
-                                        ? formatDate(step.date)
+                                    {stage.completed
+                                        ? formatDate(stage.date)
                                         : notApplicable
                                           ? "Not applicable — request rejected"
-                                          : notRequired
-                                            ? "Not required"
-                                            : isCurrent
-                                              ? "Current step"
-                                              : "Upcoming"}
+                                          : isCurrent
+                                            ? "Current stage"
+                                            : "Upcoming"}
                                 </div>
                             </div>
                         </li>

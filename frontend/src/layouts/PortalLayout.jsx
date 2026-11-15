@@ -102,7 +102,9 @@ function PortalLayout({
                     {hasSidebar && (
                         <div className="portal-menu-control">
                             {portalLabel === "ADMINISTRATION" && (
-                                <span className="portal-menu-label">MENU</span>
+                                <span className="portal-menu-label">
+                                    NAVIGATION
+                                </span>
                             )}
                             <button
                                 type="button"

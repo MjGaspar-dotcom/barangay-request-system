@@ -16,8 +16,15 @@ class DocumentType extends Model
     protected $fillable = [
         'document_name',
         'description',
-        'processing_days',
+        'processing_time_minutes',
+        'min_age',
+        'max_age',
         'is_active',
+    ];
+
+    protected $casts = [
+        'min_age' => 'integer',
+        'max_age' => 'integer',
     ];
 
     /**

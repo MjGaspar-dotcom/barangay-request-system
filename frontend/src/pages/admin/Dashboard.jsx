@@ -4,23 +4,12 @@ import { Link } from "react-router-dom";
 import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import DocumentRequestTrendPreview from "../../components/analytics/DocumentRequestTrendPreview";
 import PortalLayout from "../../layouts/PortalLayout";
+import { ADMIN_NAV_ITEMS } from "../../layouts/adminNavigation";
 import { useAuth } from "../../hooks/useAuth";
+import useLiveRefresh from "../../hooks/useLiveRefresh";
 import api from "../../services/api";
-
-const navigationItems = [
-    { label: "Dashboard", to: "/admin/dashboard", icon: "speedometer2" },
-    {
-        label: "System Analytics",
-        to: "/admin/analytics",
-        icon: "bar-chart-line",
-    },
-    { label: "Manage Users", to: "/admin/users", icon: "users" },
-    { label: "Manage Staff", to: "/admin/staff", icon: "person-badge" },
-    { label: "Manage Requests", to: "/admin/requests", icon: "clipboard-check" },
-    { label: "Document Types", to: "/admin/document-types", icon: "file-earmark-text" },
-    { label: "Recent Activity", to: "/admin/recent-activity", icon: "activity" },
-    { label: "Workflow Analysis", to: "/admin/workflow-analysis", icon: "diagram-3" },
-];
+import StatusBadge from "../../components/ui/StatusBadge";
+import { isInCurrentWorkflow } from "../../utils/requestWorkflow";
 
 const count = (value) =>
     Number.isInteger(Number(value)) ? Number(value).toLocaleString() : "—";
@@ -66,22 +55,27 @@ function Dashboard() {
     const { user } = useAuth();
     const [stats, setStats] = useState(null);
     const [activity, setActivity] = useState([]);
+    const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
 
     const fetchDashboard = useCallback(async () => {
-        const [statsResponse, activityResponse] = await Promise.all([
-            api.get("/admin/stats"),
-            api.get("/admin/recent-activity", {
-                params: { per_page: 5 },
-            }),
-        ]);
+        const [statsResponse, activityResponse, requestsResponse] =
+            await Promise.all([
+                api.get("/admin/stats"),
+                api.get("/admin/recent-activity", {
+                    params: { per_page: 5 },
+                }),
+                api.get("/staff/requests"),
+            ]);
         const activityPage = activityResponse.data?.data;
+        const requestData = requestsResponse.data?.data;
 
         if (
             !statsResponse.data?.data ||
-            !Array.isArray(activityPage?.data)
+            !Array.isArray(activityPage?.data) ||
+            !Array.isArray(requestData)
         ) {
             throw new Error("Unexpected dashboard response.");
         }
@@ -89,42 +83,33 @@ function Dashboard() {
         return {
             stats: statsResponse.data.data,
             activity: activityPage.data,
+            requests: requestData,
         };
     }, []);
 
+    const loadDashboard = useCallback(async () => {
+        try {
+            const data = await fetchDashboard();
+            setStats(data.stats);
+            setActivity(data.activity);
+            setRequests(data.requests);
+            setError("");
+        } catch (fetchError) {
+            console.error(
+                "Failed to load administrator dashboard:",
+                fetchError
+            );
+            setError("Failed to load dashboard data. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchDashboard]);
+
     useEffect(() => {
-        let active = true;
+        Promise.resolve().then(loadDashboard);
+    }, [loadDashboard, refreshKey]);
 
-        const loadDashboard = async () => {
-            try {
-                const data = await fetchDashboard();
-                if (active) {
-                    setStats(data.stats);
-                    setActivity(data.activity);
-                }
-            } catch (fetchError) {
-                console.error(
-                    "Failed to load administrator dashboard:",
-                    fetchError
-                );
-                if (active) {
-                    setError(
-                        "Failed to load dashboard data. Please try again."
-                    );
-                }
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        loadDashboard();
-
-        return () => {
-            active = false;
-        };
-    }, [fetchDashboard, refreshKey]);
+    useLiveRefresh(loadDashboard);
 
     const handleRetry = () => {
         setLoading(true);
@@ -137,11 +122,21 @@ function Dashboard() {
      */
     const adminName =
         user?.first_name || user?.firstName || user?.name || "Administrator";
+    const recentRequests = requests.filter(isInCurrentWorkflow).slice(0, 5);
+    const requesterName = (request) =>
+        [request.user?.first_name, request.user?.last_name]
+            .filter(Boolean)
+            .join(" ") || "Unknown requester";
+    const formatDate = (value) => {
+        if (!value) return "—";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+    };
 
     return (
         <PortalLayout
             portalLabel="ADMINISTRATION"
-            sidebarItems={navigationItems}
+            sidebarItems={ADMIN_NAV_ITEMS}
         >
             <section className="admin-portal">
                 {error && (
@@ -229,120 +224,89 @@ function Dashboard() {
                 </div>
 
                 {/* -------------------------------------------------------
-                    Management Areas
+                    Manage Requests Preview
                 ------------------------------------------------------- */}
-                <div className="admin-management-panel">
+                <div className="admin-management-panel admin-request-preview">
                     <div className="admin-panel-header">
                         <div>
                             <span className="admin-section-label">
-                                SYSTEM MANAGEMENT
+                                MANAGE REQUESTS
                             </span>
-
-                            <h2>Administration</h2>
+                            <h2>Recent document requests</h2>
                         </div>
-                    </div>
-
-                    <div className="admin-management-grid">
-                        {/* Users */}
-                        <Link
-                            to="/admin/users"
-                            className="admin-management-item"
-                        >
-                            <div className="admin-management-icon">U</div>
-
-                            <div className="admin-management-content">
-                                <strong>User Management</strong>
-
-                                <span>
-                                    Manage resident accounts and user
-                                    information.
-                                </span>
-                            </div>
-
-                            <span className="admin-management-arrow" aria-hidden="true">
-                                <Icon name="arrow-right" />
-                            </span>
-                        </Link>
-
-                        {/* Staff */}
-                        <Link
-                            to="/admin/staff"
-                            className="admin-management-item"
-                        >
-                            <div className="admin-management-icon">S</div>
-
-                            <div className="admin-management-content">
-                                <strong>Staff Management</strong>
-
-                                <span>Manage staff accounts and access.</span>
-                            </div>
-
-                            <span className="admin-management-arrow" aria-hidden="true">
-                                <Icon name="arrow-right" />
-                            </span>
-                        </Link>
-
-                        {/* Requests */}
                         <Link
                             to="/admin/requests"
-                            className="admin-management-item"
+                            className="admin-activity-link"
                         >
-                            <div className="admin-management-icon">R</div>
-
-                            <div className="admin-management-content">
-                                <strong>Document Requests</strong>
-
-                                <span>
-                                    Review and monitor document requests.
-                                </span>
-                            </div>
-
-                            <span className="admin-management-arrow" aria-hidden="true">
-                                <Icon name="arrow-right" />
-                            </span>
-                        </Link>
-
-                        {/* Document Types */}
-                        <Link
-                            to="/admin/document-types"
-                            className="admin-management-item"
-                        >
-                            <div className="admin-management-icon">D</div>
-
-                            <div className="admin-management-content">
-                                <strong>Document Types</strong>
-
-                                <span>
-                                    Manage available barangay document services.
-                                </span>
-                            </div>
-
-                            <span className="admin-management-arrow" aria-hidden="true">
-                                <Icon name="arrow-right" />
-                            </span>
-                        </Link>
-
-                        {/* Analytics */}
-                        <Link
-                            to="/admin/analytics"
-                            className="admin-management-item"
-                        >
-                            <div className="admin-management-icon">
-                                <Icon name="bar-chart-line" />
-                            </div>
-
-                            <div className="admin-management-content">
-                                <strong>System Analytics</strong>
-
-                                <span>
-                                    Explore document request trends and system
-                                    insights.
-                                </span>
-                            </div>
-
-                            <span className="admin-management-arrow">→</span>
+                            View all
                         </Link>
                     </div>
+
+                    {error ? (
+                        <p className="admin-activity-message">
+                            Recent requests are unavailable.
+                        </p>
+                    ) : loading ? (
+                        <div
+                            className="admin-request-skeleton-list"
+                            role="status"
+                            aria-label="Loading recent document requests"
+                        >
+                            {Array.from({ length: 4 }, (_, index) => (
+                                <div
+                                    className="admin-request-skeleton-row"
+                                    key={index}
+                                >
+                                    <span className="admin-skeleton" />
+                                    <span className="admin-skeleton" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : recentRequests.length ? (
+                        <div className="admin-request-preview-list">
+                            {recentRequests.map((request) => (
+                                <div
+                                    className="admin-request-preview-row"
+                                    key={request.request_id}
+                                >
+                                    <div className="admin-request-preview-copy">
+                                        <strong>{requesterName(request)}</strong>
+                                        <span>
+                                            {request.document_type
+                                                ?.document_name ||
+                                                "Unspecified document"}
+                                            {" · "}
+                                            {request.tracking_number ||
+                                                `Request #${request.request_id}`}
+                                        </span>
+                                        <time dateTime={request.created_at}>
+                                            {formatDate(request.created_at)}
+                                        </time>
+                                    </div>
+                                    <div className="admin-request-preview-actions">
+                                        <StatusBadge
+                                            status={request.status}
+                                            size="sm"
+                                        />
+                                        <Link
+                                            to={`/admin/requests/${request.request_id}`}
+                                            aria-label={`View request ${request.tracking_number || request.request_id}`}
+                                        >
+                                            View
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="admin-empty-state">
+                            <div className="admin-empty-icon">
+                                <Icon name="inbox" />
+                            </div>
+                            <h3>No document requests</h3>
+                            <p>New requests will appear here.</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* -------------------------------------------------------
@@ -445,9 +409,9 @@ function Dashboard() {
                                     ? count(stats.completed_requests)
                                     : "—"
                             }
-                            pendingRequests={
+                            submittedRequests={
                                 stats
-                                    ? count(stats.pending_requests)
+                                    ? count(stats.submitted_requests)
                                     : "—"
                             }
                             dashboardLoading={loading}

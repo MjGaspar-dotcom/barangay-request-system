@@ -1,8 +1,8 @@
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ListAltRoundedIcon from "@mui/icons-material/ListAltRounded";
 import { Chip } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import ActionCard from "../../components/ui/ActionCard";
+import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import ForYouRecommendations from "../../components/ForYouRecommendations";
 import PageHeader from "../../components/ui/PageHeader";
 import PortalWorkspace from "../../components/ui/PortalWorkspace";
@@ -22,14 +22,9 @@ import {
 
 function Dashboard() {
     const { user } = useAuth();
-    const navigate = useNavigate();
 
     const residentName =
         user?.first_name || user?.firstName || user?.name || "Resident";
-
-    const selectRecommendedDocument = (document) => {
-        navigate("/request", { state: { recommendedDocument: document } });
-    };
 
     return (
         <PortalLayout portalLabel="RESIDENT SERVICES">
@@ -44,6 +39,8 @@ function Dashboard() {
                         }
                         description="Access your barangay document services, submit requests, and monitor their progress in one place."
                     />
+
+                    <NotificationCenter />
 
                     <ResidentActions>
                         <ActionCard
@@ -62,12 +59,7 @@ function Dashboard() {
                         />
                     </ResidentActions>
 
-                    <ForYouRecommendations
-                        residentId={
-                            user?.resident_id ?? user?.user_id ?? user?.id ?? ""
-                        }
-                        onSelectDocument={selectRecommendedDocument}
-                    />
+                    <ForYouRecommendations />
 
                     <SectionCard
                         eyebrow="Document Services"

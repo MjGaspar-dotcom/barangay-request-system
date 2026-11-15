@@ -15,20 +15,37 @@ class NotificationService
         BarangayRequest $request,
         string $oldStatus,
         string $newStatus,
-        ?string $remarks = null
+        ?string $remarks = null,
+        ?string $rejectionReason = null
     ): void
     {
         $documentName = $request->documentType->document_name ?? 'document';
+        $statusLabels = [
+            'request_submitted' => 'Request Submitted',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'ready_for_pickup' => 'Ready for Pickup',
+            'completed' => 'Completed',
+        ];
+        $newStatusLabel = $statusLabels[$newStatus] ?? $newStatus;
+        $isReadyForPickup = $newStatus === 'ready_for_pickup';
+        $title = $isReadyForPickup
+            ? 'Document Ready for Pickup'
+            : "Request {$newStatusLabel}";
+        $message = $isReadyForPickup
+            ? "Your {$documentName} request ({$request->tracking_number}) is ready for pickup at the barangay office."
+            : trim(
+                "Your {$documentName} request ({$request->tracking_number}) is now {$newStatusLabel}. " .
+                ($rejectionReason ? "Reason: {$rejectionReason}. " : '') .
+                ($remarks ? "Feedback: {$remarks}" : '')
+            );
 
         Notification::create([
             'type' => 'request_status_changed',
             'user_id' => $request->user_id,
             'request_id' => $request->request_id,
-            'title' => "Request {$newStatus}",
-            'message' => trim(
-                "Your {$documentName} request ({$request->tracking_number}) status changed from {$oldStatus} to {$newStatus}. " .
-                ($remarks ? "Staff notes: {$remarks}" : '')
-            ),
+            'title' => $title,
+            'message' => $message,
         ]);
     }
 

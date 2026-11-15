@@ -20,6 +20,11 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StaffLayout from "../../layouts/StaffLayout";
 import api from "../../services/api";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
+import {
+    canonicalRequestStatus,
+    isInCurrentWorkflow,
+    requestStatusLabel,
+} from "../../utils/requestWorkflow";
 import "./staff-analytics.css";
 
 const DocumentRequestTrends = lazy(
@@ -27,13 +32,11 @@ const DocumentRequestTrends = lazy(
 );
 
 const STATUS_GROUPS = [
-    { label: "Pending", key: "pending", tone: "pending", color: "#e3ae44" },
-    { label: "Additional Requirements", key: "additional requirements", tone: "pending", color: "#e8a36a" },
-    { label: "Approved", key: "approved", tone: "approved", color: "#69b781" },
-    { label: "Processing", key: "processing", tone: "processing", color: "#58b6a8" },
-    { label: "Ready for Pickup", key: "ready for pickup", tone: "ready", color: "#85d9e8" },
-    { label: "Completed", key: "completed", tone: "completed", color: "#e67da9" },
-    { label: "Rejected", key: "rejected", tone: "rejected", color: "#c8507b" },
+    { label: "Request", key: "request_submitted", tone: "pending", color: "var(--warning)" },
+    { label: "Approved", key: "approved", tone: "approved", color: "var(--info)" },
+    { label: "Rejected", key: "rejected", tone: "rejected", color: "var(--danger)" },
+    { label: "Ready for Pickup", key: "ready_for_pickup", tone: "ready", color: "#0f766e" },
+    { label: "Completed", key: "completed", tone: "completed", color: "var(--success)" },
 ];
 
 const renderStatusPercentage = ({
@@ -78,7 +81,7 @@ export default function StaffReports({ isAdmin = false }) {
         if (!Array.isArray(data)) {
             throw new Error("Unexpected staff requests response.");
         }
-        return data;
+        return data.filter(isInCurrentWorkflow);
     }, []);
 
     useEffect(() => {
@@ -109,9 +112,7 @@ export default function StaffReports({ isAdmin = false }) {
     const counts = useMemo(
         () =>
             requests.reduce((result, request) => {
-                const status = String(request.status || "")
-                    .trim()
-                    .toLowerCase();
+                const status = canonicalRequestStatus(request.status);
                 result[status] = (result[status] || 0) + 1;
                 return result;
             }, {}),
@@ -121,8 +122,7 @@ export default function StaffReports({ isAdmin = false }) {
     const analytics = useMemo(() => {
         const total = requests.length;
         const completed = counts.completed || 0;
-        const open = ["pending", "approved", "processing", "ready for pickup"]
-            .reduce((sum, status) => sum + (counts[status] || 0), 0);
+        const open = total - completed - (counts.rejected || 0);
 
         const today = new Date();
         const months = Array.from({ length: 6 }, (_, index) => {
@@ -167,8 +167,7 @@ export default function StaffReports({ isAdmin = false }) {
                 (documentCounts.get(documentName) || 0) + 1,
             );
             if (
-                String(request.status || "").trim().toLowerCase() ===
-                    "completed" &&
+                canonicalRequestStatus(request.status) === "completed" &&
                 request.claimed_at
             ) {
                 const claimedAt = new Date(request.claimed_at);
@@ -280,57 +279,90 @@ export default function StaffReports({ isAdmin = false }) {
 
                 <section className="staff-analytics-overview" aria-label="Request overview">
                     <article className="staff-analytics-kpi">
-                        <span className="staff-analytics-kpi-label">
-                            COMPLETED REQUESTS
-                        </span>
+                        <div className="staff-analytics-kpi-heading">
+                            <span className="staff-analytics-kpi-label">
+                                COMPLETED REQUESTS
+                            </span>
+                            <span className="staff-analytics-kpi-icon staff-analytics-kpi-icon-completed">
+                                <Icon name="clipboard-check" size={18} />
+                            </span>
+                        </div>
                         <strong>
                             {loading || error ? "—" : analytics.completed}
                         </strong>
-                        <span>Documents completed across the system</span>
+                        <span className="staff-analytics-kpi-note">
+                            Requests collected by residents
+                        </span>
                     </article>
                     <article className="staff-analytics-kpi">
-                        <span className="staff-analytics-kpi-label">
-                            OPEN REQUESTS
-                        </span>
+                        <div className="staff-analytics-kpi-heading">
+                            <span className="staff-analytics-kpi-label">
+                                OPEN REQUESTS
+                            </span>
+                            <span className="staff-analytics-kpi-icon staff-analytics-kpi-icon-open">
+                                <Icon name="inbox" size={18} />
+                            </span>
+                        </div>
                         <strong>{loading || error ? "—" : analytics.open}</strong>
-                        <span>Pending, approved, processing, or ready for pickup</span>
+                        <span className="staff-analytics-kpi-note">
+                            Awaiting review, processing, or pickup
+                        </span>
                     </article>
                     <article className="staff-analytics-kpi">
-                        <span className="staff-analytics-kpi-label">
-                            COMPLETION RATE
-                        </span>
+                        <div className="staff-analytics-kpi-heading">
+                            <span className="staff-analytics-kpi-label">
+                                COMPLETION RATE
+                            </span>
+                            <span className="staff-analytics-kpi-icon staff-analytics-kpi-icon-rate">
+                                <Icon name="bar-chart-line" size={18} />
+                            </span>
+                        </div>
                         <strong>
                             {loading || error
                                 ? "—"
                                 : `${analytics.completionRate}%`}
                         </strong>
-                        <span>
+                        <span className="staff-analytics-kpi-note">
                             {loading || error
                                 ? "Requests completed"
                                 : `${analytics.completed} of ${analytics.total} requests completed`}
                         </span>
                     </article>
                     <article className="staff-analytics-kpi">
-                        <span className="staff-analytics-kpi-label">
-                            AVG. TIME TO CLAIM
-                        </span>
+                        <div className="staff-analytics-kpi-heading">
+                            <span className="staff-analytics-kpi-label">
+                                AVG. TIME TO CLAIM
+                            </span>
+                            <span className="staff-analytics-kpi-icon staff-analytics-kpi-icon-time">
+                                <Icon name="clock" size={18} />
+                            </span>
+                        </div>
                         <strong>
                             {loading || error || analytics.averageClaimDays === null
                                 ? "—"
                                 : `${analytics.averageClaimDays.toFixed(1)} days`}
                         </strong>
-                        <span>Based on completed requests with a claim date</span>
+                        <span className="staff-analytics-kpi-note">
+                            Average time from submission to collection
+                        </span>
                     </article>
                     <article className="staff-analytics-kpi">
-                        <span className="staff-analytics-kpi-label">
-                            TOTAL REQUESTS
-                        </span>
+                        <div className="staff-analytics-kpi-heading">
+                            <span className="staff-analytics-kpi-label">
+                                TOTAL REQUESTS
+                            </span>
+                            <span className="staff-analytics-kpi-icon staff-analytics-kpi-icon-total">
+                                <Icon name="file-earmark-text" size={18} />
+                            </span>
+                        </div>
                         <strong>
                             {loading || error
                                 ? "—"
                                 : analytics.total}
                         </strong>
-                        <span>Submitted by registered residents</span>
+                        <span className="staff-analytics-kpi-note">
+                            All requests submitted to the system
+                        </span>
                     </article>
                 </section>
 
@@ -583,7 +615,7 @@ export default function StaffReports({ isAdmin = false }) {
                                                 <td>
                                                     <StatusBadge
                                                         status={
-                                                            request.status ||
+                                                            requestStatusLabel(request.status) ||
                                                             "Unknown"
                                                         }
                                                         size="sm"

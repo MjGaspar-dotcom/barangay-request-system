@@ -1,0 +1,162 @@
+.document-preview-canvas {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.generated-document {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 210mm;
+    max-width: none;
+    flex-shrink: 0;
+    min-height: 297mm;
+    margin: 1.5rem auto;
+    padding: 18mm 20mm;
+    color: #111;
+    background: #fff;
+    box-shadow: 0 2px 18px rgb(0 0 0 / 16%);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 12pt;
+    line-height: 1.6;
+}
+
+.document-letterhead {
+    display: grid;
+    grid-template-columns: 28mm 1fr;
+    align-items: center;
+    gap: 5mm;
+    padding-bottom: 5mm;
+    border-bottom: 1px solid #222;
+    text-align: center;
+}
+
+.document-seal {
+    width: 26mm;
+    height: 26mm;
+    object-fit: contain;
+}
+
+.document-letterhead-no-seal {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.document-letterhead-copy p,
+.document-letterhead-copy h2 {
+    margin: 0;
+}
+
+.document-letterhead-copy h2 {
+    font-size: 15pt;
+    text-transform: uppercase;
+}
+
+.document-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2mm 5mm;
+    margin-top: 6mm;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+}
+
+.document-title {
+    margin: 9mm 0 4mm;
+    font-size: 17pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: center;
+}
+
+.document-resident-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3mm 8mm;
+    margin: 5mm 0;
+    padding: 5mm 0;
+}
+
+.document-resident-details div {
+    min-width: 0;
+}
+
+.document-resident-details dt {
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.document-resident-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.document-signature {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    width: 70mm;
+    margin-top: auto;
+    padding-top: 14mm;
+    text-align: center;
+}
+
+.document-signature-line {
+    border-top: 1px solid #111;
+}
+
+.document-signature span {
+    font-size: 10pt;
+}
+
+.document-footer {
+    margin-top: 10mm;
+    padding-top: 3mm;
+    border-top: 1px solid #999;
+    font-size: 8pt;
+    text-align: center;
+}
+
+.document-footer p {
+    margin: 0;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 0;
+}
+
+@media print {
+    .document-preview-canvas {
+        overflow: visible;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .generated-document,
+    .generated-document * {
+        visibility: visible !important;
+    }
+
+    .generated-document {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        max-width: none;
+        min-height: 297mm;
+        margin: 0;
+        padding: 18mm 20mm;
+        box-shadow: none;
+        page-break-after: avoid;
+        break-after: avoid-page;
+    }
+
+    .document-preview-toolbar {
+        display: none !important;
+    }
+}

@@ -40,6 +40,16 @@ class AnalyticsTestDataSeeder extends Seeder
             $trackingNumbers = collect(range(1, self::REQUEST_COUNT))
                 ->map(fn (int $number): string => self::TRACKING_PREFIX
                     .str_pad((string) $number, 3, '0', STR_PAD_LEFT));
+            $reconciled = DB::table('barangay_requests')
+                ->whereIn('tracking_number', $trackingNumbers)
+                ->where('status', 'migration_review')
+                ->whereIn(
+                    'request_id',
+                    DB::table('request_workflow_migration_issues')
+                        ->select('request_id')
+                        ->where('original_status', 'Processing')
+                )
+                ->update(['status' => 'approved']);
             $existing = BarangayRequest::withTrashed()
                 ->whereIn('tracking_number', $trackingNumbers)
                 ->pluck('tracking_number')
@@ -48,12 +58,11 @@ class AnalyticsTestDataSeeder extends Seeder
             $now = CarbonImmutable::now();
             $firstMonth = $now->startOfMonth()->subMonths(5);
             $statuses = [
-                'Pending',
-                'Approved',
-                'Processing',
-                'Ready for Pickup',
-                'Completed',
-                'Rejected',
+                'request_submitted',
+                'approved',
+                'ready_for_pickup',
+                'completed',
+                'rejected',
             ];
             $records = [];
 
@@ -80,14 +89,14 @@ class AnalyticsTestDataSeeder extends Seeder
                 $status = $statuses[($number - 1) % count($statuses)];
                 $approvedAt = in_array(
                     $status,
-                    ['Approved', 'Processing', 'Ready for Pickup', 'Completed'],
+                    ['approved', 'ready_for_pickup', 'completed'],
                     true
                 )
                     ? $createdAt->addDay()
                     : null;
                 $readyAt = in_array(
                     $status,
-                    ['Ready for Pickup', 'Completed'],
+                    ['ready_for_pickup', 'completed'],
                     true
                 )
                     ? $createdAt->addDays(2)
@@ -103,7 +112,7 @@ class AnalyticsTestDataSeeder extends Seeder
                     'verified_at' => $approvedAt,
                     'approved_at' => $approvedAt,
                     'ready_for_pickup_at' => $readyAt,
-                    'claimed_at' => $status === 'Completed'
+                    'claimed_at' => $status === 'completed'
                         ? $createdAt->addDays(3)
                         : null,
                     'created_at' => $createdAt,
@@ -117,6 +126,8 @@ class AnalyticsTestDataSeeder extends Seeder
 
             $this->command?->info(
                 'Analytics test data ready: '
+                .$reconciled
+                .' legacy synthetic requests updated to the current workflow; '
                 .(self::REQUEST_COUNT - count($existingSet))
                 .' synthetic requests added; '
                 .count($existingSet)

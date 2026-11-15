@@ -1,5 +1,5 @@
 import Icon from "../../components/ui/Icon.jsx";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
@@ -7,7 +7,6 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
-import RequestWorkflowPanel from "../../components/requests/RequestWorkflowPanel";
 import RequestTimeline from "../../components/requests/RequestTimeline";
 
 export default function AdminRequestDetails() {
@@ -46,21 +45,6 @@ export default function AdminRequestDetails() {
         return () => {
             active = false;
         };
-    }, [requestId]);
-
-    const refreshRequest = useCallback(async () => {
-        try {
-            const response = await api.get(
-                `/barangay-requests/${requestId}`,
-            );
-            setRequest(response.data.data);
-            setError("");
-        } catch (requestError) {
-            console.error(requestError);
-            setActionMessage(
-                "The action succeeded, but request details could not be refreshed.",
-            );
-        }
     }, [requestId]);
 
     const deleteRequest = async () => {
@@ -128,7 +112,35 @@ export default function AdminRequestDetails() {
                                 <Icon name="arrow-left" />
                                 <span>Back to Manage Requests</span>
                             </Button>
-                            <StatusBadge status={request.status} />
+                            <div className="flex flex-wrap items-center gap-2">
+                                {request.status === "request_submitted" && (
+                                    <Button
+                                        className="app-button app-button-outline-danger"
+                                        onClick={() =>
+                                            setDeleteConfirmation(true)
+                                        }
+                                        type="button"
+                                    >
+                                        Delete Request
+                                    </Button>
+                                )}
+                                <Button
+                                    className="app-button app-button-primary"
+                                    onClick={() =>
+                                        navigate(`/admin/requests/${requestId}`)
+                                    }
+                                    type="button"
+                                >
+                                    {[
+                                        "completed",
+                                        "rejected",
+                                        "migration_review",
+                                    ].includes(request.status)
+                                        ? "View Workflow"
+                                        : "Process Request"}
+                                </Button>
+                                <StatusBadge status={request.status} />
+                            </div>
                         </div>
                         <div className="request-details-heading">
                             <span className="section-label">REQUEST DETAILS</span>
@@ -144,7 +156,7 @@ export default function AdminRequestDetails() {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <div className="lg:col-span-6">
+                        <div className="lg:col-span-12">
                             <section className="flex flex-col gap-4">
                                 <div className="admin-form-card detail-card-spaced">
                                     <h2 className="form-section-title">
@@ -248,13 +260,6 @@ export default function AdminRequestDetails() {
                             </section>
                         </div>
 
-                        <div className="lg:col-span-6">
-                            <RequestWorkflowPanel
-                                onDelete={() => setDeleteConfirmation(true)}
-                                onRefresh={refreshRequest}
-                                request={request}
-                            />
-                        </div>
                     </div>
                 </div>
             </div>
@@ -266,8 +271,9 @@ export default function AdminRequestDetails() {
                 title="Delete pending request?"
                 variant="danger"
             >
-                Only pending requests can be deleted. Requests with a decision or
-                processing history remain as official transaction records.
+                Only requests awaiting processing can be deleted. Requests with
+                a decision or processing history remain official transaction
+                records.
             </ConfirmDialog>
         </AdminLayout>
     );

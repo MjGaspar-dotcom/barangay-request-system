@@ -118,12 +118,22 @@ export default function ManageUsers() {
         setConfirmDialog({
             title: newStatus === "rejected"
                 ? "Reject user verification"
-                : "Confirm verification update",
+                : newStatus === "pending"
+                  ? "Reset user verification"
+                  : "Confirm verification update",
             message: newStatus === "rejected"
-                ? `Reject the verification for ${name}? The user will remain unable to access verified services.`
+                ? `Reject the verification for ${name}? Their uploaded valid ID will be removed, and they will remain unable to access verified services.`
+                : newStatus === "pending"
+                  ? `Reset verification for ${name}? Their uploaded valid ID will be removed and must be submitted again.`
                 : `Update the verification status for ${name} to ${newStatus}?`,
-            confirmLabel: newStatus === "rejected" ? "Reject verification" : `Set ${newStatus}`,
-            variant: newStatus === "rejected" ? "danger" : "primary",
+            confirmLabel: newStatus === "rejected"
+                ? "Reject verification"
+                : newStatus === "pending"
+                  ? "Reset verification"
+                  : `Set ${newStatus}`,
+            variant: newStatus === "rejected" || newStatus === "pending"
+                ? "danger"
+                : "primary",
             onConfirm: () => runVerificationUpdate(user, newStatus),
         });
     };

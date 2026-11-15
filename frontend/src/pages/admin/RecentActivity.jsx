@@ -4,6 +4,7 @@ import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
+import StaffLayout from "../../layouts/StaffLayout";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 const ACTION_FILTERS = [
@@ -16,7 +17,8 @@ const ACTION_FILTERS = [
 
 const PAGE_SIZE = 25;
 
-export default function RecentActivity() {
+export default function RecentActivity({ isAdmin = true }) {
+    const Layout = isAdmin ? AdminLayout : StaffLayout;
     const [logs, setLogs] = useState([]);
     const [meta, setMeta] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -37,9 +39,14 @@ export default function RecentActivity() {
                 params.action = actionFilter;
             }
 
-            const response = await api.get("/admin/recent-activity", {
-                params,
-            });
+            const response = await api.get(
+                isAdmin
+                    ? "/admin/recent-activity"
+                    : "/staff/recent-activity",
+                {
+                    params,
+                },
+            );
 
             const payload = response.data.data;
 
@@ -141,8 +148,12 @@ export default function RecentActivity() {
     };
 
     return (
-        <AdminLayout>
-            <div className="admin-dashboard recent-activity-page">
+        <Layout>
+            <div
+                className={`admin-dashboard recent-activity-page${
+                    isAdmin ? "" : " staff-activity-page"
+                }`}
+            >
                 <div className="w-full">
                     <div className="dashboard-page-header">
                         <div>
@@ -153,9 +164,9 @@ export default function RecentActivity() {
                             <h1>Recent Activity</h1>
 
                             <p>
-                                A chronological log of every important action
-                                performed on the system. Use the filters below
-                                to narrow down by action type.
+                                {isAdmin
+                                    ? "A chronological log of every important action performed on the system. Use the filters below to narrow down by action type."
+                                    : "A read-only log of request processing activity. Use the filters below to narrow down by action type."}
                             </p>
                         </div>
                     </div>
@@ -228,7 +239,9 @@ export default function RecentActivity() {
                                         <col className="activity-description-column" />
                                         <col className="activity-actor-column" />
                                         <col className="activity-target-column" />
-                                        <col className="activity-ip-column" />
+                                        {isAdmin && (
+                                            <col className="activity-ip-column" />
+                                        )}
                                         <col className="activity-when-column" />
                                     </colgroup>
                                     <thead>
@@ -239,7 +252,7 @@ export default function RecentActivity() {
                                             <th>Description</th>
                                             <th>Actor</th>
                                             <th>Target</th>
-                                            <th>IP Address</th>
+                                            {isAdmin && <th>IP Address</th>}
                                             <th>When</th>
                                         </tr>
                                     </thead>
@@ -291,10 +304,12 @@ export default function RecentActivity() {
                                                         </code>{" "}
                                                         #{entry.record_id}
                                                     </td>
-                                                    <td>
-                                                        {entry.ip_address ||
-                                                            "—"}
-                                                    </td>
+                                                    {isAdmin && (
+                                                        <td>
+                                                            {entry.ip_address ||
+                                                                "—"}
+                                                        </td>
+                                                    )}
                                                     <td>
                                                         {formatDate(
                                                             entry.created_at
@@ -344,6 +359,6 @@ export default function RecentActivity() {
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </Layout>
     );
 }

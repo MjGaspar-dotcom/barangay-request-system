@@ -1,5 +1,11 @@
 import Icon from "../components/ui/Icon.jsx";
-import { useEffect, useRef, useState } from "react";
+import {
+    Fragment,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import BrandMark from "../components/ui/BrandMark";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -8,9 +14,26 @@ function Sidebar({ items = [], onNavigate }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const navigationRef = useRef(null);
+    const navigationScrollKey = `sidebar-scroll:${user?.role || "guest"}:${items
+        .map((item) => item.to)
+        .join("|")}`;
     const [visibleAnchor, setVisibleAnchor] = useState("");
     const visibleAnchorRef = useRef("");
     const [loggingOut, setLoggingOut] = useState(false);
+
+    useLayoutEffect(() => {
+        const navigation = navigationRef.current;
+        const savedScrollTop = sessionStorage.getItem(navigationScrollKey);
+        if (!navigation || savedScrollTop === null) {
+            return;
+        }
+
+        const scrollTop = Number(savedScrollTop);
+        if (Number.isFinite(scrollTop)) {
+            navigation.scrollTop = scrollTop;
+        }
+    }, [navigationScrollKey]);
 
     const updateVisibleAnchor = (anchor) => {
         visibleAnchorRef.current = anchor;
@@ -114,29 +137,56 @@ function Sidebar({ items = [], onNavigate }) {
                 </div>
             )}
 
-            <nav className="sidebar-navigation">
-                {(isAdmin || isStaff) && (
+            <nav ref={navigationRef} className="sidebar-navigation">
+                {!items.some((item) => item.group) && (isAdmin || isStaff) && (
                     <span className="sidebar-menu-label">MENU</span>
                 )}
-                {items.map((item) => {
+                {items.map((item, index) => {
                     const active = isItemActive(item);
+                    const startsGroup =
+                        item.group && item.group !== items[index - 1]?.group;
 
                     return (
-                        <Link
-                            key={item.to}
-                            to={item.to}
-                            onClick={onNavigate}
-                            className={`sidebar-link ${active ? "active" : ""}`}
-                            aria-current={active ? "page" : undefined}
-                        >
-                            {item.icon && (
-                                <span className="sidebar-link-icon">
-                                    <Icon name={item.icon} />
+                        <Fragment key={item.to}>
+                            {startsGroup && (
+                                <span
+                                    className={`sidebar-section-label ${
+                                        item.mobileOnly
+                                            ? "mobile-only-navigation-item"
+                                            : ""
+                                    }`}
+                                >
+                                    {item.group}
                                 </span>
                             )}
+                            <Link
+                                to={item.to}
+                                onClick={() => {
+                                    const navigation = navigationRef.current;
+                                    if (navigation) {
+                                        sessionStorage.setItem(
+                                            navigationScrollKey,
+                                            String(navigation.scrollTop),
+                                        );
+                                    }
+                                    onNavigate?.();
+                                }}
+                                className={`sidebar-link ${
+                                    item.mobileOnly
+                                        ? "mobile-only-navigation-item"
+                                        : ""
+                                } ${active ? "active" : ""}`}
+                                aria-current={active ? "page" : undefined}
+                            >
+                                {item.icon && (
+                                    <span className="sidebar-link-icon">
+                                        <Icon name={item.icon} />
+                                    </span>
+                                )}
 
-                            <span>{item.label}</span>
-                        </Link>
+                                <span>{item.label}</span>
+                            </Link>
+                        </Fragment>
                     );
                 })}
             </nav>

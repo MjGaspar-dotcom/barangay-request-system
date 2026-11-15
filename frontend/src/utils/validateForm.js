@@ -25,7 +25,9 @@ export function validateForm(form) {
         } else if (field.type === "email" && field.value.trim() && !field.validity.valid) {
             message = "Enter a valid email address.";
         } else if (field.validity?.valid === false && field.value) {
-            if (field.type === "tel") message = "Enter a valid phone number.";
+            if (field.dataset.validationMessage) {
+                message = field.dataset.validationMessage;
+            } else if (field.type === "tel") message = "Enter a valid phone number.";
             else if (field.type === "date") message = "Enter a valid date.";
             else if (field.minLength > 0 && field.value.length < field.minLength) {
                 message = `Enter at least ${field.minLength} characters.`;

@@ -10,6 +10,8 @@ use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class AdminUserController extends Controller
 {
@@ -59,8 +61,9 @@ class AdminUserController extends Controller
                     'birth_date' => optional($user->birth_date)->format('Y-m-d'),
                     'verification_status' => $user->verification_status,
                     'valid_id_type' => $user->valid_id_type,
-                    'valid_id_front' => $user->valid_id_front,
-                    'valid_id_back' => $user->valid_id_back,
+                    'profile_picture_url' => $user->profile_picture_url,
+                    'valid_id_front_url' => $user->valid_id_front_url,
+                    'valid_id_back_url' => $user->valid_id_back_url,
                     'role' => $role,
                     'total_requests' => (int) ($user->total_requests ?? 0),
                     'created_at' => $user->created_at,
@@ -136,8 +139,11 @@ class AdminUserController extends Controller
 
         $oldStatus = $user->verification_status;
         $newStatus = $request->validated()['verification_status'];
+        $clearIdentityDocuments =
+            $newStatus === 'rejected' ||
+            ($oldStatus !== 'pending' && $newStatus === 'pending');
 
-        if ($oldStatus === $newStatus) {
+        if ($oldStatus === $newStatus && ! $clearIdentityDocuments) {
             return response()->json([
                 'success' => true,
                 'message' => 'Verification status is already up to date.',
@@ -145,8 +151,34 @@ class AdminUserController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($user, $oldStatus, $newStatus, $admin) {
-            $user->update(['verification_status' => $newStatus]);
+        $identityFiles = $clearIdentityDocuments
+            ? $this->identityDocumentPaths($user)
+            : [];
+
+        DB::transaction(function () use (
+            $user,
+            $oldStatus,
+            $newStatus,
+            $admin,
+            $clearIdentityDocuments
+        ) {
+            $changes = ['verification_status' => $newStatus];
+            if ($clearIdentityDocuments) {
+                $changes += [
+                    'valid_id_type' => null,
+                    'valid_id_front' => null,
+                    'valid_id_back' => null,
+                    'valid_id_front_disk' => null,
+                    'valid_id_front_original_name' => null,
+                    'valid_id_front_mime_type' => null,
+                    'valid_id_front_uploaded_at' => null,
+                    'valid_id_back_disk' => null,
+                    'valid_id_back_original_name' => null,
+                    'valid_id_back_mime_type' => null,
+                    'valid_id_back_uploaded_at' => null,
+                ];
+            }
+            $user->update($changes);
 
             AuditService::log(
                 'verification_updated',
@@ -156,6 +188,10 @@ class AdminUserController extends Controller
                 ['verification_status' => $newStatus]
             );
         });
+
+        if ($clearIdentityDocuments) {
+            $this->deleteIdentityDocuments($identityFiles, $user->user_id);
+        }
 
         return response()->json([
             'success' => true,
@@ -210,12 +246,66 @@ class AdminUserController extends Controller
             "Admin {$admin->first_name} {$admin->last_name} deleted resident account \"{$userName}\" (Username: {$user->username})."
         );
 
+        $identityFiles = $this->identityDocumentPaths($user);
+        $this->deleteIdentityDocuments($identityFiles, $user->user_id);
+        $user->update([
+            'valid_id_type' => null,
+            'valid_id_front' => null,
+            'valid_id_back' => null,
+            'valid_id_front_disk' => null,
+            'valid_id_front_original_name' => null,
+            'valid_id_front_mime_type' => null,
+            'valid_id_front_uploaded_at' => null,
+            'valid_id_back_disk' => null,
+            'valid_id_back_original_name' => null,
+            'valid_id_back_mime_type' => null,
+            'valid_id_back_uploaded_at' => null,
+        ]);
         $user->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Resident account deleted successfully.',
         ]);
+    }
+
+    /**
+     * Only remove files managed by the resident ID upload flow.
+     *
+     * @return array<int, array{disk: string, path: string}>
+     */
+    private function identityDocumentPaths(User $user): array
+    {
+        $files = [];
+        foreach (['valid_id_front', 'valid_id_back'] as $field) {
+            $path = $user->getRawOriginal($field);
+            if (!is_string($path) || !str_starts_with($path, 'resident-valid-ids/')) {
+                continue;
+            }
+
+            $files[] = [
+                'disk' => $user->getRawOriginal("{$field}_disk")
+                    ?: config('filesystems.legacy_valid_id_disk'),
+                'path' => $path,
+            ];
+        }
+
+        return $files;
+    }
+
+    /**
+     * @param array<int, array{disk: string, path: string}> $files
+     */
+    private function deleteIdentityDocuments(array $files, int $userId): void
+    {
+        foreach ($files as $file) {
+            $disk = Storage::disk($file['disk']);
+            if ($disk->exists($file['path']) && !$disk->delete($file['path'])) {
+                throw new RuntimeException(
+                    "Could not delete resident ID documents for user {$userId}."
+                );
+            }
+        }
     }
 
     /**
@@ -227,12 +317,12 @@ class AdminUserController extends Controller
      */
     public function recentActivity(Request $request)
     {
-        $admin = $request->user();
+        $actor = $request->user();
 
-        if (!$admin || !$admin->admin) {
+        if (!$actor || (!$actor->admin && !$actor->staff)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Admin access only.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
@@ -241,8 +331,26 @@ class AdminUserController extends Controller
 
         $action = $request->query('action');
 
-        $query = AuditLog::with(['user', 'staff.user'])
+        $query = AuditLog::with([
+            'user:user_id,first_name,last_name',
+            'staff:staff_id,user_id',
+            'staff.user:user_id,first_name,last_name',
+        ])
             ->orderByDesc('created_at');
+
+        if (!$actor->admin) {
+            $query->where('table_name', 'barangay_requests')
+                ->select([
+                    'audit_log_id',
+                    'user_id',
+                    'staff_id',
+                    'action',
+                    'table_name',
+                    'record_id',
+                    'description',
+                    'created_at',
+                ]);
+        }
 
         if ($action) {
             $query->where('action', $action);

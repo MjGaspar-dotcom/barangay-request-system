@@ -30,6 +30,7 @@ class AdminStaffController extends Controller
         }
 
         $staff = Staff::with(['user', 'admin.user'])
+            ->whereHas('user')
             ->orderByDesc('created_at')
             ->get()
             ->map(function (Staff $member) {
@@ -115,9 +116,7 @@ class AdminStaffController extends Controller
     /**
      * DELETE /api/admin/staff/{staff}
      *
-     * Removes a staff record AND the underlying user account.
-     * Cascades through the foreign-key constraints configured in
-     * the staff and users migrations.
+     * Soft-deletes the staff record and its underlying user account.
      */
     public function destroy(Request $request, Staff $staff)
     {
@@ -143,12 +142,10 @@ class AdminStaffController extends Controller
         );
 
         DB::transaction(function () use ($staff, $user) {
-            // Removing the staff record leaves the user in place;
-            // deleting the user cascades the staff record via FK.
+            $staff->delete();
+
             if ($user) {
                 $user->delete();
-            } else {
-                $staff->delete();
             }
         });
 

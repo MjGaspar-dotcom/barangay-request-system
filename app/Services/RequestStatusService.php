@@ -3,40 +3,44 @@
 namespace App\Services;
 
 use App\Models\BarangayRequest;
+use App\Models\AuditLog;
 use App\Models\Staff;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class RequestStatusService
 {
-    public const STATUS_PENDING = 'Pending';
-    public const STATUS_ADDITIONAL_REQUIREMENTS = 'Additional Requirements';
-    public const STATUS_APPROVED = 'Approved';
-    public const STATUS_REJECTED = 'Rejected';
-    public const STATUS_PROCESSING = 'Processing';
-    public const STATUS_READY_FOR_PICKUP = 'Ready for Pickup';
-    public const STATUS_COMPLETED = 'Completed';
+    public const STATUS_REQUEST_SUBMITTED = 'request_submitted';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_READY_FOR_PICKUP = 'ready_for_pickup';
+    public const STATUS_COMPLETED = 'completed';
+
+    public const REJECTION_REASONS = [
+        'Incomplete Requirements',
+        'Invalid or Incorrect Information',
+        'Unverified Residency',
+        'Duplicate Request',
+        'Document Requirements Not Met',
+        'Other',
+    ];
 
     public const ALL_STATUSES = [
-        self::STATUS_PENDING,
-        self::STATUS_ADDITIONAL_REQUIREMENTS,
+        self::STATUS_REQUEST_SUBMITTED,
         self::STATUS_APPROVED,
         self::STATUS_REJECTED,
-        self::STATUS_PROCESSING,
         self::STATUS_READY_FOR_PICKUP,
         self::STATUS_COMPLETED,
     ];
 
     private const ALLOWED_TRANSITIONS = [
-        self::STATUS_PENDING => [
-            self::STATUS_ADDITIONAL_REQUIREMENTS,
+        self::STATUS_REQUEST_SUBMITTED => [
             self::STATUS_APPROVED,
             self::STATUS_REJECTED,
         ],
-        self::STATUS_ADDITIONAL_REQUIREMENTS => [],
-        self::STATUS_APPROVED => [self::STATUS_PROCESSING],
+        self::STATUS_APPROVED => [self::STATUS_READY_FOR_PICKUP],
         self::STATUS_REJECTED => [],
-        self::STATUS_PROCESSING => [self::STATUS_READY_FOR_PICKUP],
         self::STATUS_READY_FOR_PICKUP => [self::STATUS_COMPLETED],
         self::STATUS_COMPLETED => [],
     ];
@@ -61,225 +65,233 @@ class RequestStatusService
         ?string $remarks = null
     ): BarangayRequest {
         $recipientName = $additionalFields['recipient_name'] ?? null;
-        if ($newStatus === self::STATUS_COMPLETED &&
-            (!is_string($recipientName) || trim($recipientName) === '')) {
-            throw new \InvalidArgumentException(
-                'Record the recipient name before completing the request.'
-            );
-        }
+        $rejectionReason = $additionalFields['rejection_reason'] ?? null;
+        $rejectionOther = $additionalFields['rejection_other'] ?? null;
 
-        if ($newStatus !== self::STATUS_COMPLETED && $recipientName !== null) {
-            throw new \InvalidArgumentException(
-                'A recipient name can only be recorded when completing a released request.'
-            );
-        }
-
-        return DB::transaction(function () use ($request, $newStatus, $remarks, $recipientName): BarangayRequest {
-            $request = BarangayRequest::query()
-                ->lockForUpdate()
-                ->findOrFail($request->request_id);
-            $oldStatus = $request->status;
-            self::assertTransitionAllowed($oldStatus, $newStatus);
-
-            if (in_array($newStatus, [
-                self::STATUS_APPROVED,
-                self::STATUS_ADDITIONAL_REQUIREMENTS,
-                self::STATUS_REJECTED,
-            ], true)) {
-                if (!$request->verified_at) {
-                    throw new \InvalidArgumentException(
-                        'Verify the resident requirements before making a decision.'
-                    );
-                }
-
-                if (!is_string($remarks) || trim($remarks) === '') {
-                    throw new \InvalidArgumentException(
-                        'Administrative remarks are required before making this decision.'
-                    );
-                }
-
-                if (
-                    $newStatus === self::STATUS_APPROVED &&
-                    !$request->requirements_complete
-                ) {
-                    throw new \InvalidArgumentException(
-                        'The requirements must be recorded as complete before approval.'
-                    );
-                }
-
-                if (
-                    $newStatus === self::STATUS_ADDITIONAL_REQUIREMENTS &&
-                    $request->requirements_complete
-                ) {
-                    throw new \InvalidArgumentException(
-                        'Mark the requirements incomplete before requesting additional documents.'
-                    );
-                }
-            }
-
-            if (
-                $newStatus === self::STATUS_READY_FOR_PICKUP &&
-                (
-                    !$request->document_signed_at ||
-                    !$request->prepared_document_id ||
-                    !$request->signed_document_id ||
-                    !$request->documents()
-                        ->whereKey($request->prepared_document_id)
-                        ->where('purpose', 'prepared_document')
-                        ->exists() ||
-                    !$request->documents()
-                        ->whereKey($request->signed_document_id)
-                        ->where('purpose', 'signed_document')
-                        ->exists()
-                )
-            ) {
-                throw new \InvalidArgumentException(
-                    'Upload the prepared and authorized signed document before marking this request ready for pickup.'
-                );
-            }
-
-            $now = now();
-            $updateData = ['status' => $newStatus];
-
-            if (
-                $remarks !== null &&
-                in_array($newStatus, [
-                    self::STATUS_APPROVED,
-                    self::STATUS_ADDITIONAL_REQUIREMENTS,
-                    self::STATUS_REJECTED,
-                ], true)
-            ) {
-                $updateData['remarks'] = trim($remarks);
-            }
-
-            if ($newStatus === self::STATUS_APPROVED) {
-                $updateData['approved_at'] = $now;
-            } elseif ($newStatus === self::STATUS_PROCESSING) {
-                $updateData['processing_started_at'] = $now;
-                $updateData['processing_by'] = Auth::id();
-            } elseif ($newStatus === self::STATUS_READY_FOR_PICKUP) {
-                $updateData['ready_for_pickup_at'] = $now;
-            } elseif ($newStatus === self::STATUS_COMPLETED) {
-                $updateData['claimed_at'] = $now;
-                $updateData['release_recipient_name'] = trim($recipientName);
-                $updateData['released_by'] = Auth::id();
-            }
-
-            $request->update($updateData);
-            $auditAction = match ($newStatus) {
-                self::STATUS_APPROVED => 'request_approved',
-                self::STATUS_ADDITIONAL_REQUIREMENTS =>
-                    'additional_requirements_requested',
-                self::STATUS_REJECTED => 'request_rejected',
-                self::STATUS_PROCESSING => 'processing_started',
-                self::STATUS_READY_FOR_PICKUP => 'ready_for_pickup',
-                self::STATUS_COMPLETED => 'document_released',
-                default => 'status_changed',
-            };
-            AuditService::logStatusChange(
-                $request,
-                $oldStatus,
-                $newStatus,
-                $remarks,
-                $auditAction
-            );
-            NotificationService::requestStatusChanged(
-                $request,
-                $oldStatus,
-                $newStatus,
-                $remarks
-            );
-
-            return $request->fresh();
-        });
-    }
-
-    public static function verifyRequirements(
-        BarangayRequest $request,
-        bool $requirementsComplete
-    ): BarangayRequest {
         return DB::transaction(function () use (
             $request,
-            $requirementsComplete
+            $newStatus,
+            $remarks,
+            $recipientName,
+            $rejectionReason,
+            $rejectionOther
         ): BarangayRequest {
             $request = BarangayRequest::query()
                 ->lockForUpdate()
                 ->findOrFail($request->request_id);
-            if ($request->status !== self::STATUS_PENDING) {
+            $oldStatus = $request->status;
+
+            if ($newStatus === self::STATUS_APPROVED) {
+                self::assertTransitionAllowed($oldStatus, $newStatus);
+
+                self::assertResidentIdVerified($request);
+
+                $now = now();
+                $request->update([
+                    'status' => self::STATUS_APPROVED,
+                    'approved_at' => $now,
+                    'decision_by' => Auth::id(),
+                    'decision_at' => $now,
+                    'remarks' => $remarks !== null ? trim($remarks) : null,
+                    'rejection_reason' => null,
+                    'rejection_other' => null,
+                ]);
+
+                AuditService::log(
+                    'request_approved',
+                    $request,
+                    'Request approved and awaiting official document generation.',
+                    ['status' => $oldStatus],
+                    [
+                        'decision' => self::STATUS_APPROVED,
+                        'status' => self::STATUS_APPROVED,
+                        'remarks' => $remarks !== null ? trim($remarks) : null,
+                        'decision_by' => Auth::id(),
+                        'decision_at' => $now->toISOString(),
+                    ]
+                );
+                NotificationService::requestStatusChanged(
+                    $request,
+                    $oldStatus,
+                    self::STATUS_APPROVED,
+                    $remarks
+                );
+
+                return $request->fresh();
+            }
+
+            if ($newStatus === self::STATUS_REJECTED) {
+                self::assertTransitionAllowed($oldStatus, $newStatus);
+
+                if (!in_array($rejectionReason, self::REJECTION_REASONS, true)) {
+                    throw new \InvalidArgumentException(
+                        'Select a valid reason for rejecting this request.'
+                    );
+                }
+
+                if (
+                    $rejectionReason === 'Other' &&
+                    (!is_string($rejectionOther) || trim($rejectionOther) === '')
+                ) {
+                    throw new \InvalidArgumentException(
+                        'Explain the Other rejection reason.'
+                    );
+                }
+
+                $now = now();
+                $otherExplanation = $rejectionReason === 'Other'
+                    ? trim($rejectionOther)
+                    : null;
+                $request->update([
+                    'status' => self::STATUS_REJECTED,
+                    'remarks' => null,
+                    'rejection_reason' => $rejectionReason,
+                    'rejection_other' => $otherExplanation,
+                    'decision_by' => Auth::id(),
+                    'decision_at' => $now,
+                ]);
+
+                AuditService::log(
+                    'request_rejected',
+                    $request,
+                    'Request rejected: ' . $rejectionReason . '.',
+                    ['status' => $oldStatus],
+                    [
+                        'decision' => self::STATUS_REJECTED,
+                        'rejection_reason' => $rejectionReason,
+                        'rejection_other' => $otherExplanation,
+                        'remarks' => null,
+                        'decision_by' => Auth::id(),
+                        'decision_at' => $now->toISOString(),
+                    ]
+                );
+                NotificationService::requestStatusChanged(
+                    $request,
+                    $oldStatus,
+                    self::STATUS_REJECTED,
+                    null,
+                    $rejectionReason . ($otherExplanation ? ': ' . $otherExplanation : '')
+                );
+
+                return $request->fresh();
+            }
+
+            if ($newStatus === self::STATUS_READY_FOR_PICKUP) {
+                self::assertTransitionAllowed($oldStatus, $newStatus);
+                if (!$request->approved_at) {
+                    throw new \InvalidArgumentException(
+                        'Approve the request before marking it ready for pickup.'
+                    );
+                }
+                $readyAt = CarbonImmutable::now();
+                $documentIssuedAt = CarbonImmutable::now('Asia/Manila');
+                app(DocumentGenerationService::class)
+                    ->generateForReadyPickup(
+                        $request,
+                        $documentIssuedAt
+                    );
+                $request->update([
+                    'status' => self::STATUS_READY_FOR_PICKUP,
+                    'ready_for_pickup_at' => $readyAt,
+                ]);
+            } elseif ($newStatus === self::STATUS_COMPLETED) {
+                self::assertTransitionAllowed($oldStatus, $newStatus);
+                $request->update([
+                    'status' => self::STATUS_COMPLETED,
+                    'claimed_at' => now(),
+                    'release_recipient_name' => is_string($recipientName) &&
+                        trim($recipientName) !== ''
+                            ? trim($recipientName)
+                            : null,
+                    'released_by' => Auth::id(),
+                ]);
+            } else {
                 throw new \InvalidArgumentException(
-                    'Requirements can only be verified while a request is pending.'
+                    'Request changes must use an available workflow action.'
                 );
             }
 
-            if ($request->verified_at) {
-                throw new \InvalidArgumentException(
-                    'Requirements have already been verified for this review.'
-                );
-            }
-
-            $staff = Auth::user()?->staff;
-            $request->update([
-                'verified_by' => $staff?->staff_id,
-                'verified_at' => now(),
-                'requirements_complete' => $requirementsComplete,
-            ]);
-
-            AuditService::log(
-                'requirements_verified',
+            $action = $newStatus === self::STATUS_COMPLETED
+                ? 'document_released'
+                : 'ready_for_pickup';
+            AuditService::logStatusChange(
                 $request,
-                'Resident requirements were reviewed and verified.',
-                [],
-                [
-                    'verified_at' => now()->toISOString(),
-                    'requirements_complete' => $requirementsComplete,
-                ]
+                $oldStatus,
+                $newStatus,
+                null,
+                $action
+            );
+            NotificationService::requestStatusChanged(
+                $request,
+                $oldStatus,
+                $newStatus
             );
 
             return $request->fresh();
         });
     }
 
-    public static function resubmitRequirements(
+    public static function approveAndPrepareForPickup(
         BarangayRequest $request,
-        string $notes
+        ?string $remarks = null
     ): BarangayRequest {
-        return DB::transaction(function () use ($request, $notes): BarangayRequest {
+        return DB::transaction(function () use ($request, $remarks): BarangayRequest {
             $request = BarangayRequest::query()
                 ->lockForUpdate()
                 ->findOrFail($request->request_id);
-            if ($request->status !== self::STATUS_ADDITIONAL_REQUIREMENTS) {
-                throw new \InvalidArgumentException(
-                    'Additional requirements can only be resubmitted when requested by staff.'
-                );
-            }
-
             $oldStatus = $request->status;
+
+            self::assertTransitionAllowed(
+                $oldStatus,
+                self::STATUS_APPROVED
+            );
+            self::assertResidentIdVerified($request);
+            $approvedAt = now();
             $request->update([
-                'status' => self::STATUS_PENDING,
-                'remarks' => trim($notes),
-                'verified_by' => null,
-                'verified_at' => null,
-                'requirements_complete' => false,
+                'status' => self::STATUS_APPROVED,
+                'approved_at' => $approvedAt,
+                'decision_by' => Auth::id(),
+                'decision_at' => $approvedAt,
+                'remarks' => $remarks !== null ? trim($remarks) : null,
+                'rejection_reason' => null,
+                'rejection_other' => null,
+            ]);
+
+            AuditService::log(
+                'request_approved',
+                $request,
+                'Request approved for official document generation.',
+                ['status' => $oldStatus],
+                [
+                    'status' => self::STATUS_APPROVED,
+                    'decision_by' => Auth::id(),
+                    'decision_at' => $approvedAt->toISOString(),
+                    'remarks' => $remarks !== null ? trim($remarks) : null,
+                ]
+            );
+
+            $readyAt = now();
+            app(DocumentGenerationService::class)->generateForReadyPickup(
+                $request,
+                CarbonImmutable::now('Asia/Manila')
+            );
+            $request->update([
+                'status' => self::STATUS_READY_FOR_PICKUP,
+                'ready_for_pickup_at' => $readyAt,
             ]);
 
             AuditService::logStatusChange(
                 $request,
-                $oldStatus,
-                self::STATUS_PENDING,
-                $notes,
-                'requirements_resubmitted'
+                self::STATUS_APPROVED,
+                self::STATUS_READY_FOR_PICKUP,
+                null,
+                'ready_for_pickup'
             );
             NotificationService::requestStatusChanged(
                 $request,
                 $oldStatus,
-                self::STATUS_PENDING,
-                $notes
-            );
-            AuditService::notifyAllStaff(
-                'requirements_resubmitted',
-                'Additional Requirements Submitted',
-                "The resident submitted additional requirements for request {$request->tracking_number}.",
-                $request->request_id
+                self::STATUS_READY_FOR_PICKUP,
+                $remarks
             );
 
             return $request->fresh();
@@ -292,88 +304,132 @@ class RequestStatusService
             $request = BarangayRequest::query()
                 ->lockForUpdate()
                 ->findOrFail($request->request_id);
-            if ($request->status !== self::STATUS_PROCESSING) {
+            if ($request->status !== self::STATUS_REQUEST_SUBMITTED) {
                 throw new \InvalidArgumentException(
-                    'A document can only be prepared while the request is processing.'
+                    'A document can only be prepared during processing and approval.'
+                );
+            }
+
+            $documentId = $request->documents()
+                ->where('purpose', 'prepared_document')
+                ->orderByDesc('request_document_id')
+                ->value('request_document_id');
+            if (!$documentId) {
+                throw new \InvalidArgumentException(
+                    'Upload the prepared document before recording its preparation.'
                 );
             }
 
             $request->update([
                 'document_prepared_at' => now(),
                 'document_prepared_by' => Auth::id(),
-                'document_signed_at' => null,
-                'document_signed_by' => null,
-                'prepared_document_id' => $request->documents()
-                    ->where('purpose', 'prepared_document')
-                    ->orderByDesc('request_document_id')
-                    ->value('request_document_id'),
-                'signed_document_id' => null,
+                'prepared_document_id' => $documentId,
             ]);
 
             AuditService::log(
                 'document_prepared',
                 $request,
-                'A prepared document was uploaded for review.'
+                'The requested document was prepared and uploaded.'
             );
 
             return $request->fresh();
         });
     }
 
-    public static function authorizeDocument(BarangayRequest $request): BarangayRequest
-    {
-        return DB::transaction(function () use ($request): BarangayRequest {
+    public static function recordGeneratedDocumentPrint(
+        BarangayRequest $request
+    ): string {
+        return DB::transaction(function () use ($request): string {
             $request = BarangayRequest::query()
                 ->lockForUpdate()
                 ->findOrFail($request->request_id);
-            if ($request->status !== self::STATUS_PROCESSING) {
+
+            if ($request->status !== self::STATUS_READY_FOR_PICKUP) {
                 throw new \InvalidArgumentException(
-                    'A document can only be authorized while the request is processing.'
+                    'Only requests ready for pickup can be printed.'
+                );
+            }
+            if (!$request->document_number || !$request->generated_document_data) {
+                throw new \InvalidArgumentException(
+                    'Generate the official document before printing.'
                 );
             }
 
+            $printEvents = AuditLog::query()
+                ->where('table_name', 'barangay_requests')
+                ->where('record_id', $request->request_id)
+                ->whereIn('action', ['document_printed', 'document_reprinted'])
+                ->get(['new_values']);
+            $printCount = $printEvents->filter(
+                fn (AuditLog $event): bool =>
+                    ($event->new_values['document_number'] ?? null) ===
+                    $request->document_number
+            )->count();
+            $action = $printCount > 0
+                ? 'document_reprinted'
+                : 'document_printed';
+
+            AuditService::log(
+                $action,
+                $request,
+                $action === 'document_reprinted'
+                    ? "The generated document {$request->document_number} was reprinted."
+                    : "The generated document {$request->document_number} was sent for printing.",
+                [],
+                [
+                    'document_number' => $request->document_number,
+                    'print_number' => $printCount + 1,
+                ]
+            );
+
+            return $action;
+        });
+    }
+
+    public static function recordDocumentPrint(
+        BarangayRequest $request,
+        int $documentId
+    ): void {
+        DB::transaction(function () use ($request, $documentId): void {
+            $request = BarangayRequest::query()
+                ->lockForUpdate()
+                ->findOrFail($request->request_id);
+
+            if ($request->status !== self::STATUS_READY_FOR_PICKUP) {
+                throw new \InvalidArgumentException(
+                    'Only documents for requests ready for pickup can be printed.'
+                );
+            }
             if (
-                !$request->document_prepared_at ||
-                !$request->prepared_document_id ||
+                $request->prepared_document_id !== $documentId ||
                 !$request->documents()
-                    ->whereKey($request->prepared_document_id)
+                    ->whereKey($documentId)
                     ->where('purpose', 'prepared_document')
                     ->exists()
             ) {
                 throw new \InvalidArgumentException(
-                    'Upload and review the prepared document before authorization.'
+                    'The selected document is not the approved request document.'
                 );
             }
 
-            if ($request->document_signed_at) {
-                throw new \InvalidArgumentException(
-                    'This document has already been authorized.'
-                );
-            }
-
-            $signedDocumentId = $request->documents()
-                ->where('purpose', 'signed_document')
-                ->orderByDesc('request_document_id')
-                ->value('request_document_id');
-            if (!$signedDocumentId) {
-                throw new \InvalidArgumentException(
-                    'Upload the signed document as part of the authorization action.'
-                );
-            }
-
-            $request->update([
-                'document_signed_at' => now(),
-                'document_signed_by' => Auth::id(),
-                'signed_document_id' => $signedDocumentId,
-            ]);
-
+            $printCount = AuditLog::query()
+                ->where('table_name', 'barangay_requests')
+                ->where('record_id', $request->request_id)
+                ->whereIn('action', ['document_printed', 'document_reprinted'])
+                ->count();
+            $isReprint = $printCount > 0;
             AuditService::log(
-                'document_authorized',
+                $isReprint ? 'document_reprinted' : 'document_printed',
                 $request,
-                'An administrator authorized and uploaded the signed document.'
+                $isReprint
+                    ? 'The prepared request document was reprinted.'
+                    : 'The prepared request document was sent for printing.',
+                [],
+                [
+                    'request_document_id' => $documentId,
+                    'print_number' => $printCount + 1,
+                ]
             );
-
-            return $request->fresh();
         });
     }
 
@@ -387,12 +443,30 @@ class RequestStatusService
         return self::ALLOWED_TRANSITIONS[$current] ?? [];
     }
 
+    private static function assertResidentIdVerified(
+        BarangayRequest $request
+    ): void {
+        $request->loadMissing('user');
+        $resident = $request->user;
+        if (!$resident || $resident->verification_status !== 'verified') {
+            throw new \InvalidArgumentException(
+                'The resident account is not verified. Review the mobile ID in resident verification first.'
+            );
+        }
+        if (
+            !is_string($resident->valid_id_front) ||
+            trim($resident->valid_id_front) === ''
+        ) {
+            throw new \InvalidArgumentException(
+                'The resident mobile profile does not contain an ID image.'
+            );
+        }
+    }
+
     private static function assertTransitionAllowed(string $from, string $to): void
     {
         if (!in_array($to, self::ALL_STATUSES, true)) {
-            throw new \InvalidArgumentException(
-                'Unknown request status. Allowed: ' . implode(', ', self::ALL_STATUSES)
-            );
+            throw new \InvalidArgumentException('Unknown request status.');
         }
 
         if (!self::canTransition($from, $to)) {
@@ -409,6 +483,9 @@ class RequestStatusService
 
     public static function isFinalStatus(string $status): bool
     {
-        return empty(self::ALLOWED_TRANSITIONS[$status] ?? []);
+        return in_array($status, [
+            self::STATUS_REJECTED,
+            self::STATUS_COMPLETED,
+        ], true);
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import api from "../services/api";
 
@@ -10,6 +10,18 @@ export function AuthProvider({ children }) {
     );
 
     const [authLoading, setAuthLoading] = useState(true);
+
+    const refreshUser = useCallback(async () => {
+        const response = await api.get("/user");
+        const authenticatedUser = response.data?.data ?? response.data;
+        const userRole = response.data?.role ?? authenticatedUser?.role;
+        const completeUser = {
+            ...authenticatedUser,
+            role: userRole,
+        };
+        setUser(completeUser);
+        return completeUser;
+    }, []);
 
     // =========================================
     // RESTORE AUTHENTICATION AFTER PAGE REFRESH
@@ -24,18 +36,7 @@ export function AuthProvider({ children }) {
             }
 
             try {
-                const response = await api.get("/user");
-
-                const authenticatedUser =
-                    response.data?.data ?? response.data;
-
-                const userRole =
-                    response.data?.role ?? authenticatedUser?.role;
-
-                setUser({
-                    ...authenticatedUser,
-                    role: userRole,
-                });
+                await refreshUser();
 
                 setToken(storedToken);
             } catch (error) {
@@ -54,7 +55,7 @@ export function AuthProvider({ children }) {
         };
 
         verifyAuthentication();
-    }, []);
+    }, [refreshUser]);
 
     // =========================================
     // LOGIN
@@ -75,22 +76,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem("auth_token", authToken);
         setToken(authToken);
 
-        const userResponse = await api.get("/user");
-
-        const authenticatedUser =
-            userResponse.data?.data ?? userResponse.data;
-
-        const userRole =
-            userResponse.data?.role ??
-            responseData.role ??
-            authenticatedUser?.role;
-
-        const completeUser = {
-            ...authenticatedUser,
-            role: userRole,
-        };
-
-        setUser(completeUser);
+        await refreshUser();
 
         return responseData;
     };
@@ -121,6 +107,7 @@ export function AuthProvider({ children }) {
         token,
         login,
         logout,
+        refreshUser,
         isAuthenticated: Boolean(token && user),
         authLoading,
     };
