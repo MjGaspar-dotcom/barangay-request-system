@@ -11,6 +11,8 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final int maxLines;
+  final int? maxLength;
+  final TextCapitalization textCapitalization;
   final bool enabled;
   final bool readOnly;
   final VoidCallback? onTap;
@@ -27,6 +29,8 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.maxLines = 1,
+    this.maxLength,
+    this.textCapitalization = TextCapitalization.none,
     this.enabled = true,
     this.readOnly = false,
     this.onTap,
@@ -41,6 +45,8 @@ class AppTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       maxLines: obscureText ? 1 : maxLines,
+      maxLength: maxLength,
+      textCapitalization: textCapitalization,
       enabled: enabled,
       readOnly: readOnly,
       onTap: onTap,

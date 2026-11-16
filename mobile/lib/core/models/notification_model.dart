@@ -5,6 +5,7 @@ class AppNotification {
   final bool isRead;
   final String createdAt;
   final String? type;
+  final int? requestId;
 
   AppNotification({
     required this.id,
@@ -13,6 +14,7 @@ class AppNotification {
     required this.isRead,
     required this.createdAt,
     this.type,
+    this.requestId,
   });
 
   AppNotification copyWith({bool? isRead}) {
@@ -23,6 +25,7 @@ class AppNotification {
       isRead: isRead ?? this.isRead,
       createdAt: createdAt,
       type: type,
+      requestId: requestId,
     );
   }
 
@@ -37,6 +40,7 @@ class AppNotification {
       isRead: json['is_read'] == true || json['read_at'] != null,
       createdAt: json['created_at']?.toString() ?? '',
       type: json['type']?.toString(),
+      requestId: int.tryParse(json['request_id']?.toString() ?? ''),
     );
   }
 
@@ -66,11 +70,24 @@ class AppNotification {
       throw const FormatException('Invalid notifications response.');
     }
 
-    return payload.map((item) {
+    final notifications = payload.map((item) {
       if (item is! Map) {
         throw const FormatException('Invalid notification item.');
       }
       return AppNotification.fromJson(Map<String, dynamic>.from(item));
     }).toList();
+
+    notifications.sort((a, b) {
+      final aCreatedAt = DateTime.tryParse(a.createdAt);
+      final bCreatedAt = DateTime.tryParse(b.createdAt);
+      if (aCreatedAt == null) {
+        return bCreatedAt == null ? b.id.compareTo(a.id) : 1;
+      }
+      if (bCreatedAt == null) return -1;
+
+      final byDate = bCreatedAt.compareTo(aCreatedAt);
+      return byDate != 0 ? byDate : b.id.compareTo(a.id);
+    });
+    return notifications;
   }
 }

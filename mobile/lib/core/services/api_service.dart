@@ -36,6 +36,7 @@ class ApiService {
       BaseOptions(
         baseUrl: _baseUrl,
         connectTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         headers: {
           'Accept': 'application/json',
@@ -117,7 +118,18 @@ class ApiService {
 
   // --- Track ---
   static Future<Response> trackRequest(String trackingNumber) {
-    return dio.get('/track/$trackingNumber');
+    return dio.get('/track/${Uri.encodeComponent(trackingNumber)}');
+  }
+
+  static Future<Response> getGeneratedDocument(int requestId) {
+    return dio.get('/barangay-requests/$requestId/generated-document');
+  }
+
+  static Future<Response> getGeneratedDocumentFile(int requestId) {
+    return dio.get(
+      '/barangay-requests/$requestId/generated-document/file',
+      options: Options(responseType: ResponseType.bytes),
+    );
   }
 
   // --- Notifications ---

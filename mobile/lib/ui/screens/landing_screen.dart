@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'auth/login_screen.dart';
 import 'auth/register_screen.dart';
 import 'guest/track_request_screen.dart';
+import '../../core/theme/app_theme.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -18,7 +19,11 @@ class LandingScreen extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF1A6B4A), Color(0xFF0D4A32), Color(0xFF0A2E1E)],
+                colors: [
+                  AppColors.primary,
+                  AppColors.primaryDark,
+                  AppColors.darkSurface,
+                ],
               ),
             ),
           ),
@@ -30,7 +35,7 @@ class LandingScreen extends StatelessWidget {
               width: 220,
               height: 220,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: AppColors.surface.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
             ),
@@ -42,7 +47,7 @@ class LandingScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.07),
+                color: AppColors.surface.withValues(alpha: 0.07),
                 shape: BoxShape.circle,
               ),
             ),
@@ -60,7 +65,7 @@ class LandingScreen extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: AppColors.surface.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: ClipRRect(
@@ -77,7 +82,7 @@ class LandingScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.surface,
                       height: 1.1,
                       letterSpacing: -1,
                     ),
@@ -87,7 +92,7 @@ class LandingScreen extends StatelessWidget {
                     'Request barangay documents quickly\nand track them from your phone.',
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.white.withOpacity(0.7),
+                      color: AppColors.surface.withValues(alpha: 0.7),
                       height: 1.5,
                     ),
                   ),
@@ -125,7 +130,9 @@ class LandingScreen extends StatelessWidget {
                       ),
                       child: Text(
                         "Don't have an account? Register",
-                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                        style: TextStyle(
+                          color: AppColors.surface.withValues(alpha: 0.7),
+                        ),
                       ),
                     ),
                   ),
@@ -167,8 +174,8 @@ class _LandingButton extends StatelessWidget {
           icon: Icon(icon),
           label: Text(label),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF1A6B4A),
+            backgroundColor: AppColors.surface,
+            foregroundColor: AppColors.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
@@ -182,10 +189,15 @@ class _LandingButton extends StatelessWidget {
       child: OutlinedButton.icon(
         key: Key(id),
         onPressed: onTap,
-        icon: Icon(icon, color: Colors.white),
-        label: Text(label, style: const TextStyle(color: Colors.white)),
+        icon: Icon(icon, color: AppColors.surface),
+        label: Text(
+          label,
+          style: const TextStyle(color: AppColors.surface),
+        ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.white.withOpacity(0.4)),
+          side: BorderSide(
+            color: AppColors.surface.withValues(alpha: 0.4),
+          ),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),

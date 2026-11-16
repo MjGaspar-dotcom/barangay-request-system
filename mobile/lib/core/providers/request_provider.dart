@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
@@ -17,8 +19,12 @@ class RequestProvider extends ChangeNotifier {
   TrackResult? _trackResult;
   String? _errorMessage;
   String? _successMessage;
+  BarangayRequest? _lastCreatedRequest;
   int _documentTypesRequestId = 0;
   CancelToken? _documentTypesCancelToken;
+  bool _isFetchingRequests = false;
+  int _trackRequestId = 0;
+  int? _activeTrackRequestId;
 
   RequestStatus get status => _status;
   List<BarangayRequest> get requests => _requests;
@@ -28,6 +34,7 @@ class RequestProvider extends ChangeNotifier {
   TrackResult? get trackResult => _trackResult;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
+  BarangayRequest? get lastCreatedRequest => _lastCreatedRequest;
 
   Future<void> fetchDocumentTypes({bool force = false}) async {
     if (_documentTypesStatus == DocumentTypesStatus.loading) {
@@ -111,67 +118,180 @@ class RequestProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchMyRequests() async {
-    if (_status == RequestStatus.loading) return;
+  Future<void> fetchMyRequests({bool silent = false}) async {
+    if (_isFetchingRequests ||
+        (silent &&
+            (_status == RequestStatus.loading ||
+                _status == RequestStatus.submitting))) {
+      return;
+    }
 
-    _status = RequestStatus.loading;
-    notifyListeners();
+    _isFetchingRequests = true;
+    if (!silent) {
+      _status = RequestStatus.loading;
+      _errorMessage = null;
+      notifyListeners();
+    }
     try {
       final response = await ApiService.getMyRequests();
-      final List raw = response.data is List
-          ? response.data
-          : (response.data['data'] ?? response.data['requests'] ?? []);
-      _requests = raw.map((e) => BarangayRequest.fromJson(e)).toList();
-      _status = RequestStatus.loaded;
+      final rawRequests = _requestListFromResponse(response.data);
+      final requests = rawRequests.map((item) {
+        if (item is! Map) {
+          throw const FormatException('Invalid request item in response.');
+        }
+        return BarangayRequest.fromJson(
+          Map<String, dynamic>.from(item),
+        );
+      }).toList();
+      requests.sort(BarangayRequest.compareNewestFirst);
+      _requests = requests;
+      _errorMessage = null;
+      if (!silent ||
+          (_status != RequestStatus.loading &&
+              _status != RequestStatus.submitting)) {
+        _status = RequestStatus.loaded;
+      }
     } on DioException catch (e) {
-      _errorMessage = _extractError(e);
-      _status = RequestStatus.error;
+      _errorMessage = ApiService.errorMessage(e);
+      if (!silent || _requests.isEmpty) {
+        _status = RequestStatus.error;
+      }
+    } on FormatException catch (e) {
+      _errorMessage = e.message;
+      if (!silent || _requests.isEmpty) {
+        _status = RequestStatus.error;
+      }
+    } finally {
+      _isFetchingRequests = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<bool> createRegisteredRequest({
     required int documentTypeId,
     required String purpose,
+    Map<String, dynamic>? requestDetails,
   }) async {
+    if (_status == RequestStatus.submitting) return false;
+
     _status = RequestStatus.submitting;
     _errorMessage = null;
+    _lastCreatedRequest = null;
     notifyListeners();
     try {
-      await ApiService.createRequest({
+      final response = await ApiService.createRequest({
         'document_type_id': documentTypeId,
         'purpose': purpose,
+        if (requestDetails != null) 'request_data': requestDetails,
       });
+      final payload = response.data;
+      if (payload is! Map || payload['success'] == false) {
+        throw FormatException(
+          payload is Map
+              ? payload['message']?.toString() ??
+                  'The server did not confirm the request.'
+              : 'Invalid request submission response.',
+        );
+      }
+
+      final data = payload['data'];
+      final requestData = data is Map ? data['request'] : null;
+      if (requestData is! Map) {
+        throw const FormatException(
+          'The server did not return the submitted request.',
+        );
+      }
+      final request = BarangayRequest.fromJson(
+        Map<String, dynamic>.from(requestData),
+      );
+      if (request.trackingNumber == null ||
+          request.trackingNumber!.trim().isEmpty) {
+        throw const FormatException(
+          'The server did not return a tracking number.',
+        );
+      }
+
+      _lastCreatedRequest = request.copyWithQrCode(
+        data is Map ? data['qr_code']?.toString() : null,
+      );
       _status = RequestStatus.success;
       _successMessage = 'Request submitted successfully!';
       notifyListeners();
-      await fetchMyRequests();
+      unawaited(fetchMyRequests(silent: true));
       return true;
     } on DioException catch (e) {
-      _errorMessage = _extractError(e);
+      _errorMessage = ApiService.errorMessage(e);
+      _status = RequestStatus.error;
+      notifyListeners();
+      return false;
+    } on FormatException catch (e) {
+      _errorMessage = e.message;
       _status = RequestStatus.error;
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> trackRequest(String trackingNumber) async {
-    _status = RequestStatus.loading;
-    _trackResult = null;
-    _errorMessage = null;
-    notifyListeners();
+  Future<bool> trackRequest(
+    String trackingNumber, {
+    bool silent = false,
+  }) async {
+    if (silent && _activeTrackRequestId != null) return false;
+
+    final requestId = ++_trackRequestId;
+    _activeTrackRequestId = requestId;
+    if (!silent) {
+      _status = RequestStatus.loading;
+      _trackResult = null;
+      _errorMessage = null;
+      notifyListeners();
+    }
     try {
       final response = await ApiService.trackRequest(trackingNumber);
       final data = response.data;
-      _trackResult = TrackResult.fromJson(data['data'] ?? data);
-      _status = RequestStatus.loaded;
+      if (data is! Map || data['success'] == false) {
+        throw FormatException(
+          data is Map
+              ? data['message']?.toString() ?? 'Request tracking failed.'
+              : 'Invalid request tracking response.',
+        );
+      }
+      final result = data['data'] ?? data;
+      if (result is! Map) {
+        throw const FormatException('Invalid request tracking data.');
+      }
+      if (requestId != _trackRequestId) return false;
+      _trackResult = TrackResult.fromJson(
+        Map<String, dynamic>.from(result),
+      );
+      _errorMessage = null;
+      if (!silent ||
+          (_status != RequestStatus.loading &&
+              _status != RequestStatus.submitting)) {
+        _status = RequestStatus.loaded;
+      }
       notifyListeners();
       return true;
     } on DioException catch (e) {
+      if (requestId != _trackRequestId) return false;
       _errorMessage = _extractError(e);
-      _status = RequestStatus.error;
+      if (!silent) {
+        _status = RequestStatus.error;
+      }
       notifyListeners();
       return false;
+    } on FormatException catch (e) {
+      if (requestId != _trackRequestId) return false;
+      _errorMessage = e.message;
+      if (!silent) {
+        _status = RequestStatus.error;
+      }
+      notifyListeners();
+      return false;
+    } finally {
+      if (_activeTrackRequestId == requestId) {
+        _activeTrackRequestId = null;
+      }
     }
   }
 
@@ -185,5 +305,26 @@ class RequestProvider extends ChangeNotifier {
   String _extractError(DioException e) {
     if (e.response?.statusCode == 404) return 'Tracking number not found.';
     return ApiService.errorMessage(e);
+  }
+
+  List<dynamic> _requestListFromResponse(dynamic response) {
+    if (response is List) return response;
+    if (response is! Map) {
+      throw const FormatException('Invalid requests response.');
+    }
+    if (response['success'] == false) {
+      throw FormatException(
+        response['message']?.toString() ?? 'Requests could not be loaded.',
+      );
+    }
+
+    dynamic data = response['data'] ?? response['requests'];
+    if (data is Map) {
+      data = data['data'] ?? data['requests'];
+    }
+    if (data is! List) {
+      throw const FormatException('Request list is missing from the response.');
+    }
+    return data;
   }
 }

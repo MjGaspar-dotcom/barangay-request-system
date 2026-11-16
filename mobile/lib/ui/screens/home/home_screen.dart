@@ -10,6 +10,7 @@ import '../../../core/models/recommendation.dart';
 import '../../../core/models/request_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/recommendation_engine.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../widgets/status_chip.dart';
 import '../../widgets/for_you_section.dart';
 import '../landing_screen.dart';
@@ -28,6 +29,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   Timer? _notificationPollingTimer;
+  Timer? _requestPollingTimer;
   Timer? _birthdayRefreshTimer;
   bool _isAppResumed = true;
   bool _redirectingForExpiredSession = false;
@@ -51,6 +53,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         if (_isAppResumed) unawaited(_refreshNotifications());
       },
     );
+    _requestPollingTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) {
+        if (_isAppResumed && mounted) {
+          unawaited(context.read<RequestProvider>().fetchMyRequests(
+                silent: true,
+              ));
+        }
+      },
+    );
   }
 
   @override
@@ -60,6 +72,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_isAppResumed && !wasResumed) {
       unawaited(_refreshNotifications());
       _onAuthChanged();
+      unawaited(
+        context.read<RequestProvider>().fetchMyRequests(silent: true),
+      );
       unawaited(
           context.read<RequestProvider>().fetchDocumentTypes(force: true));
     }
@@ -113,7 +128,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(notification.message),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.notifications_active_outlined,
+              color: AppColors.primaryContainer,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                notification.message,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.darkSurface,
+        duration: const Duration(seconds: 4),
+        dismissDirection: DismissDirection.horizontal,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        elevation: 6,
         action: SnackBarAction(
           label: 'View',
           onPressed: () {
@@ -129,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _authProvider.removeListener(_onAuthChanged);
     _notificationPollingTimer?.cancel();
+    _requestPollingTimer?.cancel();
     _birthdayRefreshTimer?.cancel();
     super.dispose();
   }
@@ -151,17 +195,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         onDestinationSelected: (i) {
           setState(() => _selectedIndex = i);
         },
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFF1A6B4A).withOpacity(0.12),
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primaryContainer,
         destinations: [
           const NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Color(0xFF1A6B4A)),
+            selectedIcon: Icon(Icons.home, color: AppColors.primary),
             label: 'Home',
           ),
           const NavigationDestination(
             icon: Icon(Icons.folder_outlined),
-            selectedIcon: Icon(Icons.folder, color: Color(0xFF1A6B4A)),
+            selectedIcon: Icon(Icons.folder, color: AppColors.primary),
             label: 'Requests',
           ),
           NavigationDestination(
@@ -171,12 +215,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               child: const Icon(Icons.notifications_outlined),
             ),
             selectedIcon:
-                const Icon(Icons.notifications, color: Color(0xFF1A6B4A)),
+                const Icon(Icons.notifications, color: AppColors.primary),
             label: 'Notifications',
           ),
           const NavigationDestination(
             icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: Color(0xFF1A6B4A)),
+            selectedIcon: Icon(Icons.person, color: AppColors.primary),
             label: 'Profile',
           ),
         ],
@@ -219,7 +263,7 @@ class _DashboardTab extends StatelessWidget {
           );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F8F6),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -227,7 +271,7 @@ class _DashboardTab extends StatelessWidget {
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF1A6B4A), Color(0xFF0D4A32)],
+                    colors: [AppColors.primary, AppColors.primaryDark],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -245,14 +289,14 @@ class _DashboardTab extends StatelessWidget {
                             Text(
                               'Good day,',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: AppColors.surface.withValues(alpha: 0.7),
                                 fontSize: 14,
                               ),
                             ),
                             Text(
                               user?.firstName ?? 'Resident',
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.surface,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -273,11 +317,11 @@ class _DashboardTab extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
+                              color: AppColors.surface.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(Icons.logout,
-                                color: Colors.white, size: 20),
+                                color: AppColors.surface, size: 20),
                           ),
                         ),
                       ],
@@ -335,7 +379,7 @@ class _DashboardTab extends StatelessWidget {
                             id: 'qa_request_document',
                             icon: Icons.add_circle_outline,
                             label: 'Request\nDocument',
-                            color: const Color(0xFF1A6B4A),
+                            color: AppColors.primary,
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -349,7 +393,7 @@ class _DashboardTab extends StatelessWidget {
                             id: 'qa_my_requests',
                             icon: Icons.folder_open_outlined,
                             label: 'My\nRequests',
-                            color: const Color(0xFF2D7D9A),
+                            color: AppColors.secondary,
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -436,14 +480,14 @@ class _VerificationBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF3CD),
+          color: AppColors.warningContainer,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFFFD32A)),
+          border: Border.all(color: AppColors.warning),
         ),
         child: Row(
           children: [
             const Icon(Icons.warning_amber_rounded,
-                color: Color(0xFFB8860B), size: 28),
+                color: AppColors.warning, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -453,19 +497,19 @@ class _VerificationBanner extends StatelessWidget {
                     'Verification Pending',
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF7D5B00),
+                      color: AppColors.warningDark,
                     ),
                   ),
                   Text(
                     'Upload your Valid ID to verify your account and unlock full features.',
                     style: TextStyle(
                         fontSize: 12,
-                        color: const Color(0xFF7D5B00).withOpacity(0.8)),
+                        color: AppColors.warningDark.withValues(alpha: 0.8)),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFF7D5B00)),
+            const Icon(Icons.chevron_right, color: AppColors.warningDark),
           ],
         ),
       ),
@@ -486,7 +530,7 @@ class _SectionHeader extends StatelessWidget {
         style: const TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF1A2E1F),
+          color: AppColors.textPrimary,
         ),
       ),
     );
@@ -520,7 +564,7 @@ class _QuickActionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               offset: const Offset(0, 6),
               blurRadius: 16,
             ),
@@ -529,12 +573,12 @@ class _QuickActionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: Colors.white, size: 32),
+            Icon(icon, color: AppColors.surface, size: 32),
             const SizedBox(height: 12),
             Text(
               label,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.surface,
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
                 height: 1.3,
@@ -556,9 +600,9 @@ class _RequestCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDF0EC)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
@@ -566,11 +610,11 @@ class _RequestCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFF1A6B4A).withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.description_outlined,
-                color: Color(0xFF1A6B4A)),
+                color: AppColors.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -589,7 +633,10 @@ class _RequestCard extends StatelessWidget {
                   request.purpose,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -610,17 +657,24 @@ class _EmptyRequests extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEDF0EC)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
-          Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+          const Icon(
+            Icons.inbox_outlined,
+            size: 48,
+            color: AppColors.textSubtle,
+          ),
           const SizedBox(height: 12),
-          Text(
+          const Text(
             'No requests yet',
-            style: TextStyle(color: Colors.grey[600], fontSize: 15),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -17,22 +19,46 @@ class TrackRequestScreen extends StatefulWidget {
   State<TrackRequestScreen> createState() => _TrackRequestScreenState();
 }
 
-class _TrackRequestScreenState extends State<TrackRequestScreen> {
+class _TrackRequestScreenState extends State<TrackRequestScreen>
+    with WidgetsBindingObserver {
   final _trackingCtrl = TextEditingController();
   final _imagePicker = ImagePicker();
+  Timer? _trackingRefreshTimer;
+  String? _trackingNumberToRefresh;
+  bool _isAppResumed = true;
   bool _isReadingQr = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.initialTracking != null) {
       _trackingCtrl.text = widget.initialTracking!;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _track());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _track();
+      });
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final wasResumed = _isAppResumed;
+    _isAppResumed = state == AppLifecycleState.resumed;
+    final trackingNumber = _trackingNumberToRefresh;
+    if (_isAppResumed && !wasResumed && trackingNumber != null) {
+      unawaited(
+        context.read<RequestProvider>().trackRequest(
+              trackingNumber,
+              silent: true,
+            ),
+      );
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _trackingRefreshTimer?.cancel();
     _trackingCtrl.dispose();
     super.dispose();
   }
@@ -45,6 +71,20 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
       );
       return;
     }
+    _trackingNumberToRefresh = tracking;
+    _trackingRefreshTimer?.cancel();
+    _trackingRefreshTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) {
+        if (!_isAppResumed || !mounted) return;
+        unawaited(
+          context.read<RequestProvider>().trackRequest(
+                tracking,
+                silent: true,
+              ),
+        );
+      },
+    );
     await context.read<RequestProvider>().trackRequest(tracking);
   }
 
@@ -76,7 +116,8 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
       final payload = QRCodeReader().decode(bitmap).text;
       final trackingNumber = _trackingNumberFromQr(payload);
       if (trackingNumber.isEmpty) {
-        throw const FormatException('The QR code does not contain a tracking number.');
+        throw const FormatException(
+            'The QR code does not contain a tracking number.');
       }
 
       _trackingCtrl.text = trackingNumber;
@@ -172,9 +213,8 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
                       key: const Key('btn_upload_tracking_qr'),
-                      onPressed: isLoading || _isReadingQr
-                          ? null
-                          : _uploadQrCode,
+                      onPressed:
+                          isLoading || _isReadingQr ? null : _uploadQrCode,
                       icon: _isReadingQr
                           ? const SizedBox(
                               width: 18,
@@ -206,8 +246,7 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
               ),
               const SizedBox(height: 24),
               // Result
-              if (provider.status == RequestStatus.error &&
-                  provider.errorMessage != null)
+              if (provider.errorMessage != null)
                 _ErrorCard(message: provider.errorMessage!),
               if (provider.trackResult != null)
                 _TrackResultCard(result: provider.trackResult!),
@@ -233,7 +272,7 @@ class _TrackResultCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFEDF0EC)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -262,12 +301,24 @@ class _TrackResultCard extends StatelessWidget {
           if (result.documentTypeName != null)
             _InfoRow(label: 'Document', value: result.documentTypeName!),
           if (result.createdAt != null)
-            _InfoRow(label: 'Date Filed', value: _formatDate(result.createdAt!)),
+            _InfoRow(
+                label: 'Date Filed', value: _formatDate(result.createdAt!)),
           if (result.remarks != null && result.remarks!.isNotEmpty)
             _InfoRow(label: 'Remarks', value: result.remarks!),
+          if (result.rejectionReason != null &&
+              result.rejectionReason!.isNotEmpty)
+            _InfoRow(
+              label: 'Rejection reason',
+              value: result.rejectionReason!,
+            ),
+          if (result.rejectionOther != null &&
+              result.rejectionOther!.isNotEmpty)
+            _InfoRow(
+              label: 'Additional details',
+              value: result.rejectionOther!,
+            ),
           const SizedBox(height: 8),
-          // Status Progress
-          _StatusTimeline(status: result.status),
+          RequestStatusTimeline(result: result),
         ],
       ),
     );
@@ -318,79 +369,184 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _StatusTimeline extends StatelessWidget {
-  final String status;
-  const _StatusTimeline({required this.status});
+class RequestStatusTimeline extends StatelessWidget {
+  final TrackResult result;
+
+  const RequestStatusTimeline({super.key, required this.result});
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['pending', 'processing', 'completed'];
-    final currentIdx = steps.indexOf(status.toLowerCase());
+    final status = result.status.trim().toLowerCase().replaceAll('_', ' ');
+    final isRejected = status == 'rejected';
+    const requestStatuses = {
+      'request submitted',
+      'pending',
+      'approved',
+      'processing',
+      'ready for pickup',
+      'completed',
+      'rejected',
+    };
+    final steps = isRejected
+        ? const ['Request Submitted', 'Rejected']
+        : requestStatuses.contains(status)
+            ? const [
+                'Request Submitted',
+                'Processing & Approval',
+                'Ready for Pickup',
+                'Completed',
+              ]
+            : const [
+                'Request Submitted',
+                'Status unavailable',
+              ];
+    final currentIdx = switch (status) {
+      'request submitted' || 'pending' => 0,
+      'approved' || 'processing' => 1,
+      'ready for pickup' => 2,
+      'completed' => 3,
+      'rejected' => 1,
+      _ => 1,
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(height: 24),
         const Text(
-          'Progress',
+          'Status timeline',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: steps.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final step = entry.value;
-            final isDone = currentIdx >= idx;
-            return Expanded(
-              child: Row(
-                children: [
-                  Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor: isDone
-                            ? const Color(0xFF1A6B4A)
-                            : const Color(0xFFE0E0E0),
-                        child: Icon(
-                          isDone ? Icons.check : Icons.circle,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        step[0].toUpperCase() + step.substring(1),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDone
-                              ? const Color(0xFF1A6B4A)
-                              : Colors.grey,
-                          fontWeight: isDone
-                              ? FontWeight.w700
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
+        for (final entry in steps.asMap().entries)
+          _TimelineRow(
+            label: entry.value,
+            isComplete:
+                entry.key < currentIdx || (isRejected && entry.key == 0),
+            isCurrent: entry.key == currentIdx,
+            isRejected: isRejected && entry.key == currentIdx,
+            isLast: entry.key == steps.length - 1,
+            timestamp: _timestampFor(entry.key),
+          ),
+        if (status != 'request submitted' &&
+            status != 'pending' &&
+            result.decisionAt != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 30, top: 4),
+            child: Text(
+              'Decision recorded ${_formatDate(result.decisionAt!)}',
+              style: const TextStyle(fontSize: 11, color: Colors.black54),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String? _timestampFor(int index) {
+    if (index == 0) return result.createdAt;
+    return null;
+  }
+
+  String _formatDate(String raw) {
+    final date = DateTime.tryParse(raw)?.toLocal();
+    if (date == null) return raw;
+    return '${date.month}/${date.day}/${date.year}';
+  }
+}
+
+class _TimelineRow extends StatelessWidget {
+  final String label;
+  final bool isComplete;
+  final bool isCurrent;
+  final bool isRejected;
+  final bool isLast;
+  final String? timestamp;
+
+  const _TimelineRow({
+    required this.label,
+    required this.isComplete,
+    required this.isCurrent,
+    required this.isRejected,
+    required this.isLast,
+    required this.timestamp,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isRejected
+        ? Colors.red.shade700
+        : isComplete || isCurrent
+            ? const Color(0xFF1A6B4A)
+            : const Color(0xFFB0B8B3);
+
+    return SizedBox(
+      height: isLast ? 36 : 52,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 22,
+            child: Column(
+              children: [
+                Icon(
+                  isRejected
+                      ? Icons.cancel
+                      : isComplete
+                          ? Icons.check_circle
+                          : isCurrent
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                  size: 18,
+                  color: color,
+                ),
+                if (!isLast)
+                  Expanded(
+                    child: Container(
+                      width: 2,
+                      color: isComplete
+                          ? const Color(0xFF1A6B4A)
+                          : const Color(0xFFE0E0E0),
+                    ),
                   ),
-                  if (idx < steps.length - 1)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: Divider(
-                          color: currentIdx > idx
-                              ? const Color(0xFF1A6B4A)
-                              : const Color(0xFFE0E0E0),
-                          thickness: 2,
-                        ),
-                      ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isCurrent || isComplete
+                          ? const Color(0xFF1A2E1F)
+                          : Colors.black54,
+                      fontSize: 12,
+                      fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                  if (timestamp != null && timestamp!.isNotEmpty)
+                    Text(
+                      _formatDate(timestamp!),
+                      style:
+                          const TextStyle(fontSize: 10, color: Colors.black54),
                     ),
                 ],
               ),
-            );
-          }).toList(),
-        ),
-      ],
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  String _formatDate(String raw) {
+    final date = DateTime.tryParse(raw)?.toLocal();
+    if (date == null) return raw;
+    return '${date.month}/${date.day}/${date.year}';
   }
 }
 

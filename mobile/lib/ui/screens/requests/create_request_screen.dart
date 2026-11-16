@@ -6,9 +6,12 @@ import '../../../core/models/request_model.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/request_provider.dart';
 import '../../../core/services/recommendation_engine.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/input_validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/document_types_error.dart';
 import '../../widgets/loading_button.dart';
+import '../../widgets/qr_receipt_dialog.dart';
 
 class CreateRequestScreen extends StatefulWidget {
   const CreateRequestScreen({super.key, this.initialDocumentTypeId});
@@ -33,6 +36,9 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final _purposeCtrl = TextEditingController();
+  final _businessNameCtrl = TextEditingController();
+  final _businessAddressCtrl = TextEditingController();
+  final _businessActivityCtrl = TextEditingController();
   final _recommendationEngine = RecommendationEngine();
   int? _selectedDocTypeId;
   String? _selectedPurpose;
@@ -49,26 +55,69 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   @override
   void dispose() {
     _purposeCtrl.dispose();
+    _businessNameCtrl.dispose();
+    _businessAddressCtrl.dispose();
+    _businessActivityCtrl.dispose();
     super.dispose();
+  }
+
+  bool _requiresBusinessDetails(RequestProvider provider) {
+    for (final document in provider.documentTypes) {
+      if (document.id == _selectedDocTypeId) {
+        return document.name.trim().toLowerCase() ==
+            'barangay business clearance';
+      }
+    }
+    return false;
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final success =
-        await context.read<RequestProvider>().createRegisteredRequest(
-              documentTypeId: _selectedDocTypeId!,
-              purpose: _selectedPurpose == 'Other'
-                  ? _purposeCtrl.text.trim()
-                  : _selectedPurpose!,
-            );
+    final requestProvider = context.read<RequestProvider>();
+    final requestData = _requiresBusinessDetails(requestProvider)
+        ? {
+            'business_name': _businessNameCtrl.text.trim(),
+            'business_address': _businessAddressCtrl.text.trim(),
+            'business_activity': _businessActivityCtrl.text.trim(),
+          }
+        : null;
+    final success = await requestProvider.createRegisteredRequest(
+      documentTypeId: _selectedDocTypeId!,
+      purpose: _selectedPurpose == 'Other'
+          ? _purposeCtrl.text.trim()
+          : _selectedPurpose!,
+      requestDetails: requestData,
+    );
     if (!mounted) return;
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Request submitted successfully!'),
-          backgroundColor: Color(0xFF1A6B4A),
-        ),
+      final request = requestProvider.lastCreatedRequest;
+      final trackingNumber = request?.trackingNumber;
+      if (request == null || trackingNumber == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Request submitted, but the server did not return a receipt.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      String? documentName;
+      for (final document in requestProvider.documentTypes) {
+        if (document.id == _selectedDocTypeId) {
+          documentName = document.name;
+          break;
+        }
+      }
+
+      await QrReceiptDialog.show(
+        context,
+        trackingNumber: trackingNumber,
+        qrCodeSvg: request.qrCodeSvg,
+        documentName: documentName,
       );
+      if (!mounted) return;
       Navigator.of(context).pop();
     } else {
       final msg = context.read<RequestProvider>().errorMessage;
@@ -119,14 +168,14 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A6B4A).withOpacity(0.07),
+                    color: AppColors.primary.withValues(alpha: 0.07),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(Icons.info_outline, color: Color(0xFF1A6B4A)),
-                      const SizedBox(width: 10),
-                      const Expanded(
+                      Icon(Icons.info_outline, color: Color(0xFF1A6B4A)),
+                      SizedBox(width: 10),
+                      Expanded(
                         child: Text(
                           'Your verified ID on file will be used for this request.',
                           style: TextStyle(
@@ -199,7 +248,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
                   key: const Key('create_req_doc_type'),
-                  value: _selectedDocTypeId,
+                  initialValue: _selectedDocTypeId,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -259,6 +308,50 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                         (value == null || value.trim().isEmpty)
                             ? 'Please describe your purpose'
                             : null,
+                  ),
+                ],
+                if (_requiresBusinessDetails(provider)) ...[
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Business details',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  AppTextField(
+                    id: 'create_req_business_name',
+                    label: 'Business name',
+                    controller: _businessNameCtrl,
+                    maxLength: 255,
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) => InputValidators.requiredText(
+                      value,
+                      maxLength: 255,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'create_req_business_address',
+                    label: 'Business address',
+                    controller: _businessAddressCtrl,
+                    maxLines: 2,
+                    maxLength: 500,
+                    textCapitalization: TextCapitalization.sentences,
+                    validator: (value) => InputValidators.requiredText(
+                      value,
+                      maxLength: 500,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'create_req_business_activity',
+                    label: 'Business activity',
+                    controller: _businessActivityCtrl,
+                    maxLength: 255,
+                    textCapitalization: TextCapitalization.sentences,
+                    validator: (value) => InputValidators.requiredText(
+                      value,
+                      maxLength: 255,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 32),

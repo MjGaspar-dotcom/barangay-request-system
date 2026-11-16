@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/utils/input_validators.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/google_sign_in_button.dart';
 import '../../widgets/loading_button.dart';
@@ -27,6 +28,10 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  static const _municipality = 'Alicia';
+  static const _province = 'Isabela';
+  static const _postalCode = '3306';
+
   final _accountFormKey = GlobalKey<FormState>();
   final _personalFormKey = GlobalKey<FormState>();
   int _currentStep = 0;
@@ -41,7 +46,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _lastNameCtrl = TextEditingController();
   final _birthDateCtrl = TextEditingController();
   final _contactCtrl = TextEditingController();
-  final _addressCtrl = TextEditingController();
+  final _streetNameCtrl = TextEditingController();
+  final _barangayNameCtrl = TextEditingController();
+  final _municipalityCtrl = TextEditingController(text: _municipality);
+  final _provinceCtrl = TextEditingController(text: _province);
+  final _postalCodeCtrl = TextEditingController(text: _postalCode);
 
   String? _gender;
   String? _civilStatus;
@@ -77,12 +86,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _lastNameCtrl,
       _birthDateCtrl,
       _contactCtrl,
-      _addressCtrl
+      _streetNameCtrl,
+      _barangayNameCtrl,
+      _municipalityCtrl,
+      _provinceCtrl,
+      _postalCodeCtrl,
     ]) {
       c.dispose();
     }
     super.dispose();
   }
+
+  String get _formattedAddress => [
+        _streetNameCtrl.text.trim(),
+        _barangayNameCtrl.text.trim(),
+        _municipality,
+        _province,
+        _postalCode,
+      ].join(', ');
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -114,7 +135,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               'gender': _gender,
               'civil_status': _civilStatus,
               'contact_number': _contactCtrl.text.trim(),
-              'address': _addressCtrl.text.trim(),
+              'street_name': _streetNameCtrl.text.trim(),
+              'address': _formattedAddress,
             },
           )
         : await provider.register({
@@ -132,7 +154,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             'gender': _gender,
             'civil_status': _civilStatus,
             'contact_number': _contactCtrl.text.trim(),
-            'address': _addressCtrl.text.trim(),
+            'street_name': _streetNameCtrl.text.trim(),
+            'address': _formattedAddress,
           });
 
     if (!mounted) return;
@@ -276,8 +299,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       label: 'Username',
                       controller: _usernameCtrl,
                       prefixIcon: Icons.person_outline,
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Required' : null,
+                      maxLength: 255,
+                      validator: InputValidators.username,
                     ),
                     const SizedBox(height: 12),
                     AppTextField(
@@ -286,16 +309,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _emailCtrl,
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (v) => (v == null || !v.contains('@'))
-                          ? 'Valid email required'
-                          : null,
+                      maxLength: 255,
+                      validator: (value) => InputValidators.email(
+                        value,
+                        requiredMessage: 'Valid email required',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     AppTextField(
                       id: 'reg_password',
                       label: 'Password',
                       controller: _passwordCtrl,
-                      helperText: 'At least 8 characters',
                       prefixIcon: Icons.lock_outline,
                       obscureText: _obscurePwd,
                       suffixIcon: IconButton(
@@ -443,7 +467,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     key: const Key('reg_gender'),
-                    value: _gender,
+                    initialValue: _gender,
                     isExpanded: true,
                     decoration: InputDecoration(
                       labelText: 'Gender',
@@ -461,7 +485,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     key: const Key('reg_civil_status'),
-                    value: _civilStatus,
+                    initialValue: _civilStatus,
                     isExpanded: true,
                     decoration: InputDecoration(
                       labelText: 'Civil Status',
@@ -483,18 +507,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _contactCtrl,
                     prefixIcon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Required' : null,
+                    maxLength: 20,
+                    validator: InputValidators.contactNumber,
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
-                    id: 'reg_address',
-                    label: 'Address',
-                    controller: _addressCtrl,
+                    id: 'reg_street_name',
+                    label: 'Street Name',
+                    controller: _streetNameCtrl,
                     prefixIcon: Icons.home_outlined,
-                    maxLines: 2,
                     validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Required' : null,
+                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'reg_barangay_name',
+                    label: 'Barangay Name',
+                    controller: _barangayNameCtrl,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'reg_municipality',
+                    label: 'Municipality',
+                    controller: _municipalityCtrl,
+                    readOnly: true,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'reg_province',
+                    label: 'Province',
+                    controller: _provinceCtrl,
+                    readOnly: true,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'reg_postal_code',
+                    label: 'Postal Code',
+                    controller: _postalCodeCtrl,
+                    readOnly: true,
                   ),
                 ],
               ),

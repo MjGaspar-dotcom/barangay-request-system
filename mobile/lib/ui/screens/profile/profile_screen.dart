@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../widgets/loading_button.dart';
 import '../landing_screen.dart';
 
@@ -33,8 +34,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickImage(
       Function(_PickedImage) onPicked, ImageSource source) async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, imageQuality: 80);
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1600,
+      maxHeight: 1600,
+    );
     if (picked != null) {
+      if (!mounted) return;
+      final extension = picked.name.toLowerCase().split('.').last;
+      if (!const {'jpg', 'jpeg', 'png'}.contains(extension)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Choose a JPG, JPEG, or PNG image.'),
+          ),
+        );
+        return;
+      }
+      final imageSize = await picked.length();
+      if (!mounted) return;
+      if (imageSize > 5 * 1024 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Images must be 5 MB or smaller.'),
+          ),
+        );
+        return;
+      }
       final image = _PickedImage(
         bytes: await picked.readAsBytes(),
         name: picked.name,
@@ -162,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 )
                               : null,
                           backgroundColor:
-                              const Color(0xFF1A6B4A).withOpacity(0.15),
+                              AppColors.primary.withValues(alpha: 0.15),
                           child: _profilePic == null
                               ? Text(
                                   user?.firstName.isNotEmpty == true
