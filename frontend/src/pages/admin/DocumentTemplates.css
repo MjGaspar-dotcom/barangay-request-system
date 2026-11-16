@@ -141,6 +141,23 @@
     width: min(1440px, 100%);
 }
 
+.document-template-preview-only-modal {
+    width: min(1040px, 100%);
+    gap: 8px;
+}
+
+.document-template-preview-only-toolbar,
+.document-template-modal-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.document-template-preview-only-modal .document-template-docx-preview {
+    max-height: calc(90vh - 64px);
+}
+
 .document-template-modal-header {
     align-items: flex-start;
     border-bottom: 1px solid var(--border, #dce4dc);
@@ -176,6 +193,18 @@
 .document-template-canvas-panel {
     display: grid;
     gap: 12px;
+}
+
+.document-template-docx-preview {
+    max-height: min(58vh, 680px);
+    overflow: auto;
+    border: 1px solid var(--border, #dce4dc);
+    border-radius: 10px;
+    background: #e8ece8;
+}
+
+.document-template-docx-preview .docx-wrapper {
+    padding: 16px;
 }
 
 .document-template-page-picker {

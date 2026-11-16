@@ -56,14 +56,27 @@ void main() {
         'first_name': 'Test',
         'last_name': 'Resident',
         'email': 'resident@example.test',
+        'street_name': 'Oak Avenue',
+        'barangay_name': 'Barangay Aurora',
+        'municipality': 'Quezon City',
+        'province': 'Metro Manila',
+        'postal_code': '1100',
         'profile_picture_url': 'https://api.example.test/profile-picture',
         'valid_id_front_url': 'https://api.example.test/id-front',
         'valid_id_back_url': 'https://api.example.test/id-back',
+        'valid_id_type': 'Philippine National ID (PhilID)',
       });
 
       expect(user.profilePicture, 'https://api.example.test/profile-picture');
       expect(user.validIdFront, 'https://api.example.test/id-front');
       expect(user.validIdBack, 'https://api.example.test/id-back');
+      expect(user.validIdType, 'Philippine National ID (PhilID)');
+      expect(user.streetName, 'Oak Avenue');
+      expect(user.barangayName, 'Barangay Aurora');
+      expect(user.municipality, 'Quezon City');
+      expect(user.province, 'Metro Manila');
+      expect(user.postalCode, '1100');
+      expect(user.toJson()['postal_code'], '1100');
     });
   });
 }

@@ -2,15 +2,18 @@
 
 This Python 3.10+ package ranks the six configured barangay documents for a
 resident and returns a score, match percentage, and plain-English reason.
-It uses only the Python standard library. The included CSV data is synthetic
-and generated with a fixed seed; it contains no real resident information.
+It uses only the Python standard library and does not include or generate
+resident or request data. Supply authorized `residents.csv` and `requests.csv`
+files in a directory before running it. The resident file must include
+`resident_id`, `age`, `civil_status`, `employment_status`, `purok`,
+`years_of_residency`, and `owns_business`; the request file must include
+`request_id`, `resident_id`, `document`, `requested_at`, and `status`.
 
-Generate or refresh the dataset and run the recommender:
+Run the recommender or evaluate it against the supplied data:
 
 ```powershell
-python -m recommender.data_gen
-python -m recommender.cli --resident R001 --k 3
-python -m recommender.cli --evaluate
+python -m recommender.cli --data-dir path\to\authorized-data --resident RESIDENT_ID --k 3
+python -m recommender.cli --data-dir path\to\authorized-data --evaluate
 ```
 
 The public API is `Recommender.fit(residents, requests)` followed by

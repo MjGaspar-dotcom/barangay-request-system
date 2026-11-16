@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\DocumentType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreBarangayRequest extends FormRequest
 {  
@@ -24,9 +26,36 @@ class StoreBarangayRequest extends FormRequest
      */
     public function rules(): array
     {
+        $documentType = DocumentType::query()
+            ->where('document_type_id', $this->input('document_type_id'))
+            ->first();
+        $isBusinessClearance = strcasecmp(
+            (string) $documentType?->document_name,
+            'Barangay Business Clearance'
+        ) === 0;
+
         return [
             'document_type_id' => 'required|exists:document_types,document_type_id',
             'purpose' => 'required|string',
+            'request_data' => 'nullable|array:business_name,business_address,business_activity',
+            'request_data.business_name' => [
+                Rule::requiredIf($isBusinessClearance),
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'request_data.business_address' => [
+                Rule::requiredIf($isBusinessClearance),
+                'nullable',
+                'string',
+                'max:500',
+            ],
+            'request_data.business_activity' => [
+                Rule::requiredIf($isBusinessClearance),
+                'nullable',
+                'string',
+                'max:255',
+            ],
             'supporting_documents' => 'sometimes|array|max:5',
             'supporting_documents.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];

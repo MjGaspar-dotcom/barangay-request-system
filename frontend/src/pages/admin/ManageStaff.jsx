@@ -5,6 +5,13 @@ import Button from "../../components/ui/Button";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "../../components/ui/dialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import "./ManageStaff.css";
 
@@ -38,6 +45,23 @@ export default function ManageStaff() {
     const [actionError, setActionError] = useState("");
     const [actionSuccess, setActionSuccess] = useState("");
     const [confirmDialog, setConfirmDialog] = useState(null);
+
+    const closeForm = () => {
+        setForm(EMPTY_FORM);
+        setFormError("");
+        setFieldErrors({});
+        setShowForm(false);
+    };
+
+    const openForm = () => {
+        setForm(EMPTY_FORM);
+        setFormError("");
+        setFieldErrors({});
+        setFormSuccess("");
+        setActionError("");
+        setActionSuccess("");
+        setShowForm(true);
+    };
 
     const fetchStaff = async () => {
         try {
@@ -268,32 +292,23 @@ export default function ManageStaff() {
             <div className="admin-dashboard manage-staff-page">
                 <div className="w-full">
                     <header className="dashboard-page-header">
-                        <div className="header-row-between-lg manage-staff-header-row">
-                            <div>
-                                <span className="section-label">PEOPLE AND ACCESS</span>
-                                <h1>Manage Staff</h1>
-                                <p>
-                                    Manage the team members who process
-                                    barangay service requests.
-                                </p>
-                            </div>
-                            <Button
-                                type="button"
-                                className="app-button app-button-success staff-create-button"
-                                onClick={() => {
-                                    setShowForm((current) => !current);
-                                    setFormError("");
-                                    setFieldErrors({});
-                                    setFormSuccess("");
-                                    setActionError("");
-                                    setActionSuccess("");
-                                }}
-                            >
-                                {showForm
-                                    ? "Close form"
-                                    : "Create staff account"}
-                            </Button>
+                        <div>
+                            <span className="section-label">
+                                STAFF MANAGEMENT
+                            </span>
+                            <h1>Manage Staff</h1>
+                            <p>
+                                Manage the team members who process barangay
+                                service requests.
+                            </p>
                         </div>
+                        <Button
+                            type="button"
+                            className="app-button app-button-success staff-create-button"
+                            onClick={openForm}
+                        >
+                            Create staff account
+                        </Button>
                     </header>
 
                     {formSuccess && (
@@ -324,21 +339,38 @@ export default function ManageStaff() {
                         </div>
                     )}
 
-                    {showForm && (
-                        <section className="dashboard-section staff-form-section">
+                    <Dialog
+                        open={showForm}
+                        onOpenChange={(open) => {
+                            if (open) {
+                                setShowForm(true);
+                            } else {
+                                closeForm();
+                            }
+                        }}
+                    >
+                        <DialogContent
+                            className="manage-staff-page staff-create-dialog"
+                            aria-describedby="staff-create-description"
+                        >
                             <div className="admin-form-card staff-form-card">
-                                <div className="staff-form-heading">
+                                <DialogHeader className="staff-form-heading">
                                     <div>
                                         <span className="section-label">
                                             NEW TEAM MEMBER
                                         </span>
-                                        <h2>New Staff Account</h2>
-                                        <p>
+                                        <DialogTitle className="staff-dialog-title">
+                                            New Staff Account
+                                        </DialogTitle>
+                                        <DialogDescription
+                                            id="staff-create-description"
+                                            className="staff-form-description"
+                                        >
                                             Enter the staff member's account
                                             and contact details.
-                                        </p>
+                                        </DialogDescription>
                                     </div>
-                                </div>
+                                </DialogHeader>
 
                                 {formError && (
                                     <div
@@ -620,13 +652,7 @@ export default function ManageStaff() {
                                         <Button
                                             type="button"
                                             className="app-button app-button-outline-secondary"
-                                            onClick={() => {
-                                                setForm(EMPTY_FORM);
-                                                setFormError("");
-                                                setFieldErrors({});
-                                                setFormSuccess("");
-                                                setShowForm(false);
-                                            }}
+                                            onClick={closeForm}
                                             disabled={submitting}
                                         >
                                             Cancel
@@ -634,36 +660,32 @@ export default function ManageStaff() {
                                     </div>
                                 </form>
                             </div>
-                        </section>
-                    )}
+                        </DialogContent>
+                    </Dialog>
 
                     <section className="dashboard-section">
-                        <div className="admin-filters filter-bar filter-row staff-toolbar">
-                            <label className="staff-search">
-                                <span className="staff-search-icon" aria-hidden="true" />
-                                <input
-                                    type="search"
-                                    className="app-input"
-                                    placeholder="Search staff by name, username, or email"
-                                    aria-label="Search staff"
-                                    value={search}
-                                    onChange={(event) =>
-                                        setSearch(event.target.value)
-                                    }
-                                />
-                            </label>
+                        <div className="admin-filters filter-bar filter-row">
+                            <input
+                                type="search"
+                                className="app-input filter-search-360"
+                                placeholder="Search by name, username, email, or contact..."
+                                aria-label="Search staff"
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                            />
 
-                            <div className="staff-result-count" aria-live="polite">
-                                Showing <strong>{filtered.length}</strong> of{" "}
-                                <strong>{staff.length}</strong> staff{" "}
-                                {staff.length === 1 ? "member" : "members"}
+                            <div className="filter-count" aria-live="polite">
+                                Showing {filtered.length} of {staff.length}{" "}
+                                staff member{staff.length === 1 ? "" : "s"}
                             </div>
                         </div>
                     </section>
 
                     <section className="dashboard-section">
                         {filtered.length === 0 ? (
-                            <div className="dashboard-empty-state staff-empty-state">
+                            <div className="dashboard-empty-state">
                                 <div
                                     className="dashboard-empty-icon"
                                     aria-hidden="true"
@@ -682,7 +704,7 @@ export default function ManageStaff() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="table-scroll admin-table-wrapper u-scroll-x staff-table-wrapper">
+                            <div className="table-scroll admin-table-wrapper u-scroll-x">
                                 <Table className="admin-table data-table manage-staff-table">
                                     <colgroup>
                                         <col className="staff-name-column" />

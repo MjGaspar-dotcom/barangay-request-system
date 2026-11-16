@@ -45,6 +45,81 @@ class DocumentTemplateManagementTest extends TestCase
         Storage::fake(config('filesystems.private_upload_disk'));
     }
 
+    public function test_uploaded_pdf_templates_auto_map_standard_barangay_fields(): void
+    {
+        $this->seed(DocumentTypeSeeder::class);
+        $inspection = [
+            'page_count' => 1,
+            'has_acroform' => true,
+            'fields' => [
+                ['name' => 'resident_full_name', 'type' => '/Tx', 'supported' => true],
+                ['name' => 'barangay_name', 'type' => '/Tx', 'supported' => true],
+                [
+                    'name' => '{{BUSINESS_NAME}}',
+                    'type' => '/Placeholder',
+                    'supported' => false,
+                    'page_number' => 1,
+                    'x' => 0.2,
+                    'y' => 0.4,
+                    'width' => 0.3,
+                    'height' => 0.02,
+                    'font_size' => 12,
+                    'font_family' => 'Times-Roman',
+                ],
+                ['name' => 'custom_notes', 'type' => '/Tx', 'supported' => true],
+            ],
+            'pages' => [[
+                'width' => 612,
+                'height' => 792,
+                'rotation' => 0,
+                'view_box' => [0, 0, 612, 792],
+            ]],
+        ];
+
+        $this->mock(PdfWorkerService::class, function (MockInterface $mock) use ($inspection): void {
+            $mock->shouldReceive('inspect')
+                ->once()
+                ->with(Mockery::type('string'), 'pdf')
+                ->andReturn($inspection);
+        });
+
+        $upload = UploadedFile::fake()->createWithContent(
+            'residency.pdf',
+            "%PDF-1.4\n% PDF template fixture\n"
+        );
+
+        $this->actingAs($this->adminUser)
+            ->postJson(
+                "/api/admin/document-templates/{$this->documentType->document_type_id}/versions",
+                ['file' => $upload]
+            )
+            ->assertCreated();
+
+        $version = DocumentTemplateVersion::query()->firstOrFail();
+
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $version->template_version_id,
+            'field_name' => 'resident_full_name',
+            'system_field' => 'resident.full_name',
+        ]);
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $version->template_version_id,
+            'field_name' => 'barangay_name',
+            'system_field' => 'barangay.name',
+        ]);
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $version->template_version_id,
+            'field_name' => '{{BUSINESS_NAME}}',
+            'field_type' => 'overlay',
+            'system_field' => 'request.business_name',
+            'page_number' => 1,
+        ]);
+        $this->assertDatabaseMissing('document_template_field_mappings', [
+            'template_version_id' => $version->template_version_id,
+            'field_name' => 'custom_notes',
+        ]);
+    }
+
     public function test_only_administrators_can_upload_and_map_private_templates(): void
     {
         $this->seed(DocumentTypeSeeder::class);
@@ -62,7 +137,7 @@ class DocumentTemplateManagementTest extends TestCase
         $this->mock(PdfWorkerService::class, function (MockInterface $mock) use ($inspection): void {
             $mock->shouldReceive('inspect')
                 ->twice()
-                ->with(Mockery::type('string'))
+                ->with(Mockery::type('string'), 'pdf')
                 ->andReturn($inspection);
         });
 
@@ -103,17 +178,6 @@ class DocumentTemplateManagementTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.template_status', 'missing')
             ->assertJsonPath('data.active_version', null);
-
-        $unsupportedUpload = UploadedFile::fake()->createWithContent(
-            'residency.docx',
-            'DOCX files are not supported by the PDF template processor.'
-        );
-        $this->actingAs($this->adminUser)
-            ->postJson(
-                "{$templatesUrl}/{$this->documentType->document_type_id}/versions",
-                ['file' => $unsupportedUpload]
-            )
-            ->assertUnprocessable();
 
         $upload = UploadedFile::fake()->createWithContent(
             'residency.pdf',
@@ -171,6 +235,124 @@ class DocumentTemplateManagementTest extends TestCase
             'template_version_id' => $version->template_version_id,
             'field_name' => 'resident-name',
             'system_field' => 'resident.full_name',
+        ]);
+    }
+
+    public function test_uploaded_docx_templates_auto_map_and_allow_configuring_placeholders(): void
+    {
+        $inspection = [
+            'page_count' => 1,
+            'has_acroform' => false,
+            'fields' => [
+                [
+                    'name' => '{{FULL_NAME}}',
+                    'type' => '/DocxPlaceholder',
+                    'supported' => false,
+                ],
+                [
+                    'name' => '{{PURPOSE}}',
+                    'type' => '/DocxPlaceholder',
+                    'supported' => false,
+                ],
+                [
+                    'name' => '{{STREET_NAME}}',
+                    'type' => '/DocxPlaceholder',
+                    'supported' => false,
+                ],
+                [
+                    'name' => '{{CUSTOM_FIELD}}',
+                    'type' => '/DocxPlaceholder',
+                    'supported' => false,
+                ],
+            ],
+            'pages' => [],
+        ];
+
+        $this->mock(PdfWorkerService::class, function (MockInterface $mock) use ($inspection): void {
+            $mock->shouldReceive('inspect')
+                ->times(3)
+                ->with(Mockery::type('string'), 'docx')
+                ->andReturn($inspection);
+        });
+
+        $upload = UploadedFile::fake()->createWithContent(
+            'residency.docx',
+            'DOCX test fixture'
+        );
+        $response = $this->actingAs($this->adminUser)
+            ->postJson(
+                "/api/admin/document-templates/{$this->documentType->document_type_id}/versions",
+                ['file' => $upload]
+            )
+            ->assertCreated();
+        $versionId = $response->json('data.version.template_version_id');
+
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $versionId,
+            'field_name' => '{{FULL_NAME}}',
+            'field_type' => 'docx_placeholder',
+            'system_field' => 'resident.full_name',
+        ]);
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $versionId,
+            'field_name' => '{{PURPOSE}}',
+            'system_field' => 'request.purpose',
+        ]);
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $versionId,
+            'field_name' => '{{STREET_NAME}}',
+            'system_field' => 'resident.street_name',
+        ]);
+
+        $fields = [
+            [
+                'field_name' => '{{FULL_NAME}}',
+                'field_type' => 'docx_placeholder',
+                'system_field' => 'resident.full_name',
+                'is_required' => true,
+            ],
+            [
+                'field_name' => '{{PURPOSE}}',
+                'field_type' => 'docx_placeholder',
+                'system_field' => 'request.purpose',
+                'is_required' => true,
+            ],
+            [
+                'field_name' => '{{STREET_NAME}}',
+                'field_type' => 'docx_placeholder',
+                'system_field' => 'resident.street_name',
+                'is_required' => true,
+            ],
+            [
+                'field_name' => '{{CUSTOM_FIELD}}',
+                'field_type' => 'docx_placeholder',
+                'system_field' => 'barangay.name',
+                'is_required' => true,
+            ],
+        ];
+
+        $this->actingAs($this->adminUser)
+            ->putJson(
+                "/api/admin/document-template-versions/{$versionId}/mappings",
+                ['fields' => array_slice($fields, 0, 3)]
+            )
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'Map every DOCX placeholder before saving: {{CUSTOM_FIELD}}'
+            );
+
+        $this->actingAs($this->adminUser)
+            ->putJson(
+                "/api/admin/document-template-versions/{$versionId}/mappings",
+                ['fields' => $fields]
+            )
+            ->assertOk();
+
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $versionId,
+            'field_name' => '{{CUSTOM_FIELD}}',
+            'system_field' => 'barangay.name',
         ]);
     }
 }

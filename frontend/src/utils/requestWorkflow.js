@@ -1,7 +1,6 @@
 export const REQUEST_STATUS_OPTIONS = [
     { value: "all", label: "All stages" },
     { value: "request_submitted", label: "Request Submitted" },
-    { value: "approved", label: "Approved" },
     { value: "rejected", label: "Rejected" },
     { value: "ready_for_pickup", label: "Ready for Pickup" },
     { value: "completed", label: "Completed" },

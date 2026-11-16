@@ -56,6 +56,7 @@ class AdminUserController extends Controller
                     'email' => $user->email,
                     'contact_number' => $user->contact_number,
                     'address' => $user->address,
+                    'street_name' => $user->street_name,
                     'gender' => $user->gender,
                     'civil_status' => $user->civil_status,
                     'birth_date' => optional($user->birth_date)->format('Y-m-d'),

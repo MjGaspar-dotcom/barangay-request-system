@@ -6,4 +6,4 @@ Tailwind preflight is not loaded. The cascade layers are ordered as `theme`, `ba
 
 `src/styles/index.css` imports the existing page and layout CSS in order. Keep those styles while maintaining the current visual identity; use Tailwind for new layout and responsive work, shared controls from `src/components/ui/`, Material UI for existing advanced controls, and Lucide React for icons.
 
-This directory contains older, inactive stylesheet copies. New styling work belongs in `src/styles/` and its imported page or component styles.
+This directory retains `layouts/portal-auth.css`, which is imported by `src/styles/index.css`, and the development-only `debug.css`, which is imported by `src/devtools.js`. The inactive duplicate stylesheets have been removed; new styling work belongs in `src/styles/` and its imported page or component styles.

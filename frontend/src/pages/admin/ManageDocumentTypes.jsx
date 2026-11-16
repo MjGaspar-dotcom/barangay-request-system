@@ -1,5 +1,5 @@
 import Icon from "../../components/ui/Icon.jsx";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
@@ -32,23 +32,25 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [actionMessageType, setActionMessageType] = useState("success");
 
-    const fetchDocumentTypes = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get("/document-types");
-            setDocumentTypes(response.data.data || []);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load document types.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    const fetchDocumentTypes = useCallback(
+        () =>
+            api
+                .get("/document-types")
+                .then((response) => {
+                    setDocumentTypes(response.data.data || []);
+                    setError("");
+                })
+                .catch((err) => {
+                    console.error(err);
+                    setError("Failed to load document types.");
+                })
+                .finally(() => setLoading(false)),
+        [],
+    );
 
     useEffect(() => {
-        fetchDocumentTypes();
-    }, []);
+        void fetchDocumentTypes();
+    }, [fetchDocumentTypes]);
 
     const flash = (message) => {
         setActionMessageType("success");

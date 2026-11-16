@@ -58,6 +58,8 @@ class BarangayRequest {
   final String? updatedAt;
   final DocumentType? documentType;
   final String purpose;
+  final bool hasGeneratedPdf;
+  final Map<String, dynamic>? requestData;
 
   BarangayRequest({
     required this.id,
@@ -69,6 +71,8 @@ class BarangayRequest {
     this.updatedAt,
     this.documentType,
     required this.purpose,
+    this.hasGeneratedPdf = false,
+    this.requestData,
   });
 
   factory BarangayRequest.fromJson(Map<String, dynamic> json) {
@@ -89,6 +93,29 @@ class BarangayRequest {
             )
           : null,
       purpose: json['purpose']?.toString() ?? '',
+      hasGeneratedPdf: json['has_generated_pdf'] == true ||
+          json['has_generated_pdf']?.toString() == '1',
+      requestData: json['request_data'] is Map
+          ? Map<String, dynamic>.from(json['request_data'] as Map)
+          : null,
+    );
+  }
+
+  bool get needsBusinessDetails {
+    if (documentType?.name.trim().toLowerCase() !=
+            'barangay business clearance' ||
+        status.toLowerCase() != 'request_submitted' ||
+        hasGeneratedPdf) {
+      return false;
+    }
+
+    const requiredFields = [
+      'business_name',
+      'business_address',
+      'business_activity',
+    ];
+    return requiredFields.any(
+      (field) => requestData?[field]?.toString().trim().isNotEmpty != true,
     );
   }
 }

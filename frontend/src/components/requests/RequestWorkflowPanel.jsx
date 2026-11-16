@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button from "../ui/Button";
-import DocumentPreview from "../documents/DocumentPreview";
 import PdfDocumentCanvas from "../documents/PdfDocumentCanvas";
+import SkeletonLoader from "../ui/SkeletonLoader";
 import api from "../../services/api";
 import { canonicalRequestStatus } from "../../utils/requestWorkflow";
 
@@ -13,11 +13,10 @@ const REJECTION_REASONS = [
     "Requirements Not Met",
     "Other",
 ];
-
 export default function RequestWorkflowPanel({
     request,
-    documentPreview,
     pdfTemplate,
+    pdfTemplatePreviewUrl,
     onRefresh,
 }) {
     const [busy, setBusy] = useState(false);
@@ -27,10 +26,10 @@ export default function RequestWorkflowPanel({
     const [rejectionReason, setRejectionReason] = useState("");
     const [rejectionOther, setRejectionOther] = useState("");
     const [pdfPreview, setPdfPreview] = useState(null);
-    const [pdfVersions, setPdfVersions] = useState([]);
     const [selectedGeneratedDocumentId, setSelectedGeneratedDocumentId] =
         useState(null);
     const [pdfVersionsError, setPdfVersionsError] = useState("");
+    const [automaticGeneration, setAutomaticGeneration] = useState(null);
     const hasPdfDocument =
         request.document_template_identifier === "uploaded_pdf_template";
     const currentPdfPreview =
@@ -59,7 +58,6 @@ export default function RequestWorkflowPanel({
             .then((response) => {
                 if (!active) return;
                 const versions = response.data.data.versions;
-                setPdfVersions(versions);
                 setSelectedGeneratedDocumentId(versions[0]?.generated_document_id ?? null);
                 setPdfVersionsError(
                     versions.length
@@ -144,6 +142,89 @@ export default function RequestWorkflowPanel({
     const isReady = status === "ready_for_pickup";
     const isCompleted = status === "completed";
     const isRejected = status === "rejected";
+    const residentCanGeneratePdf =
+        request.user?.verification_status === "verified" &&
+        Boolean(request.user?.valid_id_front_url);
+    const requestHasLatestTemplate =
+        pdfTemplate &&
+        String(request.document_template_version) ===
+            String(pdfTemplate.version_number);
+    const needsAutomaticPdf =
+        Boolean(pdfTemplate?.mapping_count) &&
+        (!hasPdfDocument ||
+            (status !== "completed" && !requestHasLatestTemplate)) &&
+        [
+            "request_submitted",
+            "approved",
+            "ready_for_pickup",
+            "completed",
+        ].includes(status);
+    const requestGenerationPending = ["queued", "processing"].includes(
+        request.document_generation_status,
+    );
+    const automaticPdfPending =
+        needsAutomaticPdf &&
+        (requestGenerationPending ||
+            (automaticGeneration?.requestId === request.request_id &&
+                request.document_generation_status !== "completed" &&
+                ["pending", "queued"].includes(automaticGeneration.status)));
+    const automaticPdfFailed =
+        needsAutomaticPdf &&
+        (request.document_generation_status === "failed" ||
+            automaticGeneration?.status === "failed");
+
+    const queuePdfGeneration = useCallback(async () => {
+        setError("");
+        setMessage("");
+        setAutomaticGeneration({
+            requestId: request.request_id,
+            status: "pending",
+        });
+
+        try {
+            await api.post(
+                `/barangay-requests/${request.request_id}/generated-document/generate`,
+                { regenerate: false },
+            );
+            setAutomaticGeneration({
+                requestId: request.request_id,
+                status: "queued",
+            });
+            await onRefresh();
+        } catch (generationError) {
+            console.error(generationError);
+            setAutomaticGeneration({
+                requestId: request.request_id,
+                status: "failed",
+                error:
+                    generationError.response?.data?.message ||
+                    "The official PDF could not be queued automatically.",
+            });
+        }
+    }, [onRefresh, request.request_id]);
+
+    useEffect(() => {
+        if (
+            !needsAutomaticPdf ||
+            requestGenerationPending ||
+            request.document_generation_status === "failed" ||
+            (automaticGeneration?.requestId === request.request_id &&
+                request.document_generation_status !== "completed" &&
+                ["pending", "queued"].includes(automaticGeneration.status))
+        ) {
+            return;
+        }
+
+        void Promise.resolve().then(queuePdfGeneration);
+    }, [
+        automaticGeneration?.requestId,
+        automaticGeneration?.status,
+        needsAutomaticPdf,
+        queuePdfGeneration,
+        requestGenerationPending,
+        request.document_generation_status,
+        request.request_id,
+    ]);
 
     const runAction = async (action, successMessage) => {
         setBusy(true);
@@ -204,18 +285,6 @@ export default function RequestWorkflowPanel({
         }
     };
 
-    const generateTemplateDocument = (regenerate = false) =>
-        runAction(
-            () =>
-                api.post(
-                    `/barangay-requests/${request.request_id}/generated-document/generate`,
-                    { regenerate },
-                ),
-            regenerate
-                ? "Document regenerated. The previous version remains available in history."
-                : "Document generated and saved.",
-        );
-
     const printGeneratedDocument = async () => {
         const printWindow = pdfPreviewUrl
             ? window.open("about:blank", "_blank")
@@ -274,30 +343,25 @@ export default function RequestWorkflowPanel({
 
     const steps = [
         {
-            label: "Request submitted",
-            complete: true,
-            tone: "request-submitted",
-        },
-        {
             label: isRejected
                 ? "Rejected"
-                : isApproved || isReady || isCompleted
-                  ? "Approved"
-                  : "Awaiting decision",
-            complete: !isSubmitted && !isRejected,
-            current: isSubmitted,
+                : isApproved
+                  ? "Preparing document"
+                  : "Request submitted",
+            complete: isReady || isCompleted,
+            current: isSubmitted || isApproved,
             failed: isRejected,
             tone: isRejected
                 ? "rejected"
-                : isSubmitted
-                  ? "request-submitted"
-                  : "approved",
+                : isReady || isCompleted
+                  ? "ready-for-pickup"
+                  : "request-submitted",
         },
         {
             label: "Ready for pickup",
             complete: isReady || isCompleted,
-            current: isApproved,
-            upcoming: isSubmitted || isRejected,
+            current: isReady,
+            upcoming: isSubmitted || isApproved || isRejected,
             tone: "ready-for-pickup",
         },
         {
@@ -435,15 +499,11 @@ export default function RequestWorkflowPanel({
                                         className="app-button app-button-workflow-approved"
                                         disabled={
                                             busy ||
-                                            Boolean(
-                                                pdfTemplate &&
-                                                    !pdfTemplate.mapping_count,
-                                            ) ||
-                                            Boolean(
-                                                pdfTemplate &&
-                                                    (!hasPdfDocument ||
-                                                        !pdfPreviewUrl),
-                                            )
+                                            automaticPdfPending ||
+                                            automaticPdfFailed ||
+                                            !pdfTemplate ||
+                                            !pdfTemplate.mapping_count ||
+                                            !hasPdfDocument
                                         }
                                         loading={busy}
                                         onClick={approveForPickup}
@@ -459,95 +519,36 @@ export default function RequestWorkflowPanel({
                                     </Button>
                                 </div>
                             )}
-                            {pdfTemplate && !rejecting && (
-                                <div className="request-pdf-generation-actions">
-                                    {pdfTemplate.mapping_count === 0 && (
-                                        <p
-                                            className="app-alert app-alert-warning"
-                                            role="status"
-                                        >
-                                            The Administrator must configure
-                                            PDF field mappings before a
-                                            document can be generated.
-                                        </p>
-                                    )}
-                                    <Button
-                                        className="app-button app-button-outline-primary"
-                                        disabled={
-                                            busy ||
-                                            pdfTemplate.mapping_count === 0
-                                        }
-                                        loading={busy}
-                                        onClick={() =>
-                                            generateTemplateDocument(
-                                                hasPdfDocument,
-                                            )
-                                        }
-                                        type="button"
-                                    >
-                                        {hasPdfDocument
-                                            ? "Regenerate Document"
-                                            : "Generate & Preview PDF"}
-                                    </Button>
-                                </div>
-                            )}
                         </div>
                     )}
 
                     {isApproved && (
                         <div className="admin-form-card request-action-card">
-                            <h2 className="form-section-title">Approved</h2>
-                            {pdfTemplate ? (
-                                <div className="request-pdf-generation-actions">
-                                    {pdfTemplate.mapping_count === 0 && (
-                                        <p
-                                            className="app-alert app-alert-warning"
-                                            role="status"
-                                        >
-                                            The Administrator must configure
-                                            PDF field mappings before a
-                                            document can be generated.
-                                        </p>
-                                    )}
-                                    {!hasPdfDocument ? (
-                                        <Button
-                                            className="app-button app-button-outline-primary"
-                                            disabled={
-                                                busy ||
-                                                pdfTemplate.mapping_count === 0
-                                            }
-                                            loading={busy}
-                                            onClick={() =>
-                                                generateTemplateDocument(false)
-                                            }
-                                        >
-                                            Generate &amp; Preview PDF
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            className="app-button app-button-workflow-ready"
-                                            disabled={busy || !pdfPreviewUrl}
-                                            loading={busy}
-                                            onClick={() =>
-                                                updateStatus("ready_for_pickup")
-                                            }
-                                        >
-                                            Mark Ready for Pickup
-                                        </Button>
-                                    )}
-                                </div>
-                            ) : (
+                            <h2 className="form-section-title">
+                                Preparing Document
+                            </h2>
+                            <div className="request-pdf-generation-actions">
+                                <p className="app-alert app-alert-info" role="status">
+                                    This request will move to Ready for Pickup after its official PDF is generated successfully.
+                                </p>
                                 <Button
                                     className="app-button app-button-workflow-ready"
-                                    disabled={busy}
+                                    disabled={
+                                        busy ||
+                                        automaticPdfPending ||
+                                        automaticPdfFailed ||
+                                        !pdfTemplate ||
+                                        !pdfTemplate.mapping_count ||
+                                        !hasPdfDocument
+                                    }
                                     loading={busy}
                                     onClick={() =>
                                         updateStatus("ready_for_pickup")
                                     }
                                 >
-                                    Generate Document &amp; Mark Ready
+                                    Mark Ready for Pickup
                                 </Button>
-                            )}
+                            </div>
                         </div>
                     )}
 
@@ -555,43 +556,23 @@ export default function RequestWorkflowPanel({
                         <div className="admin-form-card request-action-card">
                             <h2 className="form-section-title">Ready for Pickup</h2>
                             <div className="flex flex-wrap gap-2">
-                                {pdfTemplate && (
-                                    <Button
-                                        className="app-button app-button-outline-primary"
-                                        disabled={
-                                            busy ||
-                                            pdfTemplate.mapping_count === 0
-                                        }
-                                        loading={busy}
-                                        onClick={() =>
-                                            generateTemplateDocument(
-                                                hasPdfDocument,
-                                            )
-                                        }
-                                    >
-                                        {hasPdfDocument
-                                            ? "Regenerate Document"
-                                            : "Generate Document"}
-                                    </Button>
-                                )}
                                 <Button
                                     className="app-button app-button-success"
                                     disabled={
                                         busy ||
-                                        Boolean(
-                                            hasPdfDocument &&
-                                                !pdfPreviewUrl,
-                                        )
+                                        automaticPdfPending ||
+                                        !hasPdfDocument ||
+                                        !pdfPreviewUrl
                                     }
                                     loading={busy}
                                     onClick={() => updateStatus("completed")}
                                 >
                                     Completed
                                 </Button>
-                                {documentPreview && !documentPreview.is_preview && (
+                                {hasPdfDocument && pdfPreviewUrl && (
                                     <Button
                                         className="app-button app-button-outline-primary"
-                                        disabled={busy}
+                                        disabled={busy || automaticPdfPending}
                                         loading={busy}
                                         onClick={printGeneratedDocument}
                                     >
@@ -621,6 +602,35 @@ export default function RequestWorkflowPanel({
                         {error}
                     </div>
                 )}
+                {automaticPdfPending && (
+                    <div className="app-alert app-alert-info mb-4" role="status">
+                        The official PDF is being prepared in the background.
+                        This page will refresh automatically.
+                    </div>
+                )}
+                {automaticPdfFailed && (
+                        <div
+                            className="app-alert app-alert-danger mb-4"
+                            role="alert"
+                        >
+                            {!residentCanGeneratePdf
+                                ? "The resident must have a current verification and ID image on file. Re-upload the required ID, complete verification, then refresh this request before retrying."
+                                : request.document_generation_error ||
+                                  automaticGeneration?.error ||
+                                  "The official PDF could not be generated."}
+                            <Button
+                                className="app-button app-button-outline-secondary ml-3"
+                                disabled={
+                                    automaticPdfPending ||
+                                    !residentCanGeneratePdf
+                                }
+                                onClick={() => void queuePdfGeneration()}
+                                type="button"
+                            >
+                                Retry PDF generation
+                            </Button>
+                        </div>
+                    )}
 
                 {pdfPreviewError && (
                     <div className="app-alert app-alert-danger" role="alert">
@@ -632,68 +642,43 @@ export default function RequestWorkflowPanel({
                         {pdfVersionsError}
                     </div>
                 )}
-                {pdfPreviewLoading && (
-                    <div className="app-alert app-alert-info" role="status">
-                        Loading generated PDF preview…
-                    </div>
-                )}
                 {pdfPreviewUrl ? (
                     <>
-                        {pdfVersions.length > 1 && (
-                            <label className="app-label mb-3 block">
-                                Generated PDF version
-                                <select
-                                    className="app-select mt-1"
-                                    onChange={(event) =>
-                                        setSelectedGeneratedDocumentId(
-                                            Number(event.target.value),
-                                        )
-                                    }
-                                    value={selectedGeneratedDocumentId}
-                                >
-                                    {pdfVersions.map((version) => (
-                                        <option
-                                            key={version.generated_document_id}
-                                            value={version.generated_document_id}
-                                        >
-                                            Version {version.version_number} ·{" "}
-                                            {new Date(
-                                                version.generated_at,
-                                            ).toLocaleString()}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                        )}
                         <PdfDocumentCanvas
                             key={pdfPreviewUrl}
                             source={pdfPreviewUrl}
                         />
                     </>
-                ) : pdfTemplate && !hasPdfDocument ? (
-                    <div className="app-alert app-alert-info" role="status">
-                        {pdfTemplate.filename} · Version{" "}
-                        {pdfTemplate.version_number} is ready. Generate the
-                        document to preview the resident information in the
-                        uploaded PDF.
-                    </div>
-                ) : documentPreview ? (
-                    <div>
-                        <DocumentPreview document={documentPreview} />
-                        {isReady && documentPreview.is_preview && (
-                            <Button
-                                className="app-button app-button-primary mt-3 document-preview-toolbar"
-                                disabled={busy}
-                                loading={busy}
-                                onClick={() => generateTemplateDocument(false)}
-                            >
-                                Generate Official Document
-                            </Button>
-                        )}
-                    </div>
+                ) : pdfTemplate ? (
+                    pdfTemplatePreviewUrl ? (
+                        <PdfDocumentCanvas
+                            key={pdfTemplatePreviewUrl}
+                            source={pdfTemplatePreviewUrl}
+                        />
+                    ) : automaticPdfFailed ? (
+                        <div
+                            className="app-alert app-alert-warning"
+                            role="status"
+                        >
+                            The PDF preview will appear here after generation
+                            succeeds.
+                        </div>
+                    ) : (
+                        <SkeletonLoader
+                            label="Loading document preview"
+                            variant="detail"
+                        />
+                    )
+                ) : pdfPreviewLoading ? (
+                    <SkeletonLoader
+                        label="Loading document preview"
+                        variant="detail"
+                    />
                 ) : (
                     <div className="app-alert app-alert-warning" role="status">
-                        The document template preview is unavailable.
+                        No uploaded PDF template is available for this document
+                        type. An administrator must upload one in Document
+                        Templates before this request can be approved.
                     </div>
                 )}
 

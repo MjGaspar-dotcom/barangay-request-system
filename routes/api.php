@@ -78,6 +78,10 @@ Route::middleware('auth:sanctum')->group(function () {
         '/barangay-requests',
         [BarangayRequestController::class, 'store']
     );
+    Route::patch(
+        '/barangay-requests/{barangayRequest}/business-details',
+        [BarangayRequestController::class, 'updateBusinessDetails']
+    );
 
     Route::get(
         '/barangay-requests/{barangayRequest}',
@@ -148,6 +152,10 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
     Route::get(
         '/barangay-requests/{barangayRequest}/template-preview',
         [BarangayRequestController::class, 'showTemplatePreview']
+    );
+    Route::get(
+        '/barangay-requests/{barangayRequest}/template-preview/file',
+        [BarangayRequestController::class, 'showTemplatePreviewFile']
     );
     Route::post(
         '/barangay-requests/{barangayRequest}/documents/prepared',

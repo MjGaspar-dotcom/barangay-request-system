@@ -16,6 +16,7 @@ class RequestProvider extends ChangeNotifier {
   String? _documentTypesError;
   TrackResult? _trackResult;
   BarangayRequest? _submittedRequest;
+  int? _submittedGeneratedDocumentId;
   String? _errorMessage;
   String? _successMessage;
   int _documentTypesRequestId = 0;
@@ -28,6 +29,7 @@ class RequestProvider extends ChangeNotifier {
   String? get documentTypesError => _documentTypesError;
   TrackResult? get trackResult => _trackResult;
   BarangayRequest? get submittedRequest => _submittedRequest;
+  int? get submittedGeneratedDocumentId => _submittedGeneratedDocumentId;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
 
@@ -135,16 +137,22 @@ class RequestProvider extends ChangeNotifier {
   Future<bool> createRegisteredRequest({
     required int documentTypeId,
     required String purpose,
+    Map<String, String>? requestData,
   }) async {
     _status = RequestStatus.submitting;
     _errorMessage = null;
     _submittedRequest = null;
+    _submittedGeneratedDocumentId = null;
     notifyListeners();
     try {
-      final response = await ApiService.createRequest({
+      final requestPayload = <String, dynamic>{
         'document_type_id': documentTypeId,
         'purpose': purpose,
-      });
+      };
+      if (requestData != null && requestData.isNotEmpty) {
+        requestPayload['request_data'] = requestData;
+      }
+      final response = await ApiService.createRequest(requestPayload);
       final payload = response.data;
       if (payload is! Map || payload['success'] != true) {
         throw const FormatException(
@@ -162,13 +170,20 @@ class RequestProvider extends ChangeNotifier {
             'The request tracking QR code was not returned.');
       }
 
-      final requestData = Map<String, dynamic>.from(data['request'] as Map);
-      requestData['qr_code'] = qrCode;
-      requestData['document_type'] ??= {
+      final submittedRequestData =
+          Map<String, dynamic>.from(data['request'] as Map);
+      final generatedDocument = data['generated_document'];
+      if (generatedDocument is Map) {
+        _submittedGeneratedDocumentId = int.tryParse(
+          generatedDocument['generated_document_id']?.toString() ?? '',
+        );
+      }
+      submittedRequestData['qr_code'] = qrCode;
+      submittedRequestData['document_type'] ??= {
         'id': documentTypeId,
         'name': _documentTypeName(documentTypeId),
       };
-      _submittedRequest = BarangayRequest.fromJson(requestData);
+      _submittedRequest = BarangayRequest.fromJson(submittedRequestData);
       _requests = [
         _submittedRequest!,
         ..._requests.where((request) => request.id != _submittedRequest!.id),

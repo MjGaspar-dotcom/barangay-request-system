@@ -1,5 +1,5 @@
 import Icon from "../../components/ui/Icon.jsx";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
@@ -7,6 +7,7 @@ import AdminLayout from "../../layouts/AdminLayout";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
+import "./manage-users.css";
 
 const ROLE_FILTERS = [
     { value: "all", label: "All" },
@@ -35,9 +36,25 @@ export default function ManageUsers() {
     const [busyUserId, setBusyUserId] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState(null);
 
+    const flash = useCallback((message, isError = false, messageType = "success") => {
+        if (isError) {
+            setActionError(message);
+            setActionMessage("");
+        } else {
+            setActionMessage(message);
+            setActionMessageType(messageType);
+            setActionError("");
+        }
+
+        window.setTimeout(() => {
+            setActionMessage("");
+            setActionError("");
+        }, 4000);
+    }, []);
+
     // Initial page load shows the full-page loader. Refreshes after actions
     // happen silently so the table stays visible and the screen does not flash.
-    const fetchUsers = async ({ background = false } = {}) => {
+    const fetchUsers = useCallback(async ({ background = false } = {}) => {
         try {
             if (!background) setLoading(true);
             const response = await api.get("/admin/users");
@@ -53,11 +70,11 @@ export default function ManageUsers() {
         } finally {
             if (!background) setLoading(false);
         }
-    };
+    }, [flash]);
 
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        Promise.resolve().then(() => fetchUsers());
+    }, [fetchUsers]);
 
     const filtered = useMemo(() => {
         const needle = search.trim().toLowerCase();
@@ -82,6 +99,7 @@ export default function ManageUsers() {
                     user.username,
                     user.email,
                     user.contact_number,
+                    user.street_name,
                     user.address,
                 ]
                     .filter(Boolean)
@@ -97,24 +115,36 @@ export default function ManageUsers() {
         });
     }, [users, search, roleFilter, verificationFilter]);
 
-    const flash = (message, isError = false, messageType = "success") => {
-        if (isError) {
-            setActionError(message);
-            setActionMessage("");
-        } else {
-            setActionMessage(message);
-            setActionMessageType(messageType);
-            setActionError("");
-        }
-
-        window.setTimeout(() => {
-            setActionMessage("");
-            setActionError("");
-        }, 4000);
-    };
-
     const handleVerificationUpdate = async (user, newStatus) => {
         const name = fullName(user);
+        if (newStatus === "verified") {
+            try {
+                setBusyUserId(user.user_id);
+                const response = await api.get(`/admin/users/${user.user_id}`);
+                const reviewUser = response.data?.data;
+                if (!reviewUser) {
+                    throw new Error("The resident's verification details were not returned.");
+                }
+                setConfirmDialog({
+                    title: "Review resident before verification",
+                    confirmLabel: "Confirm and verify",
+                    variant: "primary",
+                    reviewUser,
+                    onConfirm: () => runVerificationUpdate(reviewUser, newStatus),
+                });
+            } catch (err) {
+                console.error(err);
+                flash(
+                    err.response?.data?.message ||
+                        "Could not load the resident's verification details.",
+                    true,
+                );
+            } finally {
+                setBusyUserId(null);
+            }
+            return;
+        }
+
         setConfirmDialog({
             title: newStatus === "rejected"
                 ? "Reject user verification"
@@ -367,10 +397,11 @@ export default function ManageUsers() {
                                                     <strong>
                                                         {fullName(user)}
                                                     </strong>
-                                                    <div className="text-muted-sm"
-                                                        
-                                                    >
-                                                        {user.address || "ΓÇö"}
+                                                    <div className="text-muted-sm">
+                                                        Street: {user.street_name || "—"}
+                                                    </div>
+                                                    <div className="text-muted-sm">
+                                                        Address: {user.address || "—"}
                                                     </div>
                                                 </td>
                                                 <td>{user.username}</td>
@@ -523,9 +554,76 @@ export default function ManageUsers() {
                 title={confirmDialog?.title}
                 confirmLabel={confirmDialog?.confirmLabel}
                 variant={confirmDialog?.variant}
+                contentClassName={
+                    confirmDialog?.reviewUser
+                        ? "user-verification-dialog"
+                        : undefined
+                }
             >
-                {confirmDialog?.message}
+                {confirmDialog?.reviewUser ? (
+                    <VerificationReview user={confirmDialog.reviewUser} />
+                ) : (
+                    confirmDialog?.message
+                )}
             </ConfirmDialog>
         </AdminLayout>
+    );
+}
+
+function VerificationReview({ user }) {
+    const details = [
+        ["Name", [user.first_name, user.middle_name, user.last_name].filter(Boolean).join(" ")],
+        ["Username", user.username],
+        ["Date of birth", user.birth_date ? new Date(user.birth_date).toLocaleDateString() : null],
+        ["Gender", user.gender],
+        ["Civil status", user.civil_status],
+        ["Email", user.email],
+        ["Contact number", user.contact_number],
+        ["Address", user.address],
+        ["Valid ID type", user.valid_id_type],
+    ];
+    const documents = [
+        ["Front of valid ID", user.valid_id_front_url, user.valid_id_front_original_name],
+        ["Back of valid ID", user.valid_id_back_url, user.valid_id_back_original_name],
+    ];
+
+    return (
+        <div className="verification-review">
+            <p className="verification-review-intro">
+                Review the resident’s information and both sides of their ID before confirming verification.
+            </p>
+            <dl className="verification-review-details">
+                {details.map(([label, value]) => (
+                    <div key={label}>
+                        <dt>{label}</dt>
+                        <dd>{value || "Not provided"}</dd>
+                    </div>
+                ))}
+            </dl>
+            <div className="verification-review-documents">
+                {documents.map(([label, url, fileName]) => (
+                    <section className="verification-review-document" key={label}>
+                        <h3>{label}</h3>
+                        {url ? (
+                            <>
+                                <a
+                                    href={url}
+                                    rel="noreferrer"
+                                    target="_blank"
+                                    aria-label={`Open ${label} in a new tab`}
+                                >
+                                    <img src={url} alt={label} />
+                                </a>
+                                {fileName && <p>{fileName}</p>}
+                            </>
+                        ) : (
+                            <p className="verification-review-missing">
+                                No image uploaded.
+                            </p>
+                        )}
+                    </section>
+                ))}
+            </div>
+        </div>
     );
 }

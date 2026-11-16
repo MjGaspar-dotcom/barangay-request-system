@@ -3,11 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\AuditService;
+use App\Services\IdTypeRecognitionService;
+use Dunn\LaravelOcr\Exceptions\OcrProcessingException;
+use Dunn\LaravelOcr\Exceptions\TesseractNotFoundException;
+use Dunn\LaravelOcr\Exceptions\UnsupportedLanguageException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
@@ -17,6 +23,42 @@ class UserController extends Controller
     {
         $user = $request->user();
         $validated = $request->validated();
+        $this->composeStructuredAddress($user, $validated);
+        $idTypeDetection = null;
+        if ($request->hasFile('valid_id_front')) {
+            try {
+                $detectedIdType = app(IdTypeRecognitionService::class)->detectFromPath(
+                    $request->file('valid_id_front')->getRealPath()
+                );
+
+                if ($detectedIdType !== null) {
+                    $validated['valid_id_type'] = $detectedIdType;
+                    $idTypeDetection = [
+                        'status' => 'identified',
+                        'id_type' => $detectedIdType,
+                    ];
+                } else {
+                    $idTypeDetection = [
+                        'status' => 'unrecognized',
+                        'id_type' => null,
+                    ];
+                }
+            } catch (
+                OcrProcessingException|
+                TesseractNotFoundException|
+                UnsupportedLanguageException $exception
+            ) {
+                Log::warning('ID type could not be detected from the uploaded image.', [
+                    'user_id' => $user->user_id,
+                    'exception' => $exception->getMessage(),
+                ]);
+                $idTypeDetection = [
+                    'status' => 'unavailable',
+                    'id_type' => null,
+                ];
+            }
+        }
+
         $identityDetailsChanged = false;
         $newFiles = [];
         $oldFiles = [];
@@ -29,14 +71,14 @@ class UserController extends Controller
 
         try {
             foreach ($uploadDirectories as $field => $directory) {
-                if (!$request->hasFile($field)) {
+                if (! $request->hasFile($field)) {
                     continue;
                 }
 
                 $file = $request->file($field);
                 $disk = config('filesystems.private_upload_disk');
                 $path = $file->store($directory, $disk);
-                if (!is_string($path) || $path === '') {
+                if (! is_string($path) || $path === '') {
                     throw new RuntimeException("Unable to store {$field}.");
                 }
 
@@ -89,7 +131,7 @@ class UserController extends Controller
         }
 
         foreach ($oldFiles as $storedFile) {
-            if (!in_array($storedFile, $newFiles, true)) {
+            if (! in_array($storedFile, $newFiles, true)) {
                 $this->deleteStoredFile($storedFile);
             }
         }
@@ -104,13 +146,74 @@ class UserController extends Controller
             );
         }
 
+        $message = $verificationReset
+            ? 'Profile updated. Your account verification is pending review because your ID details changed.'
+            : 'User profile updated successfully.';
+        $profileUpdatedMessage = $verificationReset
+            ? 'Profile updated and returned to pending verification.'
+            : 'Profile updated.';
+        if (($idTypeDetection['status'] ?? null) === 'identified') {
+            $message = "{$profileUpdatedMessage} The uploaded ID was identified as {$idTypeDetection['id_type']}.";
+        } elseif (($idTypeDetection['status'] ?? null) === 'unrecognized') {
+            $message = "{$profileUpdatedMessage} The ID type could not be recognized. Use a clear front-side image or review the type manually.";
+        } elseif (($idTypeDetection['status'] ?? null) === 'unavailable') {
+            $message = "{$profileUpdatedMessage} Automatic ID detection is unavailable. Please contact an administrator.";
+        }
+
         return response()->json([
             'success' => true,
-            'message' => $verificationReset
-                ? 'Profile updated. Your account verification is pending review because your ID details changed.'
-                : 'User profile updated successfully.',
+            'message' => $message,
             'data' => $user->fresh(),
+            'id_type_detection' => $idTypeDetection,
         ]);
+    }
+
+    private function composeStructuredAddress(User $user, array &$validated): void
+    {
+        $addressFields = [
+            'street_name',
+            'barangay_name',
+            'municipality',
+            'province',
+            'postal_code',
+        ];
+        if (array_intersect($addressFields, array_keys($validated)) === []) {
+            return;
+        }
+
+        $values = [];
+        foreach (array_slice($addressFields, 0, 4) as $field) {
+            $value = $validated[$field] ?? $user->{$field};
+            if (! is_string($value) || trim($value) === '') {
+                if (array_intersect(
+                    ['barangay_name', 'municipality', 'province', 'postal_code'],
+                    array_keys($validated)
+                ) !== []) {
+                    throw ValidationException::withMessages([
+                        $field => 'Complete all address fields before saving the address.',
+                    ]);
+                }
+
+                return;
+            }
+            $values[] = trim($value);
+        }
+
+        $postalCode = array_key_exists('postal_code', $validated)
+            ? $validated['postal_code']
+            : $user->postal_code;
+        if (is_string($postalCode) && trim($postalCode) !== '') {
+            $values[] = trim($postalCode);
+        }
+
+        $address = implode(', ', $values);
+        if (mb_strlen($address) > 255) {
+            throw ValidationException::withMessages([
+                'address' => 'The combined address must not exceed 255 characters.',
+            ]);
+        }
+
+        $validated['address'] = $address;
     }
 
     public function showFile(Request $request, User $user, string $field)
@@ -120,7 +223,7 @@ class UserController extends Controller
             'valid_id_front',
             'valid_id_back',
         ];
-        if (!in_array($field, $allowedFields, true)) {
+        if (! in_array($field, $allowedFields, true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'The requested file is unavailable.',
@@ -128,7 +231,7 @@ class UserController extends Controller
         }
 
         $path = $user->getRawOriginal($field);
-        if (!is_string($path) || $path === '') {
+        if (! is_string($path) || $path === '') {
             return response()->json([
                 'success' => false,
                 'message' => 'The requested file is unavailable.',
@@ -136,7 +239,7 @@ class UserController extends Controller
         }
 
         $diskName = $user->getRawOriginal("{$field}_disk");
-        if (!$diskName) {
+        if (! $diskName) {
             $diskName = config(
                 $field === 'profile_picture'
                     ? 'filesystems.legacy_profile_picture_disk'
@@ -145,7 +248,7 @@ class UserController extends Controller
         }
 
         $disk = Storage::disk($diskName);
-        if (!$disk->exists($path)) {
+        if (! $disk->exists($path)) {
             return response()->json([
                 'success' => false,
                 'message' => 'The requested file is unavailable.',
@@ -153,7 +256,7 @@ class UserController extends Controller
         }
 
         $stream = $disk->readStream($path);
-        if (!is_resource($stream)) {
+        if (! is_resource($stream)) {
             throw new RuntimeException('Unable to read the requested stored file.');
         }
 
@@ -177,8 +280,8 @@ class UserController extends Controller
             200,
             [
                 'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' .
-                    addcslashes($originalName, '"\\') . '"',
+                'Content-Disposition' => 'inline; filename="'.
+                    addcslashes($originalName, '"\\').'"',
                 'X-Content-Type-Options' => 'nosniff',
                 'Cache-Control' => 'private, no-store',
             ]
@@ -186,12 +289,12 @@ class UserController extends Controller
     }
 
     /**
-     * @param array{disk: string, path: string} $storedFile
+     * @param  array{disk: string, path: string}  $storedFile
      */
     private function deleteStoredFile(array $storedFile): void
     {
         $disk = Storage::disk($storedFile['disk']);
-        if ($disk->exists($storedFile['path']) && !$disk->delete($storedFile['path'])) {
+        if ($disk->exists($storedFile['path']) && ! $disk->delete($storedFile['path'])) {
             throw new RuntimeException(
                 "Unable to remove replaced profile file {$storedFile['path']}."
             );

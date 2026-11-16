@@ -28,7 +28,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   _PickedImage? _profilePic;
   _PickedImage? _idFront;
   _PickedImage? _idBack;
+  late final TextEditingController _streetNameController;
+  late final TextEditingController _barangayNameController;
+  late final TextEditingController _municipalityController;
+  late final TextEditingController _provinceController;
+  late final TextEditingController _postalCodeController;
   bool _uploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _streetNameController = TextEditingController(
+      text: context.read<AuthProvider>().user?.streetName ?? '',
+    );
+    final user = context.read<AuthProvider>().user;
+    _barangayNameController =
+        TextEditingController(text: user?.barangayName ?? '');
+    _municipalityController =
+        TextEditingController(text: user?.municipality ?? '');
+    _provinceController = TextEditingController(text: user?.province ?? '');
+    _postalCodeController = TextEditingController(text: user?.postalCode ?? '');
+  }
+
+  @override
+  void dispose() {
+    _streetNameController.dispose();
+    _barangayNameController.dispose();
+    _municipalityController.dispose();
+    _provinceController.dispose();
+    _postalCodeController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(
       Function(_PickedImage) onPicked, ImageSource source) async {
@@ -44,16 +74,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _uploadProfile() async {
-    if (_profilePic == null && _idFront == null && _idBack == null) {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
+    final streetName = _streetNameController.text.trim();
+    final barangayName = _barangayNameController.text.trim();
+    final municipality = _municipalityController.text.trim();
+    final province = _provinceController.text.trim();
+    final postalCode = _postalCodeController.text.trim();
+    final addressChanged = streetName != (user?.streetName ?? '').trim() ||
+        barangayName != (user?.barangayName ?? '').trim() ||
+        municipality != (user?.municipality ?? '').trim() ||
+        province != (user?.province ?? '').trim() ||
+        postalCode != (user?.postalCode ?? '').trim();
+    if (addressChanged &&
+        [
+          streetName,
+          barangayName,
+          municipality,
+          province,
+        ].any((value) => value.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one image.')),
+        const SnackBar(
+          content: Text(
+            'Enter Street Name, Barangay, Municipality, and Province to update your address.',
+          ),
+        ),
       );
       return;
     }
-    final authProvider = context.read<AuthProvider>();
+
+    if (_profilePic == null &&
+        _idFront == null &&
+        _idBack == null &&
+        !addressChanged) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Update your address or select at least one image.'),
+        ),
+      );
+      return;
+    }
     setState(() => _uploading = true);
     try {
       final formMap = <String, dynamic>{};
+      if (addressChanged) {
+        formMap['street_name'] = streetName;
+        formMap['barangay_name'] = barangayName;
+        formMap['municipality'] = municipality;
+        formMap['province'] = province;
+        formMap['postal_code'] = postalCode;
+      }
       if (_profilePic != null) {
         formMap['profile_picture'] = MultipartFile.fromBytes(
           _profilePic!.bytes,
@@ -82,8 +152,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _idBack = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully!'),
+        SnackBar(
+          content: Text(
+            response.data?['message']?.toString() ??
+                'Profile updated successfully.',
+          ),
           backgroundColor: Color(0xFF1A6B4A),
         ),
       );
@@ -215,6 +288,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // Info Card
             _InfoCard(user: user),
+            const SizedBox(height: 20),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Address',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _streetNameController,
+                      enabled: !_uploading,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Street Name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _barangayNameController,
+                      enabled: !_uploading,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Barangay',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _municipalityController,
+                      enabled: !_uploading,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Municipality / City',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _provinceController,
+                      enabled: !_uploading,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Province',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _postalCodeController,
+                      enabled: !_uploading,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Postal Code (optional)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             if (auth.errorMessage != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -276,6 +415,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Valid ID type: ${user?.validIdType?.isNotEmpty == true ? user!.validIdType : 'Not detected yet'}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'The ID type is detected from the front image when you save. Please review it with an administrator.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 16),
                     LoadingButton(
@@ -354,6 +503,18 @@ class _InfoCard extends StatelessWidget {
             _InfoRow(icon: Icons.email_outlined, label: user?.email ?? '-'),
             _InfoRow(
                 icon: Icons.phone_outlined, label: user?.contactNumber ?? '-'),
+            _InfoRow(
+                icon: Icons.signpost_outlined, label: user?.streetName ?? '-'),
+            _InfoRow(
+                icon: Icons.location_on_outlined,
+                label: user?.barangayName ?? '-'),
+            _InfoRow(
+                icon: Icons.location_city_outlined,
+                label: user?.municipality ?? '-'),
+            _InfoRow(icon: Icons.map_outlined, label: user?.province ?? '-'),
+            _InfoRow(
+                icon: Icons.local_post_office_outlined,
+                label: user?.postalCode ?? '-'),
             _InfoRow(icon: Icons.home_outlined, label: user?.address ?? '-'),
             _InfoRow(icon: Icons.cake_outlined, label: user?.birthDate ?? '-'),
             _InfoRow(icon: Icons.person_outline, label: user?.gender ?? '-'),

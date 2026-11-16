@@ -185,17 +185,21 @@ class RequestStatusService
                     );
                 }
                 $readyAt = CarbonImmutable::now();
-                $documentIssuedAt = CarbonImmutable::now('Asia/Manila');
-                self::generateDocumentForPickup(
-                    $request,
-                    $documentIssuedAt
-                );
+                self::generateDocumentForPickup($request);
                 $request->update([
                     'status' => self::STATUS_READY_FOR_PICKUP,
                     'ready_for_pickup_at' => $readyAt,
                 ]);
             } elseif ($newStatus === self::STATUS_COMPLETED) {
                 self::assertTransitionAllowed($oldStatus, $newStatus);
+                if (
+                    $request->document_template_identifier !== 'uploaded_pdf_template' ||
+                    !$request->generatedDocuments()->exists()
+                ) {
+                    throw new \InvalidArgumentException(
+                        'Generate the official PDF from an uploaded template before completing this request.'
+                    );
+                }
                 $request->update([
                     'status' => self::STATUS_COMPLETED,
                     'claimed_at' => now(),
@@ -271,10 +275,7 @@ class RequestStatusService
             );
 
             $readyAt = now();
-            self::generateDocumentForPickup(
-                $request,
-                CarbonImmutable::now('Asia/Manila')
-            );
+            self::generateDocumentForPickup($request);
             $request->update([
                 'status' => self::STATUS_READY_FOR_PICKUP,
                 'ready_for_pickup_at' => $readyAt,
@@ -292,6 +293,58 @@ class RequestStatusService
                 $oldStatus,
                 self::STATUS_READY_FOR_PICKUP,
                 $remarks
+            );
+
+            return $request->fresh();
+        });
+    }
+
+    public static function markReadyForPickupAfterDocumentGeneration(
+        BarangayRequest $request,
+        GeneratedDocument $generatedDocument
+    ): BarangayRequest {
+        return DB::transaction(function () use (
+            $request,
+            $generatedDocument
+        ): BarangayRequest {
+            $request = BarangayRequest::query()
+                ->lockForUpdate()
+                ->findOrFail($request->request_id);
+
+            if ($request->status !== self::STATUS_APPROVED) {
+                return $request->fresh();
+            }
+
+            if (
+                !$request->approved_at ||
+                (int) $generatedDocument->request_id !==
+                    (int) $request->request_id ||
+                !$request->generatedDocuments()
+                    ->whereKey($generatedDocument->generated_document_id)
+                    ->exists()
+            ) {
+                throw new \InvalidArgumentException(
+                    'A generated PDF is required before this approved request can be marked ready for pickup.'
+                );
+            }
+
+            $readyAt = CarbonImmutable::now();
+            $request->update([
+                'status' => self::STATUS_READY_FOR_PICKUP,
+                'ready_for_pickup_at' => $readyAt,
+            ]);
+
+            AuditService::logStatusChange(
+                $request,
+                self::STATUS_APPROVED,
+                self::STATUS_READY_FOR_PICKUP,
+                null,
+                'ready_for_pickup'
+            );
+            NotificationService::requestStatusChanged(
+                $request,
+                self::STATUS_APPROVED,
+                self::STATUS_READY_FOR_PICKUP
             );
 
             return $request->fresh();
@@ -492,24 +545,20 @@ class RequestStatusService
         }
     }
 
-    private static function generateDocumentForPickup(
-        BarangayRequest $request,
-        CarbonImmutable $issuedAt
-    ): void {
+    private static function generateDocumentForPickup(BarangayRequest $request): void
+    {
         $pdfGeneration = app(PdfTemplateGenerationService::class);
-        if ($pdfGeneration->activeTemplateFor($request)) {
-            if (!$pdfGeneration->current($request)) {
-                throw new \InvalidArgumentException(
-                    'Generate and preview the completed PDF before approving the request.'
-                );
-            }
-            return;
+        if (!$pdfGeneration->activeTemplateFor($request)) {
+            throw new \InvalidArgumentException(
+                'Upload an active PDF template for this document type before marking the request ready for pickup.'
+            );
         }
 
-        app(DocumentGenerationService::class)->generateForReadyPickup(
-            $request,
-            $issuedAt
-        );
+        if (!$pdfGeneration->current($request)) {
+            throw new \InvalidArgumentException(
+                'Generate the official PDF before marking the request ready for pickup.'
+            );
+        }
     }
 
     private static function assertTransitionAllowed(string $from, string $to): void

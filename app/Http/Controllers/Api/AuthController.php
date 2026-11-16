@@ -135,6 +135,7 @@ class AuthController extends Controller
             'gender',
             'civil_status',
             'address',
+            'street_name',
             'contact_number',
         ];
 
@@ -155,6 +156,7 @@ class AuthController extends Controller
             'gender' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
             'civil_status' => ['required', 'string', 'in:Single,Married,Separated,Divorced,Widowed'],
             'address' => ['required', 'string', 'max:255'],
+            'street_name' => ['required', 'string', 'max:255'],
             'contact_number' => ['required', 'string', 'max:20'],
         ]);
 
@@ -234,6 +236,7 @@ class AuthController extends Controller
             'gender' => $validated['gender'],
             'civil_status' => $validated['civil_status'],
             'address' => $validated['address'],
+            'street_name' => $validated['street_name'],
             'contact_number' => $validated['contact_number'],
             'email' => $validated['email'],
             'verification_status' => 'pending',

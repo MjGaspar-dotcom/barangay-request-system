@@ -1,5 +1,5 @@
 import Icon from "../../components/ui/Icon.jsx";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import api from "../../services/api";
@@ -27,9 +27,8 @@ export default function RecentActivity({ isAdmin = true }) {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
 
-    const fetchActivity = async (targetPage = page) => {
-        try {
-            setLoading(true);
+    const fetchActivity = useCallback(
+        (targetPage = 1) => {
             const params = {
                 per_page: PAGE_SIZE,
                 page: targetPage,
@@ -39,46 +38,47 @@ export default function RecentActivity({ isAdmin = true }) {
                 params.action = actionFilter;
             }
 
-            const response = await api.get(
-                isAdmin
-                    ? "/admin/recent-activity"
-                    : "/staff/recent-activity",
-                {
-                    params,
-                },
-            );
+            return api
+                .get(
+                    isAdmin
+                        ? "/admin/recent-activity"
+                        : "/staff/recent-activity",
+                    {
+                        params,
+                    },
+                )
+                .then((response) => {
+                    const payload = response.data.data;
 
-            const payload = response.data.data;
+                    if (Array.isArray(payload)) {
+                        setLogs(payload);
+                        setMeta(null);
+                    } else {
+                        setLogs(payload?.data || []);
+                        setMeta(payload);
+                    }
 
-            // Laravel paginate() returns: { data: [...], current_page, last_page, total, ... }
-            // Some endpoints also return the array directly; support both.
-            if (Array.isArray(payload)) {
-                setLogs(payload);
-                setMeta(null);
-            } else {
-                setLogs(payload?.data || []);
-                setMeta(payload);
-            }
-
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Failed to load recent activity.");
-        } finally {
-            setLoading(false);
-        }
-    };
+                    setError("");
+                })
+                .catch((err) => {
+                    console.error(err);
+                    setError("Failed to load recent activity.");
+                })
+                .finally(() => setLoading(false));
+        },
+        [actionFilter, isAdmin],
+    );
 
     useEffect(() => {
-        fetchActivity(1);
-        setPage(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [actionFilter]);
+        void fetchActivity(1);
+    }, [fetchActivity]);
 
     const goToPage = (nextPage) => {
         if (!meta || nextPage < 1 || nextPage > meta.last_page) return;
         setPage(nextPage);
-        fetchActivity(nextPage);
+        setLoading(true);
+        setError("");
+        void fetchActivity(nextPage);
     };
 
     const actorName = (entry) => {
@@ -185,9 +185,12 @@ export default function RecentActivity({ isAdmin = true }) {
 
                             <select
                                 value={actionFilter}
-                                onChange={(event) =>
-                                    setActionFilter(event.target.value)
-                                }
+                                onChange={(event) => {
+                                    setPage(1);
+                                    setLoading(true);
+                                    setError("");
+                                    setActionFilter(event.target.value);
+                                }}
                                 className="app-select filter-select"
                             >
                                 {ACTION_FILTERS.map((filter) => (
@@ -219,7 +222,17 @@ export default function RecentActivity({ isAdmin = true }) {
                         ) : error ? (
                             <div className="app-alert app-alert-danger" role="alert">
                                 <p>{error}</p>
-                                <Button type="button" className="app-button app-button-outline-danger app-button-sm" onClick={() => fetchActivity(page)}>Retry</Button>
+                                <Button
+                                    type="button"
+                                    className="app-button app-button-outline-danger app-button-sm"
+                                    onClick={() => {
+                                        setLoading(true);
+                                        setError("");
+                                        void fetchActivity(page);
+                                    }}
+                                >
+                                    Retry
+                                </Button>
                             </div>
                         ) : filtered.length === 0 ? (
                             <div className="dashboard-empty-state">

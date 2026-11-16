@@ -19,8 +19,20 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const OTP_PATTERN = /^\d{6}$/;
 const RESEND_COOLDOWN_SECONDS = 60;
 
-export default function EmailOtpVerification({
-    email,
+export default function EmailOtpVerification(props) {
+    const normalizedEmail = props.email.trim().toLowerCase();
+
+    return (
+        <EmailOtpVerificationSession
+            key={normalizedEmail}
+            {...props}
+            normalizedEmail={normalizedEmail}
+        />
+    );
+}
+
+function EmailOtpVerificationSession({
+    normalizedEmail,
     purpose,
     idPrefix,
     onVerificationChange,
@@ -34,17 +46,9 @@ export default function EmailOtpVerification({
     const [errorMessage, setErrorMessage] = useState("");
     const [resendSeconds, setResendSeconds] = useState(0);
 
-    const normalizedEmail = email.trim().toLowerCase();
     const emailIsValid = EMAIL_PATTERN.test(normalizedEmail);
 
     useEffect(() => {
-        setOtp("");
-        setCodeSent(false);
-        setVerifiedEmail("");
-        setStatusMessage("");
-        setErrorMessage("");
-        setResendSeconds(0);
-
         onVerificationChange({
             email: "",
             token: "",

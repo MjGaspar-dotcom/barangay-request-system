@@ -139,7 +139,9 @@ function ProfileFileCard({
 
 export default function Profile() {
     const { user, refreshUser } = useAuth();
-    const [validIdType, setValidIdType] = useState(user?.valid_id_type || "");
+    const [validIdTypeOverride, setValidIdTypeOverride] = useState(null);
+    const validIdType = validIdTypeOverride ?? user?.valid_id_type ?? "";
+    const [streetName, setStreetName] = useState(null);
     const [files, setFiles] = useState({});
     const [previews, setPreviews] = useState({});
     const [inputKey, setInputKey] = useState(0);
@@ -147,10 +149,6 @@ export default function Profile() {
     const [progress, setProgress] = useState(0);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-
-    useEffect(() => {
-        setValidIdType(user?.valid_id_type || "");
-    }, [user?.valid_id_type]);
 
     useEffect(() => {
         let active = true;
@@ -188,13 +186,23 @@ export default function Profile() {
         setError("");
         setMessage("");
 
-        if (!Object.keys(files).length && validIdType === (user?.valid_id_type || "")) {
-            setError("Choose at least one image or update the ID type.");
+        const streetNameValue = streetName ?? user?.street_name ?? "";
+        const streetNameChanged =
+            streetNameValue.trim() !== (user?.street_name || "").trim();
+        if (
+            !Object.keys(files).length &&
+            validIdType === (user?.valid_id_type || "") &&
+            !streetNameChanged
+        ) {
+            setError("Update your street name, choose an image, or update the ID type.");
             return;
         }
 
         const formData = new FormData();
         formData.append("_method", "PATCH");
+        if (streetNameChanged) {
+            formData.append("street_name", streetNameValue.trim());
+        }
         if (validIdType.trim()) {
             formData.append("valid_id_type", validIdType.trim());
         }
@@ -213,6 +221,7 @@ export default function Profile() {
                 },
             });
             await refreshUser();
+            setValidIdTypeOverride(null);
             setFiles({});
             setPreviews({});
             setInputKey((key) => key + 1);
@@ -239,7 +248,7 @@ export default function Profile() {
             <div style={{ width: "100%", maxWidth: 980, margin: "0 auto" }}>
                 <PageHeader
                     title="My Profile"
-                    description="Your saved images and identification documents are linked to your account."
+                    description="Keep your street name separate from your complete address for accurate document generation."
                 />
                 <SectionCard eyebrow="Account" title={user?.first_name || "Resident"}>
                     <form onSubmit={saveProfile}>
@@ -263,9 +272,18 @@ export default function Profile() {
                             ))}
                         </div>
                         <TextField
-                            label="Valid ID type"
+                            label="Street Name"
+                            value={streetName ?? user?.street_name ?? ""}
+                            onChange={(event) => setStreetName(event.target.value)}
+                            fullWidth
+                            margin="normal"
+                            inputProps={{ maxLength: 255 }}
+                        />
+                        <TextField
+                            label="Valid ID type (automatically detected)"
                             value={validIdType}
-                            onChange={(event) => setValidIdType(event.target.value)}
+                            onChange={(event) => setValidIdTypeOverride(event.target.value)}
+                            helperText="Detected from the uploaded front image when you save. Review or correct it if needed."
                             fullWidth
                             margin="normal"
                             inputProps={{ maxLength: 255 }}

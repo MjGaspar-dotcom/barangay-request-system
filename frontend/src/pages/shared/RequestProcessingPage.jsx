@@ -8,6 +8,7 @@ import Button from "../../components/ui/Button";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import RequestWorkflowPanel from "../../components/requests/RequestWorkflowPanel";
 import { isInCurrentWorkflow } from "../../utils/requestWorkflow";
+import { subscribeToDocumentTemplateUpdates } from "../../utils/documentTemplateUpdates";
 import "./request-processing.css";
 
 export default function RequestProcessingPage() {
@@ -18,18 +19,20 @@ export default function RequestProcessingPage() {
     const Layout = isAdmin ? AdminLayout : StaffLayout;
     const backPath = isAdmin ? "/admin/requests" : "/staff/queue";
     const [request, setRequest] = useState(null);
-    const [documentPreview, setDocumentPreview] = useState(null);
     const [pdfTemplate, setPdfTemplate] = useState(null);
+    const [pdfTemplatePreview, setPdfTemplatePreview] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshError, setRefreshError] = useState("");
-
+    const pdfTemplatePreviewUrl =
+        pdfTemplatePreview?.template === pdfTemplate
+            ? pdfTemplatePreview.url
+            : null;
     const loadRequest = useCallback(
         async (initial = false) => {
             if (initial) {
                 setLoading(true);
                 setError("");
-                setDocumentPreview(null);
                 setPdfTemplate(null);
             }
             setRefreshError("");
@@ -69,11 +72,9 @@ export default function RequestProcessingPage() {
                 const previewResponse = await api.get(
                     `/barangay-requests/${requestId}/template-preview`,
                 );
-                setDocumentPreview(previewResponse.data.data.document);
                 setPdfTemplate(previewResponse.data.data.pdf_template);
             } catch (previewError) {
                 console.error(previewError);
-                setDocumentPreview(null);
                 setPdfTemplate(null);
                 setRefreshError(
                     previewError.response?.data?.message ||
@@ -87,8 +88,80 @@ export default function RequestProcessingPage() {
     );
 
     useEffect(() => {
+        let active = true;
+        let objectUrl = null;
+        const isDocxTemplate =
+            typeof pdfTemplate?.filename === "string" &&
+            pdfTemplate.filename.toLowerCase().endsWith(".docx");
+
+        if (
+            !pdfTemplate ||
+            isDocxTemplate ||
+            request?.document_template_identifier === "uploaded_pdf_template"
+        ) {
+            return undefined;
+        }
+
+        api.get(
+            `/barangay-requests/${requestId}/template-preview/file`,
+            { responseType: "blob" },
+        )
+            .then((response) => {
+                objectUrl = URL.createObjectURL(response.data);
+                if (active) {
+                    setPdfTemplatePreview({
+                        template: pdfTemplate,
+                        url: objectUrl,
+                    });
+                } else {
+                    URL.revokeObjectURL(objectUrl);
+                }
+            })
+            .catch((previewError) => {
+                console.error(previewError);
+            });
+
+        return () => {
+            active = false;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [pdfTemplate, request?.document_template_identifier, requestId]);
+
+    useEffect(() => {
         Promise.resolve().then(() => loadRequest(true));
     }, [loadRequest]);
+
+    useEffect(() => {
+        if (
+            !["queued", "processing"].includes(
+                request?.document_generation_status,
+            )
+        ) {
+            return undefined;
+        }
+
+        const timer = window.setInterval(() => {
+            void loadRequest(false);
+        }, 2000);
+        return () => window.clearInterval(timer);
+    }, [loadRequest, request?.document_generation_status]);
+
+    useEffect(
+        () =>
+            subscribeToDocumentTemplateUpdates(({ documentTypeId }) => {
+                const requestDocumentTypeId =
+                    request?.document_type_id ??
+                    request?.document_type?.document_type_id;
+                if (
+                    requestDocumentTypeId &&
+                    Number(requestDocumentTypeId) !== documentTypeId
+                ) {
+                    return;
+                }
+                void loadRequest(false);
+            }),
+        [loadRequest, request?.document_type_id, request?.document_type?.document_type_id],
+    );
 
     const refreshRequest = useCallback(async () => {
         await loadRequest(false);
@@ -146,8 +219,8 @@ export default function RequestProcessingPage() {
                     </div>
 
                     <RequestWorkflowPanel
-                        documentPreview={documentPreview}
                         pdfTemplate={pdfTemplate}
+                        pdfTemplatePreviewUrl={pdfTemplatePreviewUrl}
                         onRefresh={refreshRequest}
                         request={request}
                     />

@@ -24,6 +24,7 @@ class DocumentTemplateDataFieldService
                     ['key' => 'resident.civil_status', 'label' => 'Civil Status'],
                     ['key' => 'resident.contact_number', 'label' => 'Contact Number'],
                     ['key' => 'resident.address', 'label' => 'Complete Address'],
+                    ['key' => 'resident.street_name', 'label' => 'Street Name'],
                     ['key' => 'resident.resident_id', 'label' => 'Resident ID'],
                 ],
             ],
@@ -38,6 +39,9 @@ class DocumentTemplateDataFieldService
                     ['key' => 'request.control_number', 'label' => 'Control Number'],
                     ['key' => 'request.reference_number', 'label' => 'Reference Number'],
                     ['key' => 'request.remarks', 'label' => 'Remarks'],
+                    ['key' => 'request.business_name', 'label' => 'Business Name'],
+                    ['key' => 'request.business_address', 'label' => 'Business Address'],
+                    ['key' => 'request.business_activity', 'label' => 'Business Activity'],
                 ],
             ],
             [
@@ -48,6 +52,7 @@ class DocumentTemplateDataFieldService
                     ['key' => 'barangay.province', 'label' => 'Province'],
                     ['key' => 'barangay.address', 'label' => 'Barangay Address'],
                     ['key' => 'barangay.captain', 'label' => 'Barangay Captain'],
+                    ['key' => 'barangay.secretary', 'label' => 'Barangay Secretary'],
                 ],
             ],
         ];
@@ -70,6 +75,12 @@ class DocumentTemplateDataFieldService
         $approvalDate = $request->approved_at
             ? CarbonImmutable::parse($request->approved_at)
             : null;
+        $councilRoster = $profile?->council_roster ?? [];
+        $secretary = collect($councilRoster)->first(
+            fn ($member): bool =>
+                is_array($member) &&
+                str_contains(strtolower((string) ($member['position'] ?? '')), 'secretary')
+        );
 
         return [
             'resident.first_name' => $resident?->first_name,
@@ -77,13 +88,14 @@ class DocumentTemplateDataFieldService
             'resident.last_name' => $resident?->last_name,
             'resident.full_name' => $this->fullName($resident),
             'resident.age' => $birthDate
-                ? (string) $birthDate->diffInYears($issuedAt)
+                ? (string) floor($birthDate->diffInYears($issuedAt))
                 : null,
             'resident.birth_date' => $birthDate?->toDateString(),
             'resident.sex' => $resident?->gender,
             'resident.civil_status' => $resident?->civil_status,
             'resident.contact_number' => $resident?->contact_number,
             'resident.address' => $resident?->address,
+            'resident.street_name' => $resident?->street_name,
             'resident.resident_id' => $resident
                 ? (string) $resident->user_id
                 : null,
@@ -95,11 +107,17 @@ class DocumentTemplateDataFieldService
             'request.control_number' => $documentNumber,
             'request.reference_number' => $request->tracking_number,
             'request.remarks' => $request->remarks,
+            'request.business_name' => $request->request_data['business_name'] ?? null,
+            'request.business_address' => $request->request_data['business_address'] ?? null,
+            'request.business_activity' => $request->request_data['business_activity'] ?? null,
             'barangay.name' => $profile?->barangay_name,
             'barangay.municipality' => $profile?->municipality,
             'barangay.province' => $profile?->province,
             'barangay.address' => $profile?->office_address,
             'barangay.captain' => $profile?->punong_barangay_name,
+            'barangay.secretary' => is_array($secretary)
+                ? ($secretary['name'] ?? null)
+                : null,
         ];
     }
 
@@ -125,4 +143,5 @@ class DocumentTemplateDataFieldService
 
         return $name !== '' ? $name : null;
     }
+
 }

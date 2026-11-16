@@ -12,7 +12,7 @@ class OcrParsingService
         $cleanText = self::normalizeText($rawText);
 
         $idType = self::detectIdType($cleanText);
-        $idNumber = self::extractIdNumber($cleanText, $idType);
+        $idNumber = self::extractIdNumber($cleanText);
         $nameData = self::extractName($cleanText);
         $birthDate = self::extractBirthDate($cleanText);
         $gender = self::extractGender($cleanText);
@@ -54,10 +54,14 @@ class OcrParsingService
     }
 
     /**
-     * Detect Philippine ID type from keywords.
+     * Detect supported ID types from OCR text.
      */
-    protected static function detectIdType(string $text): string
+    protected static function detectIdType(string $text): ?string
     {
+        if (preg_match('/\b(personalausweis|bundesrepublik deutschland)\b/i', $text)) {
+            return 'German National ID (Personalausweis)';
+        }
+
         if (preg_match('/(philid|philippine identification|republika ng pilipinas|psys|philsys)/i', $text)) {
             return 'Philippine National ID (PhilID)';
         }
@@ -90,13 +94,13 @@ class OcrParsingService
             return 'Postal ID';
         }
 
-        return 'Government / Valid ID';
+        return null;
     }
 
     /**
      * Extract ID Number using pattern matching.
      */
-    protected static function extractIdNumber(string $text, string $idType): ?string
+    protected static function extractIdNumber(string $text): ?string
     {
         // PhilID / PSN (16 digits or 12 digits: XXXX-XXXX-XXXX-XXXX)
         if (preg_match('/\b(\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}|\d{4}[-\s]?\d{4}[-\s]?\d{4})\b/', $text, $matches)) {
@@ -254,7 +258,7 @@ class OcrParsingService
     protected static function calculateConfidence(array $fields): int
     {
         $score = 0;
-        if (!empty($fields['id_type']) && $fields['id_type'] !== 'Government / Valid ID')
+        if (!empty($fields['id_type']))
             $score += 20;
         if (!empty($fields['id_number']))
             $score += 30;

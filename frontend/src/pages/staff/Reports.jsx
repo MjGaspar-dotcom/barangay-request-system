@@ -32,12 +32,25 @@ const DocumentRequestTrends = lazy(
 );
 
 const STATUS_GROUPS = [
-    { label: "Request", key: "request_submitted", tone: "pending", color: "var(--warning)" },
-    { label: "Approved", key: "approved", tone: "approved", color: "var(--info)" },
+    { label: "Open Requests", key: "open", tone: "pending", color: "var(--warning)" },
     { label: "Rejected", key: "rejected", tone: "rejected", color: "var(--danger)" },
     { label: "Ready for Pickup", key: "ready_for_pickup", tone: "ready", color: "#0f766e" },
     { label: "Completed", key: "completed", tone: "completed", color: "var(--success)" },
 ];
+
+const analyticsStatusKey = (status) => {
+    const normalizedStatus = canonicalRequestStatus(status);
+
+    return normalizedStatus === "request_submitted" ||
+        normalizedStatus === "approved"
+        ? "open"
+        : normalizedStatus;
+};
+
+const analyticsStatusLabel = (status) =>
+    analyticsStatusKey(status) === "open"
+        ? "Open Request"
+        : requestStatusLabel(status);
 
 const renderStatusPercentage = ({
     cx,
@@ -112,7 +125,7 @@ export default function StaffReports({ isAdmin = false }) {
     const counts = useMemo(
         () =>
             requests.reduce((result, request) => {
-                const status = canonicalRequestStatus(request.status);
+                const status = analyticsStatusKey(request.status);
                 result[status] = (result[status] || 0) + 1;
                 return result;
             }, {}),
@@ -614,10 +627,9 @@ export default function StaffReports({ isAdmin = false }) {
                                                 </td>
                                                 <td>
                                                     <StatusBadge
-                                                        status={
-                                                            requestStatusLabel(request.status) ||
-                                                            "Unknown"
-                                                        }
+                                                        status={analyticsStatusLabel(
+                                                            request.status,
+                                                        )}
                                                         size="sm"
                                                     />
                                                 </td>

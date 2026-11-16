@@ -1,0 +1,89 @@
+.user-verification-dialog.confirm-dialog {
+    width: min(100%, 960px);
+    max-width: 960px;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+.verification-review {
+    color: #23352b;
+}
+
+.verification-review-intro {
+    margin: 0 0 1rem;
+}
+
+.verification-review-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin: 0 0 1.25rem;
+}
+
+.verification-review-details dt {
+    color: #607066;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.verification-review-details dd {
+    margin: 0.15rem 0 0;
+    overflow-wrap: anywhere;
+}
+
+.verification-review-documents {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.verification-review-document {
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid #dce5df;
+    border-radius: 0.75rem;
+}
+
+.verification-review-document h3 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+}
+
+.verification-review-document a {
+    display: grid;
+    min-height: 12rem;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: #f3f6f4;
+}
+
+.verification-review-document img {
+    display: block;
+    width: 100%;
+    max-height: min(40vh, 360px);
+    object-fit: contain;
+}
+
+.verification-review-document p {
+    margin: 0.5rem 0 0;
+    overflow-wrap: anywhere;
+    color: #607066;
+    font-size: 0.8rem;
+}
+
+.verification-review-document .verification-review-missing {
+    display: grid;
+    min-height: 12rem;
+    place-items: center;
+    margin: 0;
+    border-radius: 0.5rem;
+    background: #f3f6f4;
+}
+
+@media (max-width: 640px) {
+    .verification-review-details,
+    .verification-review-documents {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

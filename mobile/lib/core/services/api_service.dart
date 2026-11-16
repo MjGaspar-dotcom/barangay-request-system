@@ -115,6 +115,16 @@ class ApiService {
     return dio.post('/barangay-requests', data: data);
   }
 
+  static Future<Response> updateBusinessDetails(
+    int requestId,
+    Map<String, String> data,
+  ) {
+    return dio.patch(
+      '/barangay-requests/$requestId/business-details',
+      data: data,
+    );
+  }
+
   static Future<Response> getGeneratedDocument(int requestId) {
     return dio.get('/barangay-requests/$requestId/generated-document');
   }

@@ -4,7 +4,6 @@ import csv
 from pathlib import Path
 from typing import Any
 
-from .data_gen import generate_data
 from .engine import Recommender
 
 
@@ -22,8 +21,14 @@ def load_data(
     )
     residents_path = directory / "residents.csv"
     requests_path = directory / "requests.csv"
-    if not residents_path.exists() or not requests_path.exists():
-        generate_data(directory)
+    missing_paths = [
+        path for path in (residents_path, requests_path) if not path.is_file()
+    ]
+    if missing_paths:
+        missing = ", ".join(str(path) for path in missing_paths)
+        raise FileNotFoundError(
+            f"Resident and request CSV files are required; missing: {missing}"
+        )
     with residents_path.open(newline="", encoding="utf-8") as resident_file:
         residents = list(csv.DictReader(resident_file))
     with requests_path.open(newline="", encoding="utf-8") as request_file:

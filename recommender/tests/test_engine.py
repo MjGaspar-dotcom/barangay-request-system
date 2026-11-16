@@ -1,9 +1,12 @@
 """Behavior tests for the hand-built DSA recommender."""
 
+import csv
 import random
+import tempfile
 import unittest
+from pathlib import Path
 
-from ..analytics import evaluate
+from ..analytics import evaluate, load_data
 from ..data_structures import MinHeap, WeightedDigraph
 from ..engine import Recommender
 
@@ -153,11 +156,31 @@ class RecommenderTests(unittest.TestCase):
 
     def test_engine_hit_at_three_is_at_least_popularity_baseline(self) -> None:
         """Compare in O(R * (Q log Q + N log k)) time and O(Q + N) space (leave-last-out)."""
-        metrics = evaluate(k=3)
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            data_dir = Path(temporary_directory)
+            for filename, rows in (
+                ("residents.csv", self.residents),
+                ("requests.csv", self.requests),
+            ):
+                with (data_dir / filename).open(
+                    "w", newline="", encoding="utf-8"
+                ) as file:
+                    writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+                    writer.writeheader()
+                    writer.writerows(rows)
+
+            metrics = evaluate(k=3, data_dir=data_dir)
+
         self.assertGreaterEqual(
             metrics["Engine"]["hit_at_3"],
             metrics["Popularity"]["hit_at_3"],
         )
+
+    def test_missing_dataset_is_not_generated_implicitly(self) -> None:
+        """Require caller-supplied CSVs instead of creating synthetic rows."""
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with self.assertRaisesRegex(FileNotFoundError, "residents.csv"):
+                load_data(temporary_directory)
 
 
 if __name__ == "__main__":

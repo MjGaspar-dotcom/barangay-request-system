@@ -35,11 +35,18 @@ class PdfTemplateGenerationService
             return null;
         }
 
-        return DocumentTemplate::query()
+        $activeVersion = DocumentTemplate::query()
             ->where('document_type_id', $request->document_type_id)
             ->with(['activeVersion.mappings'])
             ->first()
             ?->activeVersion;
+
+        if ($activeVersion && $activeVersion->mappings->isEmpty()) {
+            app(DocumentTemplateService::class)->autoMapFields($activeVersion);
+            $activeVersion->load('mappings');
+        }
+
+        return $activeVersion;
     }
 
     public function generate(
@@ -65,9 +72,10 @@ class PdfTemplateGenerationService
                     RequestStatusService::STATUS_REQUEST_SUBMITTED,
                     RequestStatusService::STATUS_APPROVED,
                     RequestStatusService::STATUS_READY_FOR_PICKUP,
+                    RequestStatusService::STATUS_COMPLETED,
                 ], true)) {
                     throw new \InvalidArgumentException(
-                        'A PDF can only be generated for a request being processed or ready for pickup.'
+                        'A PDF can only be generated for a request being processed, ready for pickup, or missing a PDF after completion.'
                     );
                 }
                 if (
@@ -82,16 +90,26 @@ class PdfTemplateGenerationService
                 }
 
                 $current = $request->generatedDocuments()->first();
+                $templateVersion = $this->activeTemplateFor($request);
                 if ($current && !$regenerate) {
-                    return $current;
+                    if (
+                        !$templateVersion ||
+                        (int) $current->template_version_id ===
+                            (int) $templateVersion->template_version_id ||
+                        $request->status === RequestStatusService::STATUS_COMPLETED
+                    ) {
+                        return $current;
+                    }
                 }
-                if ($request->status === RequestStatusService::STATUS_COMPLETED) {
+                if (
+                    $request->status === RequestStatusService::STATUS_COMPLETED &&
+                    ($regenerate || $current)
+                ) {
                     throw new \InvalidArgumentException(
                         'A completed request cannot have its document regenerated.'
                     );
                 }
 
-                $templateVersion = $this->activeTemplateFor($request);
                 if (!$templateVersion) {
                     throw new \InvalidArgumentException(
                         'No active PDF template is uploaded for this document type.'
@@ -114,6 +132,7 @@ class PdfTemplateGenerationService
                 );
                 $formValues = [];
                 $overlays = [];
+                $placeholderValues = [];
                 $mappedValues = [];
 
                 foreach ($mappings as $mapping) {
@@ -125,11 +144,23 @@ class PdfTemplateGenerationService
                         );
                     }
 
+                    $isPlaceholder = preg_match(
+                        '/^\{\{[A-Z][A-Z0-9_]*\}\}?$/i',
+                        $mapping->field_name
+                    ) === 1;
                     $value = $value === null ? '' : (string) $value;
+                    if ($isPlaceholder) {
+                        $value = mb_strtoupper($value, 'UTF-8');
+                    }
                     $mappedValues[$mapping->system_field] = $value;
 
                     if ($mapping->field_type === 'acroform') {
                         $formValues[$mapping->field_name] = $value;
+                        continue;
+                    }
+
+                    if ($isPlaceholder) {
+                        $placeholderValues[$mapping->field_name] = $value;
                         continue;
                     }
 
@@ -150,12 +181,18 @@ class PdfTemplateGenerationService
                 $templateDisk = Storage::disk($templateVersion->storage_disk);
                 if (!$templateDisk->exists($templateVersion->storage_path)) {
                     throw new \InvalidArgumentException(
-                        'The active PDF template file is missing from storage.'
+                        'The active document template file is missing from storage.'
                     );
                 }
 
                 $temporaryDirectory = $this->createTemporaryDirectory();
-                $inputPath = $temporaryDirectory.DIRECTORY_SEPARATOR.'template.pdf';
+                $templateFormat = strtolower(
+                    pathinfo($templateVersion->original_name, PATHINFO_EXTENSION)
+                ) === 'docx'
+                    ? 'docx'
+                    : 'pdf';
+                $inputPath = $temporaryDirectory
+                    .DIRECTORY_SEPARATOR.'template.'.$templateFormat;
                 $outputPath = $temporaryDirectory.DIRECTORY_SEPARATOR.'generated.pdf';
                 try {
                     $templateBytes = $templateDisk->get($templateVersion->storage_path);
@@ -163,7 +200,7 @@ class PdfTemplateGenerationService
                         !is_string($templateBytes) ||
                         file_put_contents($inputPath, $templateBytes) === false
                     ) {
-                        throw new RuntimeException('The PDF template could not be prepared for generation.');
+                        throw new RuntimeException('The document template could not be prepared for generation.');
                     }
 
                     $this->pdfWorker->generate(
@@ -172,7 +209,9 @@ class PdfTemplateGenerationService
                         [
                             'form_values' => $formValues,
                             'overlays' => $overlays,
-                        ]
+                            'placeholder_values' => $placeholderValues,
+                        ],
+                        $templateFormat
                     );
                     $generatedBytes = file_get_contents($outputPath);
                     if ($generatedBytes === false || $generatedBytes === '') {

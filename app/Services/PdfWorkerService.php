@@ -10,9 +10,9 @@ use Symfony\Component\Process\Process;
 
 class PdfWorkerService
 {
-    public function inspect(string $path): array
+    public function inspect(string $path, string $format = 'pdf'): array
     {
-        $process = $this->run(['inspect', $path]);
+        $process = $this->run(['inspect', $path, $format]);
 
         try {
             $result = json_decode(
@@ -48,16 +48,27 @@ class PdfWorkerService
     public function generate(
         string $templatePath,
         string $outputPath,
-        array $payload
+        array $payload,
+        string $format = 'pdf'
     ): void {
         $json = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
-        $this->run(['generate', $templatePath, $outputPath], $json);
+        $this->run(['generate', $templatePath, $outputPath, $format], $json);
 
         if (!is_file($outputPath) || filesize($outputPath) === 0) {
             throw new PdfProcessingException(
-                'The PDF processor did not create a completed document.'
+                'The document processor did not create a completed PDF.'
             );
         }
+    }
+
+    public function previewDocx(string $templatePath, string $outputPath): void
+    {
+        $this->generate(
+            $templatePath,
+            $outputPath,
+            ['allow_unmapped' => true],
+            'docx'
+        );
     }
 
     private function run(array $arguments, ?string $input = null): Process
@@ -66,6 +77,16 @@ class PdfWorkerService
             config('document_templates.python_binary'),
             base_path('pdf_worker/worker.py'),
         ], $arguments));
+        $process->setEnv([
+            'LIBREOFFICE_BINARY' => config(
+                'document_templates.libreoffice_binary',
+                'soffice'
+            ),
+            'TMPDIR' => sys_get_temp_dir(),
+            'TMP' => sys_get_temp_dir(),
+            'TEMP' => sys_get_temp_dir(),
+        ]);
+        $process->setWorkingDirectory(base_path());
         $process->setTimeout(
             config('document_templates.worker_timeout_seconds', 120)
         );

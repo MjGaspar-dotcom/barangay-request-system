@@ -82,6 +82,11 @@ class User extends Authenticatable
         'gender',
         'civil_status',
         'address',
+        'street_name',
+        'barangay_name',
+        'municipality',
+        'province',
+        'postal_code',
         'contact_number',
         'email',
         'profile_picture',
@@ -120,7 +125,7 @@ class User extends Authenticatable
 
     private function signedFileUrl(string $field): ?string
     {
-        if (!is_string($this->getRawOriginal($field)) || $this->getRawOriginal($field) === '') {
+        if (! is_string($this->getRawOriginal($field)) || $this->getRawOriginal($field) === '') {
             return null;
         }
 

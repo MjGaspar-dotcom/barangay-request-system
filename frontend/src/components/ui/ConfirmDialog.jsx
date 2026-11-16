@@ -16,10 +16,14 @@ export default function ConfirmDialog({
     children,
     confirmLabel = "Confirm",
     variant = "danger",
+    contentClassName,
 }) {
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
-            <DialogContent aria-describedby="confirm-dialog-description">
+            <DialogContent
+                aria-describedby="confirm-dialog-description"
+                className={contentClassName}
+            >
                 <DialogHeader>
                     <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
                 </DialogHeader>

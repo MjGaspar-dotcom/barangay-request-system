@@ -41,6 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _lastNameCtrl = TextEditingController();
   final _birthDateCtrl = TextEditingController();
   final _contactCtrl = TextEditingController();
+  final _streetNameCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
 
   String? _gender;
@@ -77,6 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _lastNameCtrl,
       _birthDateCtrl,
       _contactCtrl,
+      _streetNameCtrl,
       _addressCtrl
     ]) {
       c.dispose();
@@ -114,6 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               'gender': _gender,
               'civil_status': _civilStatus,
               'contact_number': _contactCtrl.text.trim(),
+              'street_name': _streetNameCtrl.text.trim(),
               'address': _addressCtrl.text.trim(),
             },
           )
@@ -132,6 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             'gender': _gender,
             'civil_status': _civilStatus,
             'contact_number': _contactCtrl.text.trim(),
+            'street_name': _streetNameCtrl.text.trim(),
             'address': _addressCtrl.text.trim(),
           });
 
@@ -488,8 +492,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
+                    id: 'reg_street_name',
+                    label: 'Street Name',
+                    controller: _streetNameCtrl,
+                    prefixIcon: Icons.signpost_outlined,
+                    validator: (v) =>
+                        (v == null || v.isEmpty) ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
                     id: 'reg_address',
-                    label: 'Address',
+                    label: 'Complete Address',
                     controller: _addressCtrl,
                     prefixIcon: Icons.home_outlined,
                     maxLines: 2,

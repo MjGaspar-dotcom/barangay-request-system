@@ -10,6 +10,7 @@ import '../../../core/services/recommendation_engine.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/document_types_error.dart';
 import '../../widgets/loading_button.dart';
+import 'generated_document_screen.dart';
 
 class CreateRequestScreen extends StatefulWidget {
   const CreateRequestScreen({super.key, this.initialDocumentTypeId});
@@ -34,6 +35,9 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final _purposeCtrl = TextEditingController();
+  final _businessNameCtrl = TextEditingController();
+  final _businessAddressCtrl = TextEditingController();
+  final _businessActivityCtrl = TextEditingController();
   final _recommendationEngine = RecommendationEngine();
   int? _selectedDocTypeId;
   String? _selectedPurpose;
@@ -50,18 +54,38 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   @override
   void dispose() {
     _purposeCtrl.dispose();
+    _businessNameCtrl.dispose();
+    _businessAddressCtrl.dispose();
+    _businessActivityCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final success =
-        await context.read<RequestProvider>().createRegisteredRequest(
-              documentTypeId: _selectedDocTypeId!,
-              purpose: _selectedPurpose == 'Other'
-                  ? _purposeCtrl.text.trim()
-                  : _selectedPurpose!,
-            );
+    final requestProvider = context.read<RequestProvider>();
+    DocumentType? selectedDocumentType;
+    for (final type in requestProvider.documentTypes) {
+      if (type.id == _selectedDocTypeId) {
+        selectedDocumentType = type;
+        break;
+      }
+    }
+    final isBusinessClearance =
+        selectedDocumentType?.name.trim().toLowerCase() ==
+            'barangay business clearance';
+    final success = await requestProvider.createRegisteredRequest(
+      documentTypeId: _selectedDocTypeId!,
+      purpose: _selectedPurpose == 'Other'
+          ? _purposeCtrl.text.trim()
+          : _selectedPurpose!,
+      requestData: isBusinessClearance
+          ? {
+              'business_name': _businessNameCtrl.text.trim(),
+              'business_address': _businessAddressCtrl.text.trim(),
+              'business_activity': _businessActivityCtrl.text.trim(),
+            }
+          : null,
+    );
     if (!mounted) return;
     if (success) {
       final request = context.read<RequestProvider>().submittedRequest;
@@ -73,7 +97,7 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
         return;
       }
 
-      await showDialog<void>(
+      final previewDocument = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
@@ -82,7 +106,11 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Save this QR receipt to track your request.'),
+                Text(
+                  requestProvider.submittedGeneratedDocumentId != null
+                      ? 'Your PDF has been generated. Save this QR receipt or preview your document.'
+                      : 'Save this QR receipt to track your request.',
+                ),
                 const SizedBox(height: 16),
                 SvgPicture.string(
                   request.qrCode!,
@@ -101,12 +129,27 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Done'),
             ),
+            if (requestProvider.submittedGeneratedDocumentId != null)
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Preview PDF'),
+              ),
           ],
         ),
       );
+      if (mounted && previewDocument == true) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => GeneratedDocumentScreen(
+              requestId: request.id,
+              documentName: request.documentType?.name ?? 'Generated PDF',
+            ),
+          ),
+        );
+      }
       if (mounted) Navigator.of(context).pop();
     } else {
       final msg = context.read<RequestProvider>().errorMessage;
@@ -121,6 +164,11 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
     final provider = context.watch<RequestProvider>();
     final user = context.watch<AuthProvider>().user;
     final isLoading = provider.status == RequestStatus.submitting;
+    final isBusinessClearance = provider.documentTypes.any(
+      (type) =>
+          type.id == _selectedDocTypeId &&
+          type.name.trim().toLowerCase() == 'barangay business clearance',
+    );
     Recommendation? recommendation;
     DocumentType? recommendedDocument;
 
@@ -297,6 +345,45 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                         (value == null || value.trim().isEmpty)
                             ? 'Please describe your purpose'
                             : null,
+                  ),
+                ],
+                if (isBusinessClearance) ...[
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Business Information',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Enter the details that will be placed in your Business Clearance.',
+                    style: TextStyle(fontSize: 13, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'create_req_business_name',
+                    label: 'Business name',
+                    controller: _businessNameCtrl,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Enter the business name'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'create_req_business_address',
+                    label: 'Business address',
+                    controller: _businessAddressCtrl,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Enter the business address'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  AppTextField(
+                    id: 'create_req_business_activity',
+                    label: 'Nature of business',
+                    controller: _businessActivityCtrl,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Enter the business activity'
+                        : null,
                   ),
                 ],
                 const SizedBox(height: 32),

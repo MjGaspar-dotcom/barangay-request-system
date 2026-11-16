@@ -82,7 +82,7 @@ class DocumentTemplateController extends Controller
             if (!$disk->exists($activeVersion->storage_path)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'The active PDF template is missing from storage.',
+                    'message' => 'The active document template is missing from storage.',
                 ], 404);
             }
 
@@ -90,29 +90,36 @@ class DocumentTemplateController extends Controller
             if ($temporaryPath === false) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'A temporary PDF preview could not be created.',
+                    'message' => 'A temporary template inspection file could not be created.',
                 ], 500);
             }
-            $temporaryPdfPath = $temporaryPath.'.pdf';
+            $format = strtolower(pathinfo($activeVersion->original_name, PATHINFO_EXTENSION))
+                === 'docx'
+                    ? 'docx'
+                    : 'pdf';
+            $temporaryTemplatePath = $temporaryPath.'.'.$format;
             @unlink($temporaryPath);
             try {
                 $contents = $disk->get($activeVersion->storage_path);
-                if (file_put_contents($temporaryPdfPath, $contents) === false) {
+                if (file_put_contents($temporaryTemplatePath, $contents) === false) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'The active PDF template could not be prepared for preview.',
+                        'message' => 'The active document template could not be prepared for inspection.',
                     ], 500);
                 }
-                $inspection = $this->pdfWorker->inspect($temporaryPdfPath);
+                $inspection = $this->pdfWorker->inspect(
+                    $temporaryTemplatePath,
+                    $format
+                );
                 $formFields = $inspection['fields'];
                 $pages = $inspection['pages'];
             } catch (PdfProcessingException $exception) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'The active PDF template could not be inspected.',
+                    'message' => 'The active document template could not be inspected.',
                 ], 422);
             } finally {
-                @unlink($temporaryPdfPath);
+                @unlink($temporaryTemplatePath);
             }
         }
 
@@ -144,8 +151,6 @@ class DocumentTemplateController extends Controller
             'file' => [
                 'required',
                 'file',
-                'mimes:pdf',
-                'mimetypes:application/pdf',
                 'max:'.config('document_templates.max_upload_kilobytes', 20480),
             ],
         ]);
@@ -164,7 +169,7 @@ class DocumentTemplateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'PDF template uploaded successfully.',
+            'message' => 'Document template uploaded successfully.',
             'data' => ['version' => $this->versionData($version)],
         ], 201);
     }
@@ -177,7 +182,10 @@ class DocumentTemplateController extends Controller
         $validated = Validator::make($request->all(), [
             'fields' => 'required|array|min:1|max:100',
             'fields.*.field_name' => 'required|string|max:255|distinct:strict',
-            'fields.*.field_type' => ['required', Rule::in(['acroform', 'overlay'])],
+            'fields.*.field_type' => [
+                'required',
+                Rule::in(['acroform', 'overlay', 'docx_placeholder']),
+            ],
             'fields.*.system_field' => ['required', 'string', Rule::in($fields)],
             'fields.*.page_number' => 'nullable|integer|min:1',
             'fields.*.x' => 'nullable|numeric|between:0,1',
@@ -227,7 +235,7 @@ class DocumentTemplateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'PDF field mappings saved.',
+            'message' => 'Document template mappings saved.',
             'data' => [
                 'mappings' => $version->mappings()->get(),
             ],
@@ -247,7 +255,7 @@ class DocumentTemplateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'PDF template deactivated. Its version history and generated documents were preserved.',
+            'message' => 'Document template deactivated. Its version history and generated documents were preserved.',
         ]);
     }
 
@@ -257,7 +265,7 @@ class DocumentTemplateController extends Controller
         if (!$disk->exists($version->storage_path)) {
             return response()->json([
                 'success' => false,
-                'message' => 'The original PDF template is missing from storage.',
+                'message' => 'The original document template is missing from storage.',
             ], 404);
         }
 
@@ -265,12 +273,13 @@ class DocumentTemplateController extends Controller
         if (!is_resource($stream)) {
             return response()->json([
                 'success' => false,
-                'message' => 'The original PDF template could not be opened.',
+                'message' => 'The original document template could not be opened.',
             ], 500);
         }
 
         $disposition = $request->boolean('download') ? 'attachment' : 'inline';
-        $fallbackName = 'document-template-v'.$version->version_number.'.pdf';
+        $fallbackName = 'document-template-v'.$version->version_number.'.'
+            .pathinfo($version->original_name, PATHINFO_EXTENSION);
         $contentDisposition = HeaderUtils::makeDisposition(
             $disposition,
             $version->original_name,
@@ -281,7 +290,7 @@ class DocumentTemplateController extends Controller
             fpassthru($stream);
             fclose($stream);
         }, 200, [
-            'Content-Type' => 'application/pdf',
+            'Content-Type' => $version->mime_type,
             'Content-Disposition' => $contentDisposition,
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store',

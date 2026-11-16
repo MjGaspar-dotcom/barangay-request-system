@@ -1,5 +1,11 @@
 import { styled } from "@mui/material/styles";
-import { Alert, Avatar, Button, Card } from "@mui/material";
+import {
+    Alert,
+    Avatar,
+    Button,
+    Card,
+    FormControlLabel,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 
 export const AuthPage = styled("div")(({ theme }) => ({

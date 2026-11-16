@@ -85,6 +85,12 @@ class StoreUserRequest extends FormRequest
                 'max:255',
             ],
 
+            'street_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
             'contact_number' => [
                 'required',
                 'string',
@@ -123,6 +129,7 @@ class StoreUserRequest extends FormRequest
             'civil_status.required' => 'Civil status is required.',
 
             'address.required' => 'Address is required.',
+            'street_name.required' => 'Street name is required.',
             'contact_number.required' => 'Contact number is required.',
 
             'email.required' => 'Email is required.',

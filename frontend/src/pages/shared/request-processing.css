@@ -17,11 +17,37 @@
 }
 
 .request-processing-page .request-processing-grid {
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    grid-template-areas: "main progress";
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
     gap: 20px;
 }
 
+.request-processing-page .request-processing-grid > section {
+    grid-area: main;
+    align-self: stretch;
+    min-width: 0;
+    width: 100%;
+}
+
+.request-processing-page .pdf-canvas-viewer {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    width: 100%;
+}
+
+.request-processing-page .pdf-canvas-scroll {
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+}
+
+.request-processing-page .pdf-canvas-page {
+    margin: 0 auto;
+}
+
 .request-processing-page .request-progress-card {
+    grid-area: progress;
     position: sticky;
     top: 16px;
     padding: 18px;
@@ -117,6 +143,9 @@
 
 @media (max-width: 760px) {
     .request-processing-page .request-processing-grid {
+        grid-template-areas:
+            "main"
+            "progress";
         grid-template-columns: minmax(0, 1fr);
         gap: 12px;
     }

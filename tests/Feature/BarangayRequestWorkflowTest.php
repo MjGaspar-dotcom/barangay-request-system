@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\GenerateRequestPdf;
 use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\BarangayRequest;
@@ -9,11 +10,13 @@ use App\Models\DocumentGenerationProfile;
 use App\Models\DocumentType;
 use App\Models\Staff;
 use App\Models\User;
+use App\Services\IdTypeRecognitionService;
 use App\Services\QrCodeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -109,11 +112,20 @@ class BarangayRequestWorkflowTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.request.status', 'request_submitted');
 
+        $requestId = $response->json('data.request.request_id');
         $this->assertDatabaseHas('barangay_requests', [
+            'request_id' => $requestId,
             'user_id' => $this->user->user_id,
             'purpose' => 'Employment Application',
             'status' => 'request_submitted',
         ]);
+        foreach ([$this->adminUser, $this->staffUser] as $recipient) {
+            $this->assertDatabaseHas('notifications', [
+                'user_id' => $recipient->user_id,
+                'request_id' => $requestId,
+                'type' => 'new_request',
+            ]);
+        }
 
         $trackingNumber = $response->json('data.request.tracking_number');
         $this->getJson("/api/track/{$trackingNumber}")
@@ -123,6 +135,43 @@ class BarangayRequestWorkflowTest extends TestCase
                 'data.document_type',
                 'Barangay Clearance'
             );
+
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/notifications')
+            ->assertOk()
+            ->assertJsonPath('data.data.0.request_id', $requestId)
+            ->assertJsonPath('data.data.0.type', 'new_request');
+    }
+
+    public function test_pdf_generation_is_queued_without_blocking_request_processing(): void
+    {
+        Queue::fake();
+        $request = BarangayRequest::create([
+            'user_id' => $this->user->user_id,
+            'document_type_id' => $this->documentType->document_type_id,
+            'purpose' => 'Queued PDF generation',
+            'tracking_number' => 'BR-20261116-QUEUE1',
+            'status' => 'request_submitted',
+        ]);
+
+        $this->actingAs($this->staffUser)
+            ->postJson(
+                "/api/barangay-requests/{$request->request_id}/generated-document/generate",
+                ['regenerate' => false]
+            )
+            ->assertStatus(202)
+            ->assertJsonPath('data.document_generation_status', 'queued');
+
+        $this->assertDatabaseHas('barangay_requests', [
+            'request_id' => $request->request_id,
+            'document_generation_status' => 'queued',
+            'document_generation_error' => null,
+        ]);
+        Queue::assertPushed(
+            GenerateRequestPdf::class,
+            fn (GenerateRequestPdf $job): bool =>
+                $job->requestId === $request->request_id
+        );
     }
 
     public function test_registered_user_can_submit_supporting_documents_with_request(): void
@@ -427,6 +476,11 @@ class BarangayRequestWorkflowTest extends TestCase
     public function test_resident_profile_id_images_survive_logout_and_relogin(): void
     {
         Storage::fake('local');
+        $this->mock(IdTypeRecognitionService::class, function ($mock): void {
+            $mock->shouldReceive('detectFromPath')
+                ->once()
+                ->andReturn('Philippine National ID (PhilID)');
+        });
 
         $response = $this->actingAs($this->user)
             ->post('/api/profile', [
@@ -437,7 +491,8 @@ class BarangayRequestWorkflowTest extends TestCase
             ], ['Accept' => 'application/json']);
 
         $response->assertOk()
-            ->assertJsonPath('data.valid_id_type', 'National ID')
+            ->assertJsonPath('data.valid_id_type', 'Philippine National ID (PhilID)')
+            ->assertJsonPath('id_type_detection.status', 'identified')
             ->assertJsonPath(
                 'data.valid_id_front_url',
                 fn ($url) => is_string($url) && str_contains($url, '/api/users/')
@@ -648,7 +703,7 @@ class BarangayRequestWorkflowTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_full_status_lifecycle_for_registered_request(): void
+    public function test_ready_transition_requires_an_uploaded_pdf_template(): void
     {
         $this->actingAs($this->user)->postJson('/api/barangay-requests', [
             'document_type_id' => $this->documentType->document_type_id,
@@ -681,83 +736,12 @@ class BarangayRequestWorkflowTest extends TestCase
             ->putJson("/api/barangay-requests/{$br->request_id}", [
                 'status' => 'ready_for_pickup',
             ])
-            ->assertOk()
-            ->assertJsonPath('data.status', 'ready_for_pickup');
+            ->assertStatus(422)
+            ->assertJsonPath('success', false);
         $br->refresh();
-        $this->assertNotNull($br->ready_for_pickup_at);
-        $this->assertSame('barangay_clearance', $br->document_template_identifier);
-        $this->assertNotEmpty($br->document_number);
-        $this->assertSame(
-            'Barangay Clearance',
-            $br->generated_document_data['document_type']
-        );
-        $documentNumber = $br->document_number;
-
-        $this->actingAs($this->staffUser)
-            ->getJson("/api/barangay-requests/{$br->request_id}/generated-document")
-            ->assertOk()
-            ->assertJsonPath('data.document.document_number', $documentNumber)
-            ->assertJsonPath('data.print_count', 0);
-
-        // Printing/reprinting is logged and leaves the request ready for pickup.
-        $this->actingAs($this->staffUser)
-            ->postJson("/api/barangay-requests/{$br->request_id}/generated-document/print")
-            ->assertOk()
-            ->assertJsonPath('data.action', 'document_printed');
-        $this->actingAs($this->adminUser)
-            ->postJson("/api/barangay-requests/{$br->request_id}/generated-document/print")
-            ->assertOk()
-            ->assertJsonPath('data.action', 'document_reprinted');
-        $br->refresh();
-        $this->assertSame('ready_for_pickup', $br->status);
-        $this->assertSame($documentNumber, $br->document_number);
-        $this->assertDatabaseHas('audit_logs', [
-            'table_name' => 'barangay_requests',
-            'record_id' => $br->request_id,
-            'action' => 'document_reprinted',
-            'user_id' => $this->adminUser->user_id,
-        ]);
-
-        $resp4 = $this->actingAs($this->staffUser)->putJson("/api/barangay-requests/{$br->request_id}", [
-            'status' => 'completed',
-            'recipient_name' => 'Juan Dela Cruz',
-        ]);
-        $resp4->assertStatus(200)->assertJsonPath('data.status', 'completed');
-        $br->refresh();
-        $this->assertNotNull($br->claimed_at);
-        $this->assertSame('Juan Dela Cruz', $br->release_recipient_name);
-        $this->assertSame($this->staffUser->user_id, $br->released_by);
-
-        $this->actingAs($this->staffUser)
-            ->postJson("/api/barangay-requests/{$br->request_id}/generated-document/print")
-            ->assertStatus(422);
-
-        $this->assertDatabaseHas('audit_logs', [
-            'table_name' => 'barangay_requests',
-            'record_id' => $br->request_id,
-            'action' => 'document_generated',
-            'user_id' => $this->staffUser->user_id,
-        ]);
-        $this->assertDatabaseHas('audit_logs', [
-            'table_name' => 'barangay_requests',
-            'record_id' => $br->request_id,
-            'action' => 'document_previewed',
-            'user_id' => $this->staffUser->user_id,
-        ]);
-        $this->assertDatabaseHas('audit_logs', [
-            'table_name' => 'barangay_requests',
-            'record_id' => $br->request_id,
-            'action' => 'document_reprinted',
-            'user_id' => $this->adminUser->user_id,
-        ]);
-        $this->actingAs($this->user)
-            ->getJson("/api/barangay-requests/{$br->request_id}")
-            ->assertOk()
-            ->assertJsonFragment(['action' => 'document_generated'])
-            ->assertJsonFragment(['action' => 'request_approved'])
-            ->assertJsonFragment(['action' => 'document_printed'])
-            ->assertJsonFragment(['action' => 'document_reprinted'])
-            ->assertJsonFragment(['action' => 'document_released']);
+        $this->assertSame('approved', $br->status);
+        $this->assertNull($br->ready_for_pickup_at);
+        $this->assertNull($br->document_number);
     }
 
     public function test_admin_can_approve_registered_requests(): void

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
+import DocxDocumentPreview from "../../components/documents/DocxDocumentPreview";
 import PdfDocumentCanvas from "../../components/documents/PdfDocumentCanvas";
 import api from "../../services/api";
+import { publishDocumentTemplateUpdate } from "../../utils/documentTemplateUpdates";
 import "./DocumentTemplates.css";
 
 const formatDate = (value) => {
@@ -47,6 +49,7 @@ function MappingSelect({ value, options, disabled, onChange }) {
 }
 
 function TemplateEditor({ editor, onClose, onSaved }) {
+    const [showFieldEditor, setShowFieldEditor] = useState(false);
     const [mappings, setMappings] = useState(
         () => editor.active_version?.mappings || [],
     );
@@ -57,11 +60,26 @@ function TemplateEditor({ editor, onClose, onSaved }) {
     const [pageNumber, setPageNumber] = useState(1);
     const fieldOptions = editor.field_catalog || [];
     const activeVersion = editor.active_version;
-    const supportedFormFields = useMemo(
-        () => (editor.form_fields || []).filter((field) => field.supported),
+    const docxPlaceholders = useMemo(
+        () =>
+            (editor.form_fields || []).filter(
+                (field) => field.type === "/DocxPlaceholder",
+            ),
         [editor.form_fields],
     );
-    const overlayFields = mappings.filter((field) => field.field_type === "overlay");
+    const isDocxTemplate = activeVersion?.filename
+        ?.toLowerCase()
+        .endsWith(".docx");
+    const hasUnmappedDocxPlaceholders =
+        isDocxTemplate &&
+        docxPlaceholders.some(
+            (field) =>
+                !mappings.some(
+                    (mapping) =>
+                        mapping.field_name === field.name &&
+                        mapping.system_field,
+                ),
+        );
     const updateFormMapping = (fieldName, systemField) => {
         setMappings((current) => {
             const existing = current.find(
@@ -81,33 +99,16 @@ function TemplateEditor({ editor, onClose, onSaved }) {
                 ...current,
                 {
                     field_name: fieldName,
-                    field_type: "acroform",
+                    field_type: docxPlaceholders.some(
+                        (field) => field.name === fieldName,
+                    )
+                        ? "docx_placeholder"
+                        : "acroform",
                     system_field: systemField,
                     is_required: false,
                 },
             ];
         });
-    };
-
-    const addOverlay = () => {
-        const fieldName = `overlay-${crypto.randomUUID()}`;
-        const firstSystemField = fieldOptions[0]?.fields[0]?.key || "";
-        const field = {
-            field_name: fieldName,
-            field_type: "overlay",
-            system_field: firstSystemField,
-            page_number: pageNumber,
-            x: 0.12,
-            y: 0.12,
-            width: 0.42,
-            height: 0.06,
-            font_size: 12,
-            font_family: "Helvetica",
-            text_align: "left",
-            is_required: false,
-        };
-        setMappings((current) => [...current, field]);
-        setSelectedFieldName(fieldName);
     };
 
     const updateField = (fieldName, updates) => {
@@ -118,13 +119,6 @@ function TemplateEditor({ editor, onClose, onSaved }) {
                     : field,
             ),
         );
-    };
-
-    const removeField = (fieldName) => {
-        setMappings((current) =>
-            current.filter((field) => field.field_name !== fieldName),
-        );
-        if (selectedFieldName === fieldName) setSelectedFieldName("");
     };
 
     const saveMappings = async () => {
@@ -138,20 +132,52 @@ function TemplateEditor({ editor, onClose, onSaved }) {
                 { fields: mappings },
             );
             setMappings(response.data.data.mappings);
-            setMessage("PDF field mappings saved.");
+            setMessage("Document template mappings saved.");
             await onSaved();
         } catch (saveError) {
             console.error(saveError);
             setError(
                 getErrorMessage(
                     saveError,
-                    "The PDF field mappings could not be saved.",
+                    "The document template mappings could not be saved.",
                 ),
             );
         } finally {
             setSaving(false);
         }
     };
+
+    if (isDocxTemplate && !showFieldEditor) {
+        return (
+            <div className="document-template-modal-backdrop">
+                <section
+                    aria-label={`${editor.document_type.document_name} template preview`}
+                    aria-modal="true"
+                    className="document-template-modal document-template-preview-only-modal"
+                    role="dialog"
+                >
+                    <div className="document-template-preview-only-toolbar">
+                        <button
+                            className="app-button app-button-outline-secondary"
+                            onClick={() => setShowFieldEditor(true)}
+                            type="button"
+                        >
+                            Configure fields
+                        </button>
+                        <button
+                            aria-label="Close document preview"
+                            className="document-template-close"
+                            onClick={onClose}
+                            type="button"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <DocxDocumentPreview source={editor.source_url} />
+                </section>
+            </div>
+        );
+    }
 
     return (
         <div className="document-template-modal-backdrop">
@@ -163,7 +189,7 @@ function TemplateEditor({ editor, onClose, onSaved }) {
             >
                 <header className="document-template-modal-header">
                     <div>
-                        <p className="section-label">PDF TEMPLATE EDITOR</p>
+                        <p className="section-label">DOCUMENT TEMPLATE EDITOR</p>
                         <h2 id="document-template-editor-title">
                             {editor.document_type.document_name}
                         </h2>
@@ -174,14 +200,25 @@ function TemplateEditor({ editor, onClose, onSaved }) {
                             </p>
                         )}
                     </div>
-                    <button
-                        aria-label="Close template editor"
-                        className="document-template-close"
-                        onClick={onClose}
-                        type="button"
-                    >
-                        ×
-                    </button>
+                    <div className="document-template-modal-header-actions">
+                        {isDocxTemplate && (
+                            <button
+                                className="app-button app-button-outline-secondary"
+                                onClick={() => setShowFieldEditor(false)}
+                                type="button"
+                            >
+                                Back to preview
+                            </button>
+                        )}
+                        <button
+                            aria-label="Close template editor"
+                            className="document-template-close"
+                            onClick={onClose}
+                            type="button"
+                        >
+                            ×
+                        </button>
+                    </div>
                 </header>
 
                 {error && (
@@ -198,7 +235,29 @@ function TemplateEditor({ editor, onClose, onSaved }) {
                 {activeVersion ? (
                     <div className="document-template-editor-grid">
                         <section className="document-template-canvas-panel">
-                            {activeVersion.page_count > 1 && (
+                            {isDocxTemplate ? (
+                                <>
+                                    <div className="app-alert app-alert-info">
+                                        DOCX layout is previewed here. Use
+                                        {" "}
+                                        {`{{PLACEHOLDER_NAME}}`} tags in the
+                                        Word document; the system replaces them
+                                        and converts the result to PDF for pickup.
+                                    </div>
+                                    <DocxDocumentPreview
+                                        source={editor.source_url}
+                                    />
+                                    <button
+                                        className="app-button app-button-outline-secondary"
+                                        onClick={() =>
+                                            editor.downloadVersion(activeVersion)
+                                        }
+                                        type="button"
+                                    >
+                                        Download DOCX
+                                    </button>
+                                </>
+                            ) : activeVersion.page_count > 1 ? (
                                 <div className="document-template-page-picker">
                                     <label htmlFor="template-page-number">
                                         Select PDF page
@@ -221,279 +280,108 @@ function TemplateEditor({ editor, onClose, onSaved }) {
                                         ))}
                                     </select>
                                 </div>
+                            ) : null}
+                            {!isDocxTemplate && (
+                                <PdfDocumentCanvas
+                                    editable={false}
+                                    fields={mappings}
+                                    onChangeField={(field) =>
+                                        updateField(field.field_name, field)
+                                    }
+                                    onSelectField={setSelectedFieldName}
+                                    selectedFieldName={selectedFieldName}
+                                    source={editor.source_url}
+                                />
                             )}
-                            <PdfDocumentCanvas
-                                editable
-                                fields={mappings}
-                                onChangeField={(field) =>
-                                    updateField(field.field_name, field)
-                                }
-                                onSelectField={setSelectedFieldName}
-                                selectedFieldName={selectedFieldName}
-                                source={editor.source_url}
-                            />
-                            <button
-                                className="app-button app-button-outline-primary document-template-add-field"
-                                onClick={addOverlay}
-                                type="button"
-                            >
-                                Add Text Field
-                            </button>
-                            <p className="document-template-editor-help">
-                                Drag a box to move it. Use its corner handle to
-                                resize. Positions are saved relative to the PDF
-                                page, not the current zoom.
-                            </p>
                         </section>
 
                         <aside className="document-template-fields-panel">
-                            {editor.form_fields?.length > 0 && (
+                            {isDocxTemplate && (
                                 <section>
-                                    <h3>Fillable PDF fields</h3>
-                                    {editor.form_fields
-                                        .filter((field) => !field.supported)
-                                        .map((field) => (
-                                            <p
-                                                className="document-template-warning"
-                                                key={field.name}
-                                            >
-                                                {field.name} is not a supported
-                                                text or choice field.
-                                            </p>
-                                        ))}
-                                    {supportedFormFields.length === 0 && (
+                                    <h3>DOCX placeholder mapping</h3>
+                                    <p className="document-template-muted">
+                                        Map every detected tag to a system field.
+                                        Tags can appear in paragraphs, tables,
+                                        headers, and footers.
+                                    </p>
+                                    {docxPlaceholders.length === 0 ? (
                                         <p className="document-template-muted">
-                                            No supported text fields were found.
+                                            No tags were detected. Add tags such
+                                            as {"{{FULL_NAME}}"} to the DOCX
+                                            template and upload it again.
                                         </p>
-                                    )}
-                                    {supportedFormFields.map((field) => {
-                                        const mapping = mappings.find(
-                                            (item) =>
-                                                item.field_name === field.name,
-                                        );
-                                        return (
-                                            <div
-                                                className="document-template-field-row"
-                                                key={field.name}
-                                            >
-                                                <strong title={field.name}>
-                                                    {field.name}
-                                                </strong>
-                                                <MappingSelect
-                                                    onChange={(systemField) =>
-                                                        updateFormMapping(
-                                                            field.name,
-                                                            systemField,
-                                                        )
-                                                    }
-                                                    options={fieldOptions}
-                                                    value={mapping?.system_field}
-                                                />
-                                                {mapping && (
-                                                    <label className="document-template-required">
-                                                        <input
-                                                            checked={mapping.is_required}
-                                                            onChange={(event) =>
-                                                                updateField(
+                                    ) : (
+                                        <ul className="document-template-mapping-summary">
+                                            {docxPlaceholders.map((field) => (
+                                                <li key={field.name}>
+                                                    <strong>{field.name}</strong>
+                                                    <MappingSelect
+                                                        disabled={saving}
+                                                        onChange={(systemField) =>
+                                                            updateFormMapping(
+                                                                field.name,
+                                                                systemField,
+                                                            )
+                                                        }
+                                                        options={fieldOptions}
+                                                        value={
+                                                            mappings.find(
+                                                                (mapping) =>
+                                                                    mapping.field_name ===
                                                                     field.name,
-                                                                    {
-                                                                        is_required:
-                                                                            event
-                                                                                .target
-                                                                                .checked,
-                                                                    },
-                                                                )
-                                                            }
-                                                            type="checkbox"
-                                                        />
-                                                        Required
-                                                    </label>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                                            )?.system_field
+                                                        }
+                                                    />
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </section>
                             )}
-
                             <section>
-                                <h3>Visual text fields</h3>
-                                {overlayFields.length === 0 ? (
+                                <h3>Automatic field mapping</h3>
+                                <p className="document-template-muted">
+                                    The system maps recognized resident, request,
+                                    and barangay fields automatically.
+                                </p>
+                                {mappings.length === 0 ? (
                                     <p className="document-template-muted">
-                                        Add a text field to place information on
-                                        this PDF.
+                                        No standard template fields were detected.
                                     </p>
                                 ) : (
-                                    overlayFields.map((field) => (
-                                        <div
-                                            className={`document-template-field-row ${
-                                                selectedFieldName ===
-                                                field.field_name
-                                                    ? "is-selected"
-                                                    : ""
-                                            }`}
-                                            key={field.field_name}
-                                            onClick={() =>
-                                                setSelectedFieldName(
-                                                    field.field_name,
-                                                )
-                                            }
-                                        >
-                                            <div className="document-template-field-heading">
-                                                <strong>
-                                                    Page {field.page_number}
-                                                </strong>
-                                                <button
-                                                    className="document-template-remove-field"
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        removeField(
-                                                            field.field_name,
-                                                        );
-                                                    }}
-                                                    type="button"
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                            <MappingSelect
-                                                onChange={(systemField) =>
-                                                    updateField(
-                                                        field.field_name,
-                                                        {
-                                                            system_field:
-                                                                systemField,
-                                                        },
-                                                    )
-                                                }
-                                                options={fieldOptions}
-                                                value={field.system_field}
-                                            />
-                                            <div className="document-template-field-options">
-                                                <label>
-                                                    Font size
-                                                    <input
-                                                        className="app-input"
-                                                        max="48"
-                                                        min="6"
-                                                        onChange={(event) =>
-                                                            updateField(
-                                                                field.field_name,
-                                                                {
-                                                                    font_size:
-                                                                        Number(
-                                                                            event
-                                                                                .target
-                                                                                .value,
-                                                                        ),
-                                                                },
-                                                            )
-                                                        }
-                                                        type="number"
-                                                        value={field.font_size}
-                                                    />
-                                                </label>
-                                                <label>
-                                                    Font
-                                                    <select
-                                                        className="app-select"
-                                                        onChange={(event) =>
-                                                            updateField(
-                                                                field.field_name,
-                                                                {
-                                                                    font_family:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                },
-                                                            )
-                                                        }
-                                                        value={
-                                                            field.font_family ||
-                                                            "Helvetica"
-                                                        }
-                                                    >
-                                                        <option value="Helvetica">
-                                                            Helvetica
-                                                        </option>
-                                                        <option value="Helvetica-Bold">
-                                                            Helvetica Bold
-                                                        </option>
-                                                        <option value="Times-Roman">
-                                                            Times Roman
-                                                        </option>
-                                                        <option value="Courier">
-                                                            Courier
-                                                        </option>
-                                                    </select>
-                                                </label>
-                                                <label>
-                                                    Alignment
-                                                    <select
-                                                        className="app-select"
-                                                        onChange={(event) =>
-                                                            updateField(
-                                                                field.field_name,
-                                                                {
-                                                                    text_align:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                },
-                                                            )
-                                                        }
-                                                        value={
-                                                            field.text_align ||
-                                                            "left"
-                                                        }
-                                                    >
-                                                        <option value="left">
-                                                            Left
-                                                        </option>
-                                                        <option value="center">
-                                                            Center
-                                                        </option>
-                                                        <option value="right">
-                                                            Right
-                                                        </option>
-                                                    </select>
-                                                </label>
-                                            </div>
-                                            <label className="document-template-required">
-                                                <input
-                                                    checked={field.is_required}
-                                                    onChange={(event) =>
-                                                        updateField(
-                                                            field.field_name,
-                                                            {
-                                                                is_required:
-                                                                    event.target
-                                                                        .checked,
-                                                            },
-                                                        )
-                                                    }
-                                                    type="checkbox"
-                                                />
-                                                Required information
-                                            </label>
-                                        </div>
-                                    ))
+                                    <ul className="document-template-mapping-summary">
+                                        {mappings.map((field) => (
+                                            <li key={field.field_name}>
+                                                <strong>{field.field_name}</strong>
+                                                <span>→ {field.system_field}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 )}
                             </section>
-
-                            <button
-                                className="app-button app-button-primary document-template-save-mappings"
-                                disabled={saving || mappings.length === 0}
-                                onClick={saveMappings}
-                                type="button"
-                            >
-                                {saving ? "Saving..." : "Save Field Mappings"}
-                            </button>
                         </aside>
                     </div>
                 ) : (
                     <p className="document-template-muted">
-                        Upload a PDF template to configure its fields.
+                        Upload a PDF or DOCX template for the system to process.
                     </p>
+                )}
+
+                {activeVersion && (
+                    <div className="document-template-modal-actions">
+                        <button
+                            className="app-button app-button-primary"
+                            disabled={
+                                saving ||
+                                mappings.length === 0 ||
+                                hasUnmappedDocxPlaceholders
+                            }
+                            onClick={saveMappings}
+                            type="button"
+                        >
+                            {saving ? "Saving…" : "Save Mappings"}
+                        </button>
+                    </div>
                 )}
 
                 {editor.versions?.length > 0 && (
@@ -580,7 +468,7 @@ export default function DocumentTemplates() {
         if (
             documentType.active_version &&
             !window.confirm(
-                "Replace the active PDF template? The current file remains available until the new PDF is validated and saved.",
+                "Replace the active template? The current file remains available until the new file is validated and saved.",
             )
         ) {
             return;
@@ -597,11 +485,9 @@ export default function DocumentTemplates() {
         const documentType = targetTypeRef.current;
         if (!file || !documentType) return;
 
-        if (
-            file.name.split(".").pop()?.toLowerCase() !== "pdf" ||
-            (file.type && file.type !== "application/pdf")
-        ) {
-            setError("Choose a valid PDF file.");
+        const extension = file.name.split(".").pop()?.toLowerCase();
+        if (!["pdf", "docx"].includes(extension)) {
+            setError("Choose a PDF or DOCX file.");
             return;
         }
 
@@ -611,7 +497,8 @@ export default function DocumentTemplates() {
         setUpload({
             documentType,
             file,
-            preview_url: URL.createObjectURL(file),
+            preview_url:
+                extension === "pdf" ? URL.createObjectURL(file) : null,
         });
     };
 
@@ -647,6 +534,7 @@ export default function DocumentTemplates() {
                 },
             );
             const documentType = upload.documentType;
+            publishDocumentTemplateUpdate(documentType.document_type_id);
             cancelUpload();
             setNotice(`${documentType.document_name} template uploaded.`);
             await loadTemplates();
@@ -656,7 +544,7 @@ export default function DocumentTemplates() {
             setError(
                 getErrorMessage(
                     uploadError,
-                    "The PDF template could not be uploaded.",
+                    "The document template could not be uploaded.",
                 ),
             );
         } finally {
@@ -681,7 +569,7 @@ export default function DocumentTemplates() {
             setError(
                 getErrorMessage(
                     downloadError,
-                    "The PDF template could not be downloaded.",
+                    "The document template could not be downloaded.",
                 ),
             );
         }
@@ -717,7 +605,7 @@ export default function DocumentTemplates() {
             setError(
                 getErrorMessage(
                     detailError,
-                    "The PDF template details could not be loaded.",
+                    "The document template details could not be loaded.",
                 ),
             );
         } finally {
@@ -746,6 +634,7 @@ export default function DocumentTemplates() {
             await api.delete(
                 `/admin/document-templates/${documentType.document_type_id}`,
             );
+            publishDocumentTemplateUpdate(documentType.document_type_id);
             setNotice(`${documentType.document_name} template deactivated.`);
             await loadTemplates();
         } catch (deleteError) {
@@ -753,7 +642,7 @@ export default function DocumentTemplates() {
             setError(
                 getErrorMessage(
                     deleteError,
-                    "The PDF template could not be deleted.",
+                    "The document template could not be deleted.",
                 ),
             );
         }
@@ -767,8 +656,13 @@ export default function DocumentTemplates() {
                         <p className="section-label">ADMINISTRATION</p>
                         <h1>Document Templates</h1>
                         <p>
-                            Upload official PDFs and map their fields to
-                            verified resident, request, and barangay data.
+                            Upload an official PDF or DOCX file for each
+                            document type. DOCX templates can use
+                            {" "}
+                            {`{{PLACEHOLDER_NAME}}`} tags that are filled from
+                            request and resident data; generated documents are
+                            PDFs. Requests need an active uploaded template
+                            before they can be approved for pickup.
                         </p>
                     </div>
                     <button
@@ -792,7 +686,7 @@ export default function DocumentTemplates() {
                 )}
                 {detailLoading && (
                     <div className="app-alert app-alert-info" role="status">
-                        Loading PDF template details…
+                        Loading document template details…
                     </div>
                 )}
                 {loading ? (
@@ -835,7 +729,7 @@ export default function DocumentTemplates() {
                                     </div>
                                     <dl className="document-template-metadata">
                                         <div>
-                                            <dt>Uploaded PDF</dt>
+                                            <dt>Uploaded file</dt>
                                             <dd>{version?.filename || "—"}</dd>
                                         </div>
                                         <div>
@@ -867,7 +761,7 @@ export default function DocumentTemplates() {
                                                     }
                                                     type="button"
                                                 >
-                                                    Preview &amp; Configure
+                                                    Preview
                                                 </button>
                                                 <button
                                                     className="app-button app-button-outline-secondary"
@@ -934,7 +828,7 @@ export default function DocumentTemplates() {
                 )}
 
                 <input
-                    accept=".pdf,application/pdf"
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     hidden
                     onChange={onChooseFile}
                     ref={inputRef}
@@ -952,7 +846,7 @@ export default function DocumentTemplates() {
                     >
                         <header className="document-template-modal-header">
                             <div>
-                                <p className="section-label">PDF UPLOAD</p>
+                                <p className="section-label">DOCUMENT TEMPLATE UPLOAD</p>
                                 <h2 id="document-template-upload-title">
                                     {upload.documentType.document_name}
                                 </h2>
@@ -971,7 +865,28 @@ export default function DocumentTemplates() {
                                 ×
                             </button>
                         </header>
-                        <PdfDocumentCanvas source={upload.preview_url} />
+                        {upload.preview_url ? (
+                            <PdfDocumentCanvas source={upload.preview_url} />
+                        ) : upload.file.name.toLowerCase().endsWith(".docx") ? (
+                            <>
+                                <DocxDocumentPreview source={upload.file} />
+                                <div className="app-alert app-alert-info">
+                                    Check the Word layout and add tags such as
+                                    {" "}
+                                    {`{{FULL_NAME}}`} and {`{{PURPOSE}}`}. The
+                                    system fills the tags and creates a PDF
+                                    when generating a resident document.
+                                </div>
+                            </>
+                        ) : (
+                            <div className="app-alert app-alert-info">
+                                Upload a DOCX template with tags such as
+                                {" "}
+                                {`{{FULL_NAME}}`} and {`{{PURPOSE}}`}. The
+                                system fills the tags and converts it to PDF
+                                when generating a resident document.
+                            </div>
+                        )}
                         {uploading && (
                             <div
                                 aria-label="Upload progress"
@@ -992,7 +907,7 @@ export default function DocumentTemplates() {
                                 onClick={submitUpload}
                                 type="button"
                             >
-                                {uploading ? "Uploading…" : "Upload PDF"}
+                                {uploading ? "Uploading…" : "Upload Template"}
                             </button>
                             <button
                                 className="app-button app-button-outline-secondary"

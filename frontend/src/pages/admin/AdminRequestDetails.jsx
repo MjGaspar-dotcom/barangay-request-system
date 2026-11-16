@@ -242,6 +242,14 @@ export default function AdminRequestDetails() {
                                             </div>
                                             <div>
                                                 <span className="detail-label">
+                                                    Street Name
+                                                </span>
+                                                <span className="detail-value">
+                                                    {request.user.street_name || "—"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
                                                     Address
                                                 </span>
                                                 <span className="detail-value">

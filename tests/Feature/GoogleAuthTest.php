@@ -59,6 +59,7 @@ class GoogleAuthTest extends TestCase
             'birth_date' => '2000-01-01',
             'gender' => 'Prefer not to say',
             'civil_status' => 'Single',
+            'street_name' => 'Main Street',
             'address' => '1 Main Street',
             'contact_number' => '09123456789',
         ]);
@@ -100,6 +101,7 @@ class GoogleAuthTest extends TestCase
             'birth_date' => '2000-01-01',
             'gender' => 'Prefer not to say',
             'civil_status' => 'Single',
+            'street_name' => 'Main Street',
             'address' => '1 Main Street',
             'contact_number' => '09123456789',
         ])->assertCreated();

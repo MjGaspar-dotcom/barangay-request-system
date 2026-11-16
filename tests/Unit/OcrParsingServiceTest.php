@@ -35,4 +35,23 @@ class OcrParsingServiceTest extends TestCase
         $this->assertEquals('1998-12-25', $result['birth_date']);
         $this->assertEquals('Female', $result['gender']);
     }
+
+    public function test_parses_german_national_id(): void
+    {
+        $result = OcrParsingService::parse(
+            "BUNDESREPUBLIK DEUTSCHLAND\nPERSONALAUSWEIS"
+        );
+
+        $this->assertSame(
+            'German National ID (Personalausweis)',
+            $result['id_type']
+        );
+    }
+
+    public function test_unrecognized_documents_do_not_get_a_guessed_id_type(): void
+    {
+        $result = OcrParsingService::parse('A sample image with no ID labels');
+
+        $this->assertNull($result['id_type']);
+    }
 }

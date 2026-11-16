@@ -3,10 +3,17 @@
 from datetime import date
 from typing import Any
 
-from .data_gen import DOCUMENTS
 from .data_structures import MinHeap, WeightedDigraph
 
 
+DOCUMENTS = (
+    "Barangay Clearance",
+    "Certificate of Residency",
+    "Certificate of Indigency",
+    "Business Clearance",
+    "Barangay ID",
+    "Certificate of Good Moral Character",
+)
 WEIGHTS = {
     "personal_history": 0.30,
     "sequence": 0.25,

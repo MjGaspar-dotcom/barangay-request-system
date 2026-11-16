@@ -22,7 +22,7 @@ class OcrTestController extends Controller
             ->language('eng')
             ->run();
 
-        // Parse extracted text into structured Philippine ID data
+        // Parse extracted text into structured ID data.
         $parsedData = OcrParsingService::parse($rawText);
 
         return response()->json([

@@ -22,6 +22,7 @@ class BarangayRequest extends Model
         // Request
         'document_type_id',
         'purpose',
+        'request_data',
         'tracking_number',
 
         // Workflow
@@ -50,6 +51,8 @@ class BarangayRequest extends Model
         'document_template_version',
         'document_generated_at',
         'document_generated_by',
+        'document_generation_status',
+        'document_generation_error',
         'indigency_verified_at',
         'indigency_verified_by',
     ];
@@ -68,6 +71,7 @@ class BarangayRequest extends Model
         'document_prepared_at' => 'datetime',
         'decision_at' => 'datetime',
         'generated_document_data' => 'array',
+        'request_data' => 'array',
         'document_generated_at' => 'datetime',
         'indigency_verified_at' => 'datetime',
     ];

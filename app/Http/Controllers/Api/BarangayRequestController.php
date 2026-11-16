@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Exceptions\PdfProcessingException;
 use App\Http\Requests\StoreBarangayRequest;
 use App\Http\Requests\UpdateBarangayRequest;
+use App\Jobs\GenerateRequestPdf;
 use App\Models\BarangayRequest;
 use App\Models\BarangayRequestDocument;
 use App\Models\AuditLog;
 use App\Models\GeneratedDocument;
 use App\Models\User;
 use App\Services\AuditService;
-use App\Services\DocumentGenerationService;
 use App\Services\PdfTemplateGenerationService;
+use App\Services\PdfWorkerService;
 use App\Services\RequestValidationService;
 use App\Services\RequestStatusService;
 use Illuminate\Http\Request;
@@ -54,6 +55,10 @@ class BarangayRequestController extends Controller
                 $request->setAttribute(
                     'qr_code',
                     QrCodeService::generate($request->tracking_number)
+                );
+                $request->setAttribute(
+                    'has_generated_pdf',
+                    $request->generatedDocuments()->exists()
                 );
             });
         }
@@ -157,20 +162,49 @@ class BarangayRequestController extends Controller
             "New barangay request submitted (Tracking: {$barangayRequest->tracking_number})"
         );
 
-        // Notify all staff about the new request.
-        AuditService::notifyAllStaff(
+        $barangayRequest->loadMissing('documentType');
+        $requesterName = trim("{$user->first_name} {$user->last_name}");
+        $documentName = $barangayRequest->documentType?->document_name ?? 'document';
+
+        AuditService::notifyStaffAndAdmins(
             'new_request',
             'New Barangay Request',
-            "A new document request ({$barangayRequest->tracking_number}) has been submitted and is awaiting processing.",
+            "{$requesterName} submitted a request for {$documentName} ({$barangayRequest->tracking_number}) and is awaiting processing.",
             $barangayRequest->request_id
         );
+
+        try {
+            $pdfGeneration = app(PdfTemplateGenerationService::class);
+            $activeTemplate = $pdfGeneration->activeTemplateFor($barangayRequest);
+            if ($activeTemplate && $activeTemplate->mappings->isNotEmpty()) {
+                $barangayRequest->update([
+                    'document_generation_status' => 'queued',
+                    'document_generation_error' => null,
+                ]);
+                GenerateRequestPdf::dispatch($barangayRequest->request_id);
+            }
+        } catch (\Throwable $exception) {
+            $barangayRequest->update([
+                'document_generation_status' => 'failed',
+                'document_generation_error' =>
+                    'The official PDF could not be queued. Retry generation or check the uploaded template.',
+            ]);
+            \Log::warning('Automatic generated document creation failed for new request.', [
+                'request_id' => $barangayRequest->request_id,
+                'tracking_number' => $barangayRequest->tracking_number,
+                'message' => $exception->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Barangay request created successfully.',
             'data' => [
                 'request' => $barangayRequest,
-                'qr_code' => $qrCode
+                'qr_code' => $qrCode,
+                'generated_document' => null,
+                'document_generation_status' =>
+                    $barangayRequest->document_generation_status,
             ]
         ], 201);
     }
@@ -270,6 +304,100 @@ class BarangayRequestController extends Controller
         ]);
     }
 
+    public function updateBusinessDetails(
+        Request $request,
+        BarangayRequest $barangayRequest
+    ) {
+        $user = Auth::user();
+        if (
+            !$user ||
+            $user->staff ||
+            $user->admin ||
+            (int) $barangayRequest->user_id !== (int) $user->user_id
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The request is unavailable.',
+            ], 404);
+        }
+
+        $barangayRequest->loadMissing('documentType');
+        if (
+            strcasecmp(
+                (string) $barangayRequest->documentType?->document_name,
+                'Barangay Business Clearance'
+            ) !== 0 ||
+            $barangayRequest->status !== RequestStatusService::STATUS_REQUEST_SUBMITTED ||
+            $barangayRequest->generatedDocuments()->exists()
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Business details can only be added to a submitted request without a generated PDF.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'business_name' => 'required|string|max:255',
+            'business_address' => 'required|string|max:500',
+            'business_activity' => 'required|string|max:255',
+        ]);
+        $barangayRequest->update(['request_data' => $validated]);
+
+        $pdfGeneration = app(PdfTemplateGenerationService::class);
+        $activeTemplate = $pdfGeneration->activeTemplateFor($barangayRequest);
+        if (!$activeTemplate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active PDF template is available for this document type.',
+            ], 422);
+        }
+        if ($activeTemplate->mappings->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Configure at least one PDF field mapping before generating this document.',
+            ], 422);
+        }
+
+        AuditService::log(
+            'business_details_provided',
+            $barangayRequest,
+            'The resident provided the information needed for a Business Clearance.',
+            [],
+            ['fields' => array_keys($validated)]
+        );
+
+        try {
+            $barangayRequest->update([
+                'document_generation_status' => 'queued',
+                'document_generation_error' => null,
+            ]);
+            GenerateRequestPdf::dispatch($barangayRequest->request_id);
+        } catch (\Throwable $exception) {
+            $barangayRequest->update([
+                'document_generation_status' => 'failed',
+                'document_generation_error' =>
+                    'The official PDF could not be queued. Retry generation or check the uploaded template.',
+            ]);
+            \Log::error('Business-clearance PDF generation could not be queued.', [
+                'request_id' => $barangayRequest->request_id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $barangayRequest->document_generation_error,
+            ], 503);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Business details saved. The PDF is being generated in the background.',
+            'data' => [
+                'document_generation_status' => 'queued',
+            ],
+        ], 202);
+    }
+
     public function approveAndPrepareForPickup(
         Request $request,
         BarangayRequest $barangayRequest
@@ -299,23 +427,12 @@ class BarangayRequestController extends Controller
 
     public function showTemplatePreview(BarangayRequest $barangayRequest)
     {
-        try {
-            $document = app(DocumentGenerationService::class)
-                ->getTemplatePreviewData($barangayRequest);
-        } catch (\InvalidArgumentException|PdfProcessingException $exception) {
-            return response()->json([
-                'success' => false,
-                'message' => $exception->getMessage(),
-            ], 422);
-        }
-
         $pdfGeneration = app(PdfTemplateGenerationService::class);
         $activeVersion = $pdfGeneration->activeTemplateFor($barangayRequest);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'document' => $document,
                 'pdf_template' => $activeVersion ? [
                     'template_version_id' => $activeVersion->template_version_id,
                     'version_number' => $activeVersion->version_number,
@@ -325,6 +442,110 @@ class BarangayRequestController extends Controller
                     'mapping_count' => $activeVersion->mappings->count(),
                 ] : null,
             ],
+        ]);
+    }
+
+    public function showTemplatePreviewFile(BarangayRequest $barangayRequest)
+    {
+        $activeVersion = app(PdfTemplateGenerationService::class)
+            ->activeTemplateFor($barangayRequest);
+
+        if (!$activeVersion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active PDF template is uploaded for this document type.',
+            ], 404);
+        }
+
+        $disk = Storage::disk($activeVersion->storage_disk);
+        if (!$disk->exists($activeVersion->storage_path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The active document template is missing from storage.',
+            ], 404);
+        }
+
+        if (
+            strtolower(pathinfo($activeVersion->original_name, PATHINFO_EXTENSION))
+            === 'docx'
+        ) {
+            $temporaryBase = tempnam(sys_get_temp_dir(), 'barangayease-docx-preview-');
+            if ($temporaryBase === false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A temporary document preview could not be created.',
+                ], 500);
+            }
+            $temporaryDocx = $temporaryBase.'.docx';
+            $temporaryPdf = $temporaryBase.'.pdf';
+            @unlink($temporaryBase);
+            try {
+                $templateBytes = $disk->get($activeVersion->storage_path);
+                if (file_put_contents($temporaryDocx, $templateBytes) === false) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The DOCX template could not be prepared for preview.',
+                    ], 500);
+                }
+                app(PdfWorkerService::class)
+                    ->previewDocx($temporaryDocx, $temporaryPdf);
+                $pdfBytes = file_get_contents($temporaryPdf);
+                if ($pdfBytes === false || $pdfBytes === '') {
+                    throw new PdfProcessingException(
+                        'The DOCX template preview could not be read.'
+                    );
+                }
+            } catch (PdfProcessingException $exception) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $exception->getMessage(),
+                ], 422);
+            } finally {
+                @unlink($temporaryDocx);
+                @unlink($temporaryPdf);
+            }
+
+            $fallbackName = pathinfo(
+                $activeVersion->original_name,
+                PATHINFO_FILENAME
+            ).'.pdf';
+            $contentDisposition = HeaderUtils::makeDisposition(
+                'inline',
+                $fallbackName,
+                'document-template-v'.$activeVersion->version_number.'.pdf'
+            );
+
+            return response($pdfBytes, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => $contentDisposition,
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store',
+            ]);
+        }
+
+        $stream = $disk->readStream($activeVersion->storage_path);
+        if (!is_resource($stream)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The active PDF template could not be opened.',
+            ], 500);
+        }
+
+        $fallbackName = 'document-template-v'.$activeVersion->version_number.'.pdf';
+        $contentDisposition = HeaderUtils::makeDisposition(
+            'inline',
+            $activeVersion->original_name,
+            $fallbackName
+        );
+
+        return response()->stream(function () use ($stream): void {
+            fpassthru($stream);
+            fclose($stream);
+        }, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $contentDisposition,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
         ]);
     }
 
@@ -338,59 +559,58 @@ class BarangayRequestController extends Controller
         ]);
 
         try {
-            $pdfGeneration = app(PdfTemplateGenerationService::class);
-            if ($pdfGeneration->activeTemplateFor($barangayRequest)) {
-                $generatedDocument = $pdfGeneration->generate(
-                    $barangayRequest,
-                    (bool) ($validated['regenerate'] ?? false)
-                );
-
-                return response()->json([
-                    'success' => true,
-                    'message' => $generatedDocument->version_number > 1
-                        ? 'PDF document regenerated.'
-                        : 'PDF document generated.',
-                    'data' => [
-                        'is_pdf' => true,
-                        'generated_document_id' => $generatedDocument->generated_document_id,
-                        'version_number' => $generatedDocument->version_number,
-                        'document_number' => $generatedDocument->document_number,
-                        'template_version_id' => $generatedDocument->template_version_id,
-                        'generated_at' => $generatedDocument->generated_at,
-                    ],
-                ]);
-            }
-
+            $isRegeneration = (bool) ($validated['regenerate'] ?? false);
             if (
-                $barangayRequest->status !== RequestStatusService::STATUS_READY_FOR_PICKUP ||
-                !$barangayRequest->approved_at
+                !$isRegeneration &&
+                in_array($barangayRequest->document_generation_status, [
+                    'queued',
+                    'processing',
+                ], true)
             ) {
                 return response()->json([
-                    'success' => false,
-                    'message' => 'No active PDF template is uploaded for this document type.',
-                ], 422);
+                    'success' => true,
+                    'message' => 'PDF generation is already in progress.',
+                    'data' => [
+                        'document_generation_status' =>
+                            $barangayRequest->document_generation_status,
+                    ],
+                ], 202);
             }
 
-            $generatedRequest = app(DocumentGenerationService::class)
-                ->generateForReadyPickup($barangayRequest);
-        } catch (\InvalidArgumentException|PdfProcessingException $exception) {
+            $barangayRequest->update([
+                'document_generation_status' => 'queued',
+                'document_generation_error' => null,
+            ]);
+            GenerateRequestPdf::dispatch(
+                $barangayRequest->request_id,
+                $isRegeneration
+            );
+        } catch (\Throwable $exception) {
+            $barangayRequest->update([
+                'document_generation_status' => 'failed',
+                'document_generation_error' =>
+                    'The official PDF could not be queued. Retry generation or check the uploaded template.',
+            ]);
+            \Log::error('PDF generation could not be queued.', [
+                'request_id' => $barangayRequest->request_id,
+                'exception' => $exception->getMessage(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => $exception->getMessage(),
-            ], 422);
+                'message' => $barangayRequest->document_generation_error,
+            ], 503);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Official document generated.',
+            'message' => $isRegeneration
+                ? 'PDF regeneration has been queued.'
+                : 'PDF generation has been queued.',
             'data' => [
-                'is_pdf' => false,
-                'document_number' => $generatedRequest->document_number,
-                'template_identifier' => $generatedRequest->document_template_identifier,
-                'template_version' => $generatedRequest->document_template_version,
-                'generated_at' => $generatedRequest->document_generated_at,
+                'document_generation_status' => 'queued',
             ],
-        ]);
+        ], 202);
     }
 
     public function showGeneratedDocument(
@@ -449,42 +669,10 @@ class BarangayRequestController extends Controller
             ]);
         }
 
-        try {
-            $documentData = app(DocumentGenerationService::class)
-                ->getGeneratedData($barangayRequest);
-        } catch (\InvalidArgumentException $exception) {
-            return response()->json([
-                'success' => false,
-                'message' => $exception->getMessage(),
-            ], 404);
-        }
-
-        AuditService::log(
-            'document_previewed',
-            $barangayRequest,
-            "The generated document {$barangayRequest->document_number} was previewed.",
-            [],
-            ['document_number' => $barangayRequest->document_number]
-        );
-        $printCount = \App\Models\AuditLog::query()
-            ->where('table_name', 'barangay_requests')
-            ->where('record_id', $barangayRequest->request_id)
-            ->whereIn('action', ['document_printed', 'document_reprinted'])
-            ->get(['new_values'])
-            ->filter(
-                fn (\App\Models\AuditLog $event): bool =>
-                    ($event->new_values['document_number'] ?? null) ===
-                    $barangayRequest->document_number
-            )
-            ->count();
-
         return response()->json([
-            'success' => true,
-            'data' => [
-                'document' => $documentData,
-                'print_count' => $printCount,
-            ],
-        ]);
+            'success' => false,
+            'message' => 'This saved document uses a retired built-in template. Upload a PDF template and generate a new document.',
+        ], 410);
     }
 
     public function showGeneratedDocumentHistory(
@@ -546,6 +734,8 @@ class BarangayRequestController extends Controller
 
         return (int) $barangayRequest->user_id === (int) $user->user_id
             && in_array($barangayRequest->status, [
+                RequestStatusService::STATUS_REQUEST_SUBMITTED,
+                RequestStatusService::STATUS_APPROVED,
                 RequestStatusService::STATUS_READY_FOR_PICKUP,
                 RequestStatusService::STATUS_COMPLETED,
             ], true);

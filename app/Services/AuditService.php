@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\Admin;
 use App\Models\Notification;
 use App\Models\Staff;
 use Illuminate\Database\Eloquent\Model;
@@ -92,21 +93,25 @@ class AuditService
     }
 
     /**
-     * Notify all staff members about an event (e.g., new request submitted).
+     * Notify all staff members and administrators about an event.
      */
-    public static function notifyAllStaff(
+    public static function notifyStaffAndAdmins(
         string $type,
         string $title,
         string $message,
         ?int $requestId = null
     ): void {
-        $staffMembers = Staff::with('user')->get();
+        $staffByUserId = Staff::query()->get()->keyBy('user_id');
+        $adminUserIds = Admin::query()->pluck('user_id');
+        $recipientUserIds = $staffByUserId->keys()
+            ->merge($adminUserIds)
+            ->unique();
 
-        foreach ($staffMembers as $staff) {
+        foreach ($recipientUserIds as $userId) {
             Notification::create([
                 'type' => $type,
-                'user_id' => $staff->user_id,
-                'staff_id' => $staff->staff_id,
+                'user_id' => $userId,
+                'staff_id' => $staffByUserId->get($userId)?->staff_id,
                 'request_id' => $requestId,
                 'title' => $title,
                 'message' => $message,

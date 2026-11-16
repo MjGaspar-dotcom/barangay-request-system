@@ -1,6 +1,7 @@
 """Command-line entry point for recommendations and offline evaluation."""
 
 import argparse
+from pathlib import Path
 
 from .analytics import evaluate, load_data
 from .engine import Recommender
@@ -9,9 +10,15 @@ from .engine import Recommender
 def build_parser() -> argparse.ArgumentParser:
     """Build CLI options in O(1) time and space (argument parsing)."""
     parser = argparse.ArgumentParser(
-        description="Rank barangay documents for a resident using synthetic data."
+        description="Rank barangay documents using resident and request CSV data."
     )
-    parser.add_argument("--resident", default="R001", help="resident ID (default: R001)")
+    parser.add_argument("--resident", help="resident ID")
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=None,
+        help="directory containing residents.csv and requests.csv",
+    )
     parser.add_argument("--k", type=int, default=3, help="number of recommendations")
     parser.add_argument(
         "--evaluate",
@@ -31,10 +38,13 @@ def main(argv: list[str] | None = None) -> None:
     if arguments.k < 1:
         raise SystemExit("--k must be a positive integer")
     if arguments.evaluate:
-        evaluate(arguments.k)
+        evaluate(arguments.k, arguments.data_dir)
         return
 
-    residents, requests = load_data()
+    if not arguments.resident:
+        raise SystemExit("--resident is required unless --evaluate is used")
+
+    residents, requests = load_data(arguments.data_dir)
     recommender = Recommender().fit(residents, requests)
     recommendations = recommender.recommend(arguments.resident, arguments.k)
     print(f"For You - {arguments.resident}")

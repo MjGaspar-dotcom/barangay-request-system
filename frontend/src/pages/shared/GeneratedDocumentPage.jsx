@@ -5,7 +5,6 @@ import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import StaffLayout from "../../layouts/StaffLayout";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
-import DocumentPreview from "../../components/documents/DocumentPreview";
 import "./request-processing.css";
 
 export default function GeneratedDocumentPage() {
@@ -13,7 +12,6 @@ export default function GeneratedDocumentPage() {
     const { user } = useAuth();
     const isAdmin = user?.role === "admin";
     const Layout = isAdmin ? AdminLayout : StaffLayout;
-    const [document, setDocument] = useState(null);
     const [pdfUrl, setPdfUrl] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -36,13 +34,16 @@ export default function GeneratedDocumentPage() {
                             else URL.revokeObjectURL(objectUrl);
                         });
                 }
-                setDocument(response.data.data.document);
+                throw new Error(
+                    "This saved document uses a retired built-in template. Upload a PDF template and generate a new document.",
+                );
             })
             .catch((requestError) => {
                 console.error(requestError);
                 if (!active) return;
                 setError(
                     requestError.response?.data?.message ||
+                        requestError.message ||
                         "The generated document could not be loaded.",
                 );
             })
@@ -73,8 +74,6 @@ export default function GeneratedDocumentPage() {
                             src={pdfUrl}
                             title="Generated barangay document PDF"
                         />
-                    ) : document ? (
-                        <DocumentPreview document={document} />
                     ) : (
                         <div className="app-alert app-alert-danger" role="alert">
                             {error || "No generated document is available."}

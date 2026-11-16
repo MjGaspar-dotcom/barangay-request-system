@@ -16,6 +16,7 @@ function Register() {
         birth_date: "",
         gender: "",
         civil_status: "",
+        street_name: "",
         address: "",
         contact_number: "",
         email: "",
@@ -321,8 +322,25 @@ function Register() {
                             </div>
 
                             <div className="col-span-full">
+                                <label
+                                    htmlFor="street_name"
+                                    className="app-label"
+                                >
+                                    Street Name
+                                </label>
+                                <input
+                                    id="street_name"
+                                    name="street_name"
+                                    className="app-input"
+                                    value={form.street_name}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="col-span-full">
                                 <label htmlFor="address" className="app-label">
-                                    Address
+                                    Complete Address
                                 </label>
 
                                 <textarea

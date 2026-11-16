@@ -7,6 +7,38 @@ GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 const clamp = (value, minimum, maximum) =>
     Math.min(maximum, Math.max(minimum, value));
 
+const resolvePdfSource = async (source) => {
+    if (!source) {
+        return null;
+    }
+
+    if (source instanceof Blob) {
+        return { data: new Uint8Array(await source.arrayBuffer()) };
+    }
+
+    if (source instanceof ArrayBuffer) {
+        return { data: new Uint8Array(source) };
+    }
+
+    if (ArrayBuffer.isView(source)) {
+        return { data: source };
+    }
+
+    if (typeof source === "string") {
+        if (source.startsWith("blob:") || source.startsWith("data:")) {
+            const response = await fetch(source);
+            if (!response.ok) {
+                throw new Error(`Unable to fetch PDF source (${response.status}).`);
+            }
+            return { data: new Uint8Array(await response.arrayBuffer()) };
+        }
+
+        return { data: source };
+    }
+
+    return { data: source };
+};
+
 export default function PdfDocumentCanvas({
     source,
     fields = [],
@@ -42,22 +74,30 @@ export default function PdfDocumentCanvas({
 
         let cancelled = false;
         let loadingTask;
-        loadingTask = getDocument(source);
-        loadingTask.promise
-            .then((document) => {
+
+        const loadDocument = async () => {
+            try {
+                const resolvedSource = await resolvePdfSource(source);
+                loadingTask = getDocument(resolvedSource);
+                const document = await loadingTask.promise;
                 if (cancelled) {
                     document.destroy();
                     return;
                 }
+                setError("");
                 setPdfDocument(document);
                 setPageCount(document.numPages);
-            })
-            .catch((loadError) => {
+            } catch (loadError) {
                 if (!cancelled) {
                     console.error(loadError);
                     setError("The PDF preview could not be loaded.");
+                    setPdfDocument(null);
+                    setPageCount(0);
                 }
-            });
+            }
+        };
+
+        loadDocument();
 
         return () => {
             cancelled = true;
