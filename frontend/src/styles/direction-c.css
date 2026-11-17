@@ -1897,12 +1897,55 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.portal-staff-workspace .staff-manage-requests-page {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+.staff-manage-requests-page .dashboard-page-header {
+  margin-bottom: 20px;
+}
+.staff-manage-requests-page .dashboard-section {
+  margin-bottom: 20px;
+}
 .staff-manage-requests-page .manage-requests-table {
-  min-width: 900px;
+  min-width: 960px;
+  font-size: 13px;
+}
+.staff-manage-requests-page .manage-requests-table thead th {
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.staff-manage-requests-page .manage-requests-table tbody td {
+  padding: 13px 14px;
+  line-height: 1.45;
 }
 .staff-manage-requests-page .table-scroll {
   overflow-x: auto;
   overflow-y: hidden;
+}
+.portal-staff-workspace .recent-activity-page.staff-activity-page {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+.recent-activity-page.staff-activity-page .dashboard-page-header {
+  margin-bottom: 20px;
+}
+.recent-activity-page.staff-activity-page .dashboard-section {
+  margin-bottom: 20px;
+}
+.recent-activity-page.staff-activity-page .recent-activity-table {
+  font-size: 13px;
+}
+.recent-activity-page.staff-activity-page .recent-activity-table thead th {
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.recent-activity-page.staff-activity-page .recent-activity-table tbody td {
+  padding: 13px 14px;
+  font-size: 13px;
+  line-height: 1.45;
 }
 @media (max-width: 650px) {
   .staff-manage-requests-page .filter-row {

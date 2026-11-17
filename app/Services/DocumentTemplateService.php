@@ -152,10 +152,6 @@ class DocumentTemplateService
 
     public function autoMapFields(DocumentTemplateVersion $version, ?array $inspection = null): int
     {
-        if ($version->mappings()->exists()) {
-            return 0;
-        }
-
         if ($inspection === null) {
             $disk = Storage::disk($version->storage_disk);
             if (!$disk->exists($version->storage_path)) {
@@ -230,12 +226,26 @@ class DocumentTemplateService
             $uniqueMappings[] = $mapping;
         }
 
-        DB::transaction(function () use ($version, $uniqueMappings): void {
-            $version->mappings()->delete();
-            $version->mappings()->createMany($uniqueMappings);
-        });
+        return DB::transaction(function () use ($version, $uniqueMappings): int {
+            $version->newQuery()
+                ->whereKey($version->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            $existingFieldNames = $version->mappings()
+                ->pluck('field_name')
+                ->all();
+            $newMappings = array_values(array_filter(
+                $uniqueMappings,
+                fn (array $mapping): bool =>
+                    !in_array($mapping['field_name'], $existingFieldNames, true)
+            ));
 
-        return count($uniqueMappings);
+            if ($newMappings !== []) {
+                $version->mappings()->createMany($newMappings);
+            }
+
+            return count($newMappings);
+        });
     }
 
     private function matchSystemField(string $fieldName): ?string
@@ -262,7 +272,14 @@ class DocumentTemplateService
             'request.purpose' => ['purpose', 'requestpurpose', 'reason', 'purposeofapplication'],
             'request.request_date' => ['requestdate', 'datefiled', 'request_date', 'filingdate'],
             'request.approval_date' => ['approvaldate', 'approveddate', 'approval_date', 'approvedon'],
-            'request.issuance_date' => ['issuedate', 'issuance_date', 'issuedon', 'dateissued'],
+            'request.issuance_date' => [
+                'issuedate',
+                'issuance_date',
+                'issuedon',
+                'dateissued',
+                'effectivedate',
+                'effective_date',
+            ],
             'request.control_number' => ['controlnumber', 'control_number', 'controlno', 'documentnumber', 'docno'],
             'request.reference_number' => ['trackingnumber', 'tracking_number', 'refnumber', 'reference_number', 'trackingno'],
             'request.remarks' => ['remarks', 'comments', 'comment'],
@@ -275,6 +292,7 @@ class DocumentTemplateService
             'request.business_name' => ['businessname', 'nameofbusiness', 'business'],
             'request.business_address' => ['businessaddress', 'businesslocation'],
             'request.business_activity' => ['businessactivity', 'natureofbusiness', 'businessnature'],
+            'request.number_of_children' => ['numberofchildren', 'childcount'],
         ];
 
         foreach ($matchers as $systemField => $aliases) {

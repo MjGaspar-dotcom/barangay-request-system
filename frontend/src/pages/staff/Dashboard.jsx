@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import { useAuth } from "../../hooks/useAuth";
 import useLiveRefresh from "../../hooks/useLiveRefresh";
 import StaffLayout from "../../layouts/StaffLayout";
@@ -367,7 +366,6 @@ function Dashboard() {
                     </article>
                 </div>
 
-                <NotificationCenter />
             </section>
         </StaffLayout>
     );

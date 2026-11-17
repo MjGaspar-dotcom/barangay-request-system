@@ -66,7 +66,10 @@ class PdfWorkerService
         $this->generate(
             $templatePath,
             $outputPath,
-            ['allow_unmapped' => true],
+            [
+                'allow_unmapped' => true,
+                'brand_logo_path' => null,
+            ],
             'docx'
         );
     }

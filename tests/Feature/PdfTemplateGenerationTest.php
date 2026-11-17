@@ -13,6 +13,7 @@ use App\Services\PdfTemplateGenerationService;
 use App\Services\PdfWorkerService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
@@ -106,6 +107,10 @@ class PdfTemplateGenerationTest extends TestCase
                         'Avery Mae Santos',
                         $payload['overlays'][0]['value']
                     );
+                    $this->assertSame(
+                        base_path('frontend/public/assets/images/logo.webp'),
+                        $payload['brand_logo_path']
+                    );
                     file_put_contents($outputPath, $generatedBytes);
                 });
         });
@@ -114,6 +119,10 @@ class PdfTemplateGenerationTest extends TestCase
         $generation = app(PdfTemplateGenerationService::class);
         $firstVersion = $generation->generate($request);
         $sameVersion = $generation->generate($request);
+        $this->assertSame(
+            'center-watermark-v1',
+            $firstVersion->data_snapshot['branding_version']
+        );
 
         $templateVersion->update(['is_active' => false]);
         $latestTemplateVersion = DocumentTemplateVersion::create([
@@ -224,7 +233,7 @@ class PdfTemplateGenerationTest extends TestCase
             'template_version_id' => $templateVersion->template_version_id,
             'field_name' => '{{FULL_NAME}}',
             'field_type' => 'docx_placeholder',
-            'system_field' => 'resident.full_name',
+            'system_field' => 'resident.first_name',
             'is_required' => true,
         ]);
 
@@ -233,7 +242,31 @@ class PdfTemplateGenerationTest extends TestCase
             'DOCX template fixture'
         );
         $generatedBytes = "%PDF-1.4\nGenerated from DOCX.\n";
-        $this->mock(PdfWorkerService::class, function (MockInterface $mock) use ($generatedBytes): void {
+        $inspection = [
+            'page_count' => 1,
+            'has_acroform' => false,
+            'fields' => [
+                [
+                    'name' => '{{FULL_NAME}}',
+                    'type' => '/DocxPlaceholder',
+                    'supported' => false,
+                ],
+                [
+                    'name' => '{{EFFECTIVE_DATE}}',
+                    'type' => '/DocxPlaceholder',
+                    'supported' => false,
+                ],
+            ],
+            'pages' => [],
+        ];
+        $this->mock(PdfWorkerService::class, function (MockInterface $mock) use (
+            $generatedBytes,
+            $inspection
+        ): void {
+            $mock->shouldReceive('inspect')
+                ->times(3)
+                ->with(Mockery::type('string'), 'docx')
+                ->andReturn($inspection);
             $mock->shouldReceive('generate')
                 ->once()
                 ->andReturnUsing(function (
@@ -244,8 +277,15 @@ class PdfTemplateGenerationTest extends TestCase
                 ) use ($generatedBytes): void {
                     $this->assertSame('docx', $format);
                     $this->assertSame(
-                        'AVERY MAE SANTOS',
+                        'AVERY',
                         $payload['placeholder_values']['{{FULL_NAME}}']
+                    );
+                    $this->assertNotEmpty(
+                        $payload['placeholder_values']['{{EFFECTIVE_DATE}}']
+                    );
+                    $this->assertSame(
+                        base_path('frontend/public/assets/images/logo.webp'),
+                        $payload['brand_logo_path']
                     );
                     file_put_contents($outputPath, $generatedBytes);
                 });
@@ -267,5 +307,114 @@ class PdfTemplateGenerationTest extends TestCase
             'A completed request cannot have its document regenerated.'
         );
         $generation->generate($request, true);
+    }
+
+    public function test_watermark_command_adds_a_new_version_and_is_idempotent(): void
+    {
+        $staffUser = User::factory()->create();
+        $resident = User::factory()->create([
+            'verification_status' => 'verified',
+            'valid_id_front' => 'ids/verified.jpg',
+        ]);
+        $documentType = DocumentType::query()
+            ->where('document_name', 'Certificate of Residency')
+            ->firstOrFail();
+        $request = BarangayRequest::create([
+            'user_id' => $resident->user_id,
+            'document_type_id' => $documentType->document_type_id,
+            'purpose' => 'Proof of residence',
+            'tracking_number' => 'BR-20261117-WATERMARK',
+            'document_number' => 'BA-2026-099001',
+            'status' => 'completed',
+            'approved_at' => now(),
+        ]);
+        $template = DocumentTemplate::create([
+            'document_type_id' => $documentType->document_type_id,
+        ]);
+        $templateVersion = DocumentTemplateVersion::create([
+            'template_id' => $template->template_id,
+            'version_number' => 1,
+            'storage_disk' => 'local',
+            'storage_path' => 'document-templates/residency.pdf',
+            'original_name' => 'residency.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 12,
+            'sha256' => hash('sha256', '%PDF-1.4'),
+            'page_count' => 1,
+            'has_acroform' => false,
+            'is_active' => true,
+        ]);
+
+        $disk = config('filesystems.private_upload_disk');
+        Storage::fake($disk);
+        $sourceBytes = "%PDF-1.4\nOriginal PDF.\n";
+        $brandedBytes = "%PDF-1.4\nWatermarked PDF.\n";
+        $sourcePath = sprintf(
+            'generated-documents/%s/source.pdf',
+            $request->request_id
+        );
+        Storage::disk($disk)->put($sourcePath, $sourceBytes);
+        $source = GeneratedDocument::create([
+            'request_id' => $request->request_id,
+            'template_version_id' => $templateVersion->template_version_id,
+            'version_number' => 1,
+            'document_number' => $request->document_number,
+            'storage_disk' => $disk,
+            'storage_path' => $sourcePath,
+            'original_name' => 'certificate-of-residency-BA-2026-099001-v1.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => strlen($sourceBytes),
+            'sha256' => hash('sha256', $sourceBytes),
+            'data_snapshot' => [
+                'document_type' => 'Certificate of Residency',
+                'document_number' => $request->document_number,
+            ],
+            'generated_by' => $staffUser->user_id,
+            'generated_at' => now(),
+        ]);
+
+        $this->mock(PdfWorkerService::class, function (MockInterface $mock) use (
+            $sourceBytes,
+            $brandedBytes
+        ): void {
+            $mock->shouldReceive('generate')
+                ->once()
+                ->andReturnUsing(function (
+                    string $templatePath,
+                    string $outputPath,
+                    array $payload,
+                    string $format
+                ) use ($sourceBytes, $brandedBytes): void {
+                    $this->assertSame($sourceBytes, file_get_contents($templatePath));
+                    $this->assertSame('pdf', $format);
+                    $this->assertTrue($payload['watermark_only']);
+                    $this->assertSame(
+                        base_path('frontend/public/assets/images/logo.webp'),
+                        $payload['brand_logo_path']
+                    );
+                    file_put_contents($outputPath, $brandedBytes);
+                });
+        });
+
+        $this->artisan('documents:watermark-existing')
+            ->assertExitCode(0);
+
+        $latest = $request->fresh()->generatedDocuments()->firstOrFail();
+        $this->assertNotSame($source->generated_document_id, $latest->generated_document_id);
+        $this->assertSame(2, $latest->version_number);
+        $this->assertSame(
+            'center-watermark-v1',
+            $latest->data_snapshot['branding_version']
+        );
+        $this->assertSame(hash('sha256', $brandedBytes), $latest->sha256);
+        $this->assertSame(
+            $sourceBytes,
+            Storage::disk($disk)->get($sourcePath)
+        );
+        Storage::disk($disk)->assertExists($latest->storage_path);
+
+        $this->artisan('documents:watermark-existing')
+            ->assertExitCode(0);
+        $this->assertCount(2, $request->fresh()->generatedDocuments);
     }
 }

@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::patch('/profile/password', [AuthController::class, 'updatePassword']);
 
     // --------------------------------------------------
     // Barangay Requests (Registered Users)
@@ -81,6 +82,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch(
         '/barangay-requests/{barangayRequest}/business-details',
         [BarangayRequestController::class, 'updateBusinessDetails']
+    );
+    Route::patch(
+        '/barangay-requests/{barangayRequest}/solo-parent-details',
+        [BarangayRequestController::class, 'updateSoloParentDetails']
     );
 
     Route::get(

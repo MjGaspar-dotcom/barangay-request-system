@@ -10,12 +10,19 @@ export default function UserRequestForm({ initialDocument = "" }) {
     const [documentTypes, setDocumentTypes] = useState([]);
     const [documentTypeId, setDocumentTypeId] = useState("");
     const [purpose, setPurpose] = useState("");
+    const [numberOfChildren, setNumberOfChildren] = useState("");
     const [supportingDocuments, setSupportingDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadingDocumentTypes, setLoadingDocumentTypes] = useState(true);
     const [error, setError] = useState("");
     const [submittedRequest, setSubmittedRequest] = useState(null);
     const supportingDocumentsInput = useRef(null);
+    const selectedDocumentType = documentTypes.find(
+        (documentType) =>
+            String(documentType.document_type_id) === documentTypeId,
+    );
+    const requiresChildrenCount =
+        selectedDocumentType?.document_name === "Certificate of Solo Parent";
 
     useEffect(() => {
         const fetchDocumentTypes = async () => {
@@ -72,6 +79,12 @@ export default function UserRequestForm({ initialDocument = "" }) {
             const formData = new FormData();
             formData.append("document_type_id", documentTypeId);
             formData.append("purpose", purpose);
+            if (requiresChildrenCount) {
+                formData.append(
+                    "request_data[number_of_children]",
+                    numberOfChildren,
+                );
+            }
             supportingDocuments.forEach((file) => {
                 formData.append("supporting_documents[]", file);
             });
@@ -93,6 +106,7 @@ export default function UserRequestForm({ initialDocument = "" }) {
 
             setDocumentTypeId("");
             setPurpose("");
+            setNumberOfChildren("");
             setSupportingDocuments([]);
             if (supportingDocumentsInput.current) {
                 supportingDocumentsInput.current.value = "";
@@ -171,6 +185,27 @@ export default function UserRequestForm({ initialDocument = "" }) {
                     required
                 />
             </div>
+
+            {requiresChildrenCount && (
+                <div className="mb-4">
+                    <label htmlFor="number_of_children" className="app-label">
+                        Number of Children
+                    </label>
+                    <input
+                        id="number_of_children"
+                        name="request_data[number_of_children]"
+                        className="app-input"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={numberOfChildren}
+                        onChange={(event) =>
+                            setNumberOfChildren(event.target.value)
+                        }
+                        required
+                    />
+                </div>
+            )}
 
             <div className="mb-4">
                 <label htmlFor="supporting_documents" className="app-label">

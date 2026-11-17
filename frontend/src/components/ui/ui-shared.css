@@ -528,6 +528,23 @@ button, input, textarea, select, a { transition-duration: 150ms; }
 .manage-document-types-page .document-type-processing-time-column { width: 20%; }
 .manage-document-types-page .document-type-status-column { width: 13%; }
 .manage-document-types-page .document-type-actions-column { width: 25%; }
+.staff-document-types-page .admin-table { min-width: 640px; }
+.staff-document-types-page .document-type-name-column { width: 27%; }
+.staff-document-types-page .document-type-description-column { width: 38%; }
+.staff-document-types-page .document-type-processing-time-column { width: 20%; }
+.staff-document-types-page .document-type-status-column { width: 15%; }
+.portal-staff-workspace .staff-document-types-page {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+.staff-document-types-page .dashboard-page-header { margin-bottom: 20px; }
+.staff-document-types-page .dashboard-section { margin-bottom: 16px; }
+.staff-document-types-page .dashboard-section:last-child { margin-bottom: 0; }
+.staff-document-types-page .admin-table th,
+.staff-document-types-page .admin-table td { padding: 12px 14px; }
+.staff-document-types-page .data-table th:last-child,
+.staff-document-types-page .data-table td:last-child { min-width: 0; }
 .manage-document-types-page .admin-table th,
 .manage-document-types-page .admin-table td {
   padding: 10px 12px;

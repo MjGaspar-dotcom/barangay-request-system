@@ -5,8 +5,17 @@ from pathlib import Path
 from unittest.mock import patch
 
 from docx import Document
+from PIL import Image, ImageDraw
 
 from . import worker
+
+
+def create_transparent_logo(directory: Path) -> Path:
+    logo_path = directory / "logo.png"
+    image = Image.new("RGBA", (80, 80), (255, 0, 0, 0))
+    ImageDraw.Draw(image).ellipse((8, 8, 72, 72), fill=(0, 80, 160, 255))
+    image.save(logo_path)
+    return logo_path
 
 
 class DocxTemplateTests(unittest.TestCase):
@@ -235,7 +244,11 @@ class DocxTemplateTests(unittest.TestCase):
                     filled.sections[0].header.paragraphs[0].text,
                 )
                 converted_path = Path(command[command.index("--outdir") + 1])
-                (converted_path / "generated.pdf").write_bytes(b"%PDF-1.4")
+                pdf = worker.canvas.Canvas(
+                    str(converted_path / "generated.pdf")
+                )
+                pdf.drawString(72, 720, "Generated certificate")
+                pdf.save()
                 return worker.subprocess.CompletedProcess(command, 0, "", "")
 
             with (
@@ -254,9 +267,56 @@ class DocxTemplateTests(unittest.TestCase):
                     },
                 )
 
-            self.assertEqual(b"%PDF-1.4", output_path.read_bytes())
+            generated = worker.PdfReader(output_path)
+            self.assertEqual(2, len(generated.pages[0].images))
             self.assertEqual(original_template, template_path.read_bytes())
             self.assertFalse(output_path.with_suffix(".docx").exists())
+
+    def test_generation_adds_transparent_brand_logo_to_converted_pdf(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            template_path = directory / "template.docx"
+            output_path = directory / "generated.pdf"
+            logo_path = create_transparent_logo(directory)
+            self.create_template(template_path)
+            original_template = template_path.read_bytes()
+
+            def fake_conversion(command, **kwargs):
+                converted_path = Path(command[command.index("--outdir") + 1])
+                pdf = worker.canvas.Canvas(str(converted_path / "generated.pdf"))
+                pdf.drawString(72, 720, "Generated certificate")
+                pdf.save()
+                return worker.subprocess.CompletedProcess(command, 0, "", "")
+
+            with (
+                patch.object(worker.shutil, "which", return_value="soffice"),
+                patch.object(worker.subprocess, "run", side_effect=fake_conversion),
+            ):
+                worker.generate_docx_pdf(
+                    template_path,
+                    output_path,
+                    {
+                        "allow_unmapped": True,
+                        "brand_logo_path": str(logo_path),
+                    },
+                )
+
+            generated = worker.PdfReader(output_path)
+            logo_images = generated.pages[0].images
+            self.assertEqual(2, len(logo_images))
+            for logo_image in logo_images:
+                self.assertIn(
+                    "/SMask",
+                    logo_image.indirect_reference.get_object(),
+                )
+            self.assertEqual(
+                "Generated certificate",
+                generated.pages[0].extract_text().strip(),
+            )
+            self.assertEqual(
+                original_template,
+                template_path.read_bytes(),
+            )
 
     def test_preview_converts_a_copy_without_overwriting_source_docx(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -283,7 +343,10 @@ class DocxTemplateTests(unittest.TestCase):
                 worker.generate_docx_pdf(
                     template_path,
                     output_path,
-                    {"allow_unmapped": True},
+                    {
+                        "allow_unmapped": True,
+                        "brand_logo_path": None,
+                    },
                 )
 
             self.assertEqual(b"%PDF-1.4", output_path.read_bytes())
@@ -310,6 +373,133 @@ class DocxTemplateTests(unittest.TestCase):
             )
             self.assertIn("AVERY SANTOS", generated_text)
             self.assertNotIn("Avery Santos", generated_text)
+            self.assertEqual(
+                2,
+                len(worker.PdfReader(output_path).pages[0].images),
+            )
+
+    def test_pdf_generation_adds_logo_only_to_first_page_at_top_center(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            template_path = directory / "template.pdf"
+            output_path = directory / "generated.pdf"
+            logo_path = create_transparent_logo(directory)
+            document = worker.canvas.Canvas(str(template_path))
+            document.drawString(72, 720, "First page")
+            document.showPage()
+            document.drawString(72, 720, "Second page")
+            document.save()
+
+            worker.generate_pdf(
+                template_path,
+                output_path,
+                {"brand_logo_path": str(logo_path)},
+            )
+
+            generated = worker.PdfReader(output_path)
+            first_page = generated.pages[0]
+            self.assertEqual(2, len(generated.pages))
+            self.assertEqual(2, len(first_page.images))
+            self.assertEqual(1, len(generated.pages[1].images))
+            for image in first_page.images:
+                self.assertIn("/SMask", image.indirect_reference.get_object())
+            self.assertIn(
+                "/SMask",
+                generated.pages[1].images[0].indirect_reference.get_object(),
+            )
+
+            watermark = worker.draw_brand_watermark(first_page, logo_path)
+            watermark_resources = watermark["/Resources"].get_object()
+            alpha_values = [
+                float(state.get_object()["/ca"])
+                for state in watermark_resources["/ExtGState"].values()
+            ]
+            self.assertIn(0.12, alpha_values)
+            watermark_operations = worker.ContentStream(
+                watermark.get_contents(),
+                generated,
+            ).operations
+            watermark_transforms = [
+                operands
+                for operands, operator in watermark_operations
+                if operator == b"cm"
+            ]
+            watermark_transform = next(
+                [float(value) for value in transform]
+                for transform in watermark_transforms
+                if float(transform[0]) > 36.0
+                and float(transform[3]) == float(transform[0])
+            )
+            watermark_size = min(
+                float(first_page.cropbox.width) * 0.54,
+                float(first_page.cropbox.height) * 0.43,
+            )
+            self.assertAlmostEqual(watermark_size, watermark_transform[0], places=2)
+            self.assertAlmostEqual(
+                (float(first_page.cropbox.width) - watermark_size) / 2,
+                watermark_transform[4],
+                places=2,
+            )
+            self.assertAlmostEqual(
+                (float(first_page.cropbox.height) - watermark_size) / 2,
+                watermark_transform[5],
+                places=2,
+            )
+
+            overlay = worker.draw_brand_logo(first_page, logo_path)
+            operations = worker.ContentStream(
+                overlay.get_contents(),
+                generated,
+            ).operations
+            image_transforms = [
+                operands for operands, operator in operations if operator == b"cm"
+            ]
+            image_transform = next(
+                [
+                    float(value) for value in transform
+                ]
+                for transform in image_transforms
+                if float(transform[0]) == 36.0
+                and float(transform[3]) == 36.0
+            )
+            self.assertAlmostEqual(
+                (float(first_page.cropbox.width) - 36.0) / 2,
+                image_transform[4],
+                places=2,
+            )
+            self.assertAlmostEqual(
+                float(first_page.cropbox.height) - 54.0,
+                image_transform[5],
+                places=2,
+            )
+
+    def test_project_webp_logo_asset_can_be_embedded(self) -> None:
+        logo_path = (
+            Path(__file__).resolve().parents[1]
+            / "frontend"
+            / "public"
+            / "assets"
+            / "images"
+            / "logo.webp"
+        )
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            directory = Path(temporary_directory)
+            template_path = directory / "template.pdf"
+            output_path = directory / "generated.pdf"
+            document = worker.canvas.Canvas(str(template_path))
+            document.drawString(72, 720, "Barangay document")
+            document.save()
+
+            worker.generate_pdf(
+                template_path,
+                output_path,
+                {"brand_logo_path": str(logo_path)},
+            )
+
+            page = worker.PdfReader(output_path).pages[0]
+            self.assertEqual(2, len(page.images))
+            for image in page.images:
+                self.assertIn("/SMask", image.indirect_reference.get_object())
 
     def test_generation_rejects_unmapped_placeholders(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

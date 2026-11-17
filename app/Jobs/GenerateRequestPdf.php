@@ -99,7 +99,7 @@ class GenerateRequestPdf implements ShouldBeUnique, ShouldQueue
             'document_generation_status' => 'failed',
             'document_generation_error' => $exception instanceof \InvalidArgumentException
                 ? $exception->getMessage()
-                : 'The official PDF could not be generated. Retry generation or check the uploaded template.',
+                : 'PDF generation failed. Check the uploaded template and its field mappings, then retry. If it still fails, check the Laravel and PDF worker logs.',
         ]);
 
         Log::warning('Queued PDF generation failed for request.', [

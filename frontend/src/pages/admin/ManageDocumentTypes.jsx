@@ -6,6 +6,13 @@ import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
 import StaffLayout from "../../layouts/StaffLayout";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "../../components/ui/dialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 
 import { validateForm } from "../../utils/validateForm";
@@ -205,7 +212,11 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
 
     return (
         <Layout>
-            <div className="admin-dashboard manage-document-types-page">
+            <div
+                className={`admin-dashboard manage-document-types-page${
+                    isAdmin ? "" : " staff-document-types-page"
+                }`}
+            >
                 <div className="w-full">
                     <div className="dashboard-page-header">
                         <div className="page-header-row document-types-header-row">
@@ -232,19 +243,13 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                                     type="button"
                                     className="app-button app-button-success document-type-create-button"
                                     onClick={() => {
-                                        if (showForm && !editingId) {
-                                            handleCancel();
-                                        } else {
-                                            setForm(EMPTY_FORM);
-                                            setEditingId(null);
-                                            setShowForm(true);
-                                        }
+                                        setForm(EMPTY_FORM);
+                                        setEditingId(null);
                                         setFormError("");
+                                        setShowForm(true);
                                     }}
                                 >
-                                    {showForm && !editingId
-                                        ? "Close Form"
-                                        : "＋ New Document Type"}
+                                    ＋ New Document Type
                                 </Button>
                             )}
                         </div>
@@ -257,123 +262,6 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                         >
                             {actionMessage}
                         </div>
-                    )}
-
-                    {isAdmin && showForm && (
-                        <section className="dashboard-section">
-                            <div className="admin-form-card">
-                                <h3 className="form-section-title mb-5-token">
-                                    {editingId
-                                        ? "Edit Document Type"
-                                        : "New Document Type"}
-                                </h3>
-
-                                <form noValidate onSubmit={handleSubmit}>
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                        <div className="md:col-span-6">
-                                            <label className="app-label">
-                                                Document Name *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="document_name"
-                                                className="app-input"
-                                                value={form.document_name}
-                                                onChange={handleChange}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="md:col-span-3">
-                                            <label className="app-label">
-                                                Processing Time (minutes) *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                name="processing_time_minutes"
-                                                className="app-input"
-                                                value={
-                                                    form.processing_time_minutes
-                                                }
-                                                onChange={handleChange}
-                                                min={1}
-                                                max={65535}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="md:col-span-3">
-                                            <label className="app-label">
-                                                Status
-                                            </label>
-                                            <div className="flex items-center gap-2 form-switch form-switch-spaced">
-                                                <input
-                                                    type="checkbox"
-                                                    name="is_active"
-                                                    className="accent-primary"
-                                                    checked={form.is_active}
-                                                    onChange={handleChange}
-                                                    id="is_active"
-                                                />
-                                                <label
-                                                    className="text-sm"
-                                                    htmlFor="is_active"
-                                                >
-                                                    {form.is_active
-                                                        ? "Active"
-                                                        : "Inactive"}
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-span-full">
-                                            <label className="app-label">
-                                                Description
-                                            </label>
-                                            <textarea
-                                                name="description"
-                                                className="app-input"
-                                                rows={3}
-                                                value={form.description}
-                                                onChange={handleChange}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {formError && (
-                                        <div
-                                            className="app-alert app-alert-danger mt-4"
-                                            role="alert"
-                                        >
-                                            {formError}
-                                        </div>
-                                    )}
-
-                                    <div className="form-actions-row">
-                                        <Button
-                                            type="submit"
-                                            className="app-button app-button-success"
-                                            disabled={submitting}
-                                            loading={submitting}
-                                            loadingLabel="Saving document type"
-                                        >
-                                            {editingId
-                                                ? "Save Changes"
-                                                : "Create Document Type"}
-                                        </Button>
-
-                                        <Button
-                                            type="button"
-                                            className="app-button app-button-outline-secondary"
-                                            onClick={handleCancel}
-                                            disabled={submitting}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
-                        </section>
                     )}
 
                     <section className="dashboard-section">
@@ -417,7 +305,9 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                                         <col className="document-type-description-column" />
                                         <col className="document-type-processing-time-column" />
                                         <col className="document-type-status-column" />
-                                        <col className="document-type-actions-column" />
+                                        {isAdmin && (
+                                            <col className="document-type-actions-column" />
+                                        )}
                                     </colgroup>
                                     <thead>
                                         <tr>
@@ -429,11 +319,11 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                                             <th className="document-type-status-heading">
                                                 Status
                                             </th>
-                                            <th className="table-actions-heading document-type-actions-heading">
-                                                {isAdmin
-                                                    ? "Actions"
-                                                    : "Template"}
-                                            </th>
+                                            {isAdmin && (
+                                                <th className="table-actions-heading document-type-actions-heading">
+                                                    Actions
+                                                </th>
+                                            )}
                                         </tr>
                                     </thead>
 
@@ -469,68 +359,66 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="document-type-actions-cell">
-                                                    <div className="table-action-group document-type-action-group">
-                                                        {isAdmin && (
-                                                            <>
-                                                                <Button
-                                                                    type="button"
-                                                                    className="app-button app-button-outline-success app-button-sm"
-                                                                    disabled={
-                                                                        busyId ===
-                                                                        docType.document_type_id
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleEdit(
-                                                                            docType,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Edit
-                                                                </Button>
+                                                {isAdmin && (
+                                                    <td className="document-type-actions-cell">
+                                                        <div className="table-action-group document-type-action-group">
+                                                            <Button
+                                                                type="button"
+                                                                className="app-button app-button-outline-success app-button-sm"
+                                                                disabled={
+                                                                    busyId ===
+                                                                    docType.document_type_id
+                                                                }
+                                                                onClick={() =>
+                                                                    handleEdit(
+                                                                        docType,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Edit
+                                                            </Button>
 
-                                                                <Button
-                                                                    type="button"
-                                                                    size="sm"
-                                                                    variant={
-                                                                        docType.is_active
-                                                                            ? "outline-warning"
-                                                                            : "outline-success"
-                                                                    }
-                                                                    disabled={
-                                                                        busyId ===
-                                                                        docType.document_type_id
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleToggleActive(
-                                                                            docType,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {docType.is_active
-                                                                        ? "Deactivate"
-                                                                        : "Activate"}
-                                                                </Button>
+                                                            <Button
+                                                                type="button"
+                                                                size="sm"
+                                                                variant={
+                                                                    docType.is_active
+                                                                        ? "outline-warning"
+                                                                        : "outline-success"
+                                                                }
+                                                                disabled={
+                                                                    busyId ===
+                                                                    docType.document_type_id
+                                                                }
+                                                                onClick={() =>
+                                                                    handleToggleActive(
+                                                                        docType,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {docType.is_active
+                                                                    ? "Deactivate"
+                                                                    : "Activate"}
+                                                            </Button>
 
-                                                                <Button
-                                                                    type="button"
-                                                                    className="app-button app-button-outline-danger app-button-sm"
-                                                                    disabled={
-                                                                        busyId ===
-                                                                        docType.document_type_id
-                                                                    }
-                                                                    onClick={() =>
-                                                                        setDeleteTarget(
-                                                                            docType,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Delete
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </td>
+                                                            <Button
+                                                                type="button"
+                                                                className="app-button app-button-outline-danger app-button-sm"
+                                                                disabled={
+                                                                    busyId ===
+                                                                    docType.document_type_id
+                                                                }
+                                                                onClick={() =>
+                                                                    setDeleteTarget(
+                                                                        docType,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Delete
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                )}
                                             </tr>
                                         ))}
                                     </tbody>
@@ -540,6 +428,159 @@ export default function ManageDocumentTypes({ isAdmin = true }) {
                     </section>
                 </div>
             </div>
+            {isAdmin && (
+                <Dialog
+                    open={showForm}
+                    onOpenChange={(open) => {
+                        if (open) {
+                            setShowForm(true);
+                        } else {
+                            handleCancel();
+                        }
+                    }}
+                >
+                    <DialogContent
+                        aria-describedby="document-type-form-description"
+                        className="document-type-form-dialog max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto"
+                    >
+                        <DialogHeader className="document-type-form-heading">
+                            <span className="section-label">
+                                {editingId
+                                    ? "EDIT DOCUMENT TYPE"
+                                    : "NEW DOCUMENT TYPE"}
+                            </span>
+                            <DialogTitle className="document-type-form-title">
+                                {editingId
+                                    ? "Edit Document Type"
+                                    : "New Document Type"}
+                            </DialogTitle>
+                            <DialogDescription
+                                id="document-type-form-description"
+                            >
+                                Enter the document type details below.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <form noValidate onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div className="md:col-span-6">
+                                    <label
+                                        className="app-label"
+                                        htmlFor="document-type-name"
+                                    >
+                                        Document Name *
+                                    </label>
+                                    <input
+                                        id="document-type-name"
+                                        type="text"
+                                        name="document_name"
+                                        className="app-input"
+                                        value={form.document_name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                    <label
+                                        className="app-label"
+                                        htmlFor="document-type-processing-time"
+                                    >
+                                        Processing Time (minutes) *
+                                    </label>
+                                    <input
+                                        id="document-type-processing-time"
+                                        type="number"
+                                        name="processing_time_minutes"
+                                        className="app-input"
+                                        value={form.processing_time_minutes}
+                                        onChange={handleChange}
+                                        min={1}
+                                        max={65535}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                    <label
+                                        className="app-label"
+                                        htmlFor="document-type-is-active"
+                                    >
+                                        Status
+                                    </label>
+                                    <div className="flex items-center gap-2 form-switch form-switch-spaced">
+                                        <input
+                                            id="document-type-is-active"
+                                            type="checkbox"
+                                            name="is_active"
+                                            className="accent-primary"
+                                            checked={form.is_active}
+                                            onChange={handleChange}
+                                        />
+                                        <label
+                                            className="text-sm"
+                                            htmlFor="document-type-is-active"
+                                        >
+                                            {form.is_active
+                                                ? "Active"
+                                                : "Inactive"}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="col-span-full">
+                                    <label
+                                        className="app-label"
+                                        htmlFor="document-type-description"
+                                    >
+                                        Description
+                                    </label>
+                                    <textarea
+                                        id="document-type-description"
+                                        name="description"
+                                        className="app-input"
+                                        rows={3}
+                                        value={form.description}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+
+                            {formError && (
+                                <div
+                                    className="app-alert app-alert-danger mt-4"
+                                    role="alert"
+                                >
+                                    {formError}
+                                </div>
+                            )}
+
+                            <div className="form-actions-row">
+                                <Button
+                                    type="submit"
+                                    className="app-button app-button-success"
+                                    disabled={submitting}
+                                    loading={submitting}
+                                    loadingLabel="Saving document type"
+                                >
+                                    {editingId
+                                        ? "Save Changes"
+                                        : "Create Document Type"}
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    className="app-button app-button-outline-secondary"
+                                    onClick={handleCancel}
+                                    disabled={submitting}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            )}
             {isAdmin && (
                 <ConfirmDialog
                     isOpen={Boolean(deleteTarget)}

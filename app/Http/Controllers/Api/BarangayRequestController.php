@@ -187,7 +187,7 @@ class BarangayRequestController extends Controller
             $barangayRequest->update([
                 'document_generation_status' => 'failed',
                 'document_generation_error' =>
-                    'The official PDF could not be queued. Retry generation or check the uploaded template.',
+                    'PDF generation could not be queued. Check that the Laravel queue worker is running, then retry.',
             ]);
             \Log::warning('Automatic generated document creation failed for new request.', [
                 'request_id' => $barangayRequest->request_id,
@@ -376,7 +376,7 @@ class BarangayRequestController extends Controller
             $barangayRequest->update([
                 'document_generation_status' => 'failed',
                 'document_generation_error' =>
-                    'The official PDF could not be queued. Retry generation or check the uploaded template.',
+                    'PDF generation could not be queued. Check that the Laravel queue worker is running, then retry.',
             ]);
             \Log::error('Business-clearance PDF generation could not be queued.', [
                 'request_id' => $barangayRequest->request_id,
@@ -393,6 +393,101 @@ class BarangayRequestController extends Controller
             'success' => true,
             'message' => 'Business details saved. The PDF is being generated in the background.',
             'data' => [
+                'document_generation_status' => 'queued',
+            ],
+        ], 202);
+    }
+
+    public function updateSoloParentDetails(
+        Request $request,
+        BarangayRequest $barangayRequest
+    ) {
+        $user = Auth::user();
+        if (
+            !$user ||
+            $user->staff ||
+            $user->admin ||
+            (int) $barangayRequest->user_id !== (int) $user->user_id
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The request is unavailable.',
+            ], 404);
+        }
+
+        $barangayRequest->loadMissing('documentType');
+        if (
+            strcasecmp(
+                (string) $barangayRequest->documentType?->document_name,
+                'Certificate of Solo Parent'
+            ) !== 0 ||
+            $barangayRequest->status !== RequestStatusService::STATUS_REQUEST_SUBMITTED ||
+            $barangayRequest->generatedDocuments()->exists()
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Children details can only be added to a submitted Solo Parent request without a generated PDF.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'number_of_children' => 'required|integer|min:1',
+        ]);
+        $pdfGeneration = app(PdfTemplateGenerationService::class);
+        $activeTemplate = $pdfGeneration->activeTemplateFor($barangayRequest);
+        if (!$activeTemplate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active PDF template is available for this document type.',
+            ], 422);
+        }
+        if ($activeTemplate->mappings->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Configure at least one PDF field mapping before generating this document.',
+            ], 422);
+        }
+
+        $requestData = $barangayRequest->request_data ?? [];
+        $requestData['number_of_children'] = (int) $validated['number_of_children'];
+        $barangayRequest->update(['request_data' => $requestData]);
+
+        AuditService::log(
+            'solo_parent_details_provided',
+            $barangayRequest,
+            'The resident provided the number of children for a Solo Parent certificate.',
+            [],
+            ['fields' => ['number_of_children']]
+        );
+
+        try {
+            $barangayRequest->update([
+                'document_generation_status' => 'queued',
+                'document_generation_error' => null,
+            ]);
+            GenerateRequestPdf::dispatch($barangayRequest->request_id);
+        } catch (\Throwable $exception) {
+            $barangayRequest->update([
+                'document_generation_status' => 'failed',
+                'document_generation_error' =>
+                    'PDF generation could not be queued. Check that the Laravel queue worker is running, then retry.',
+            ]);
+            \Log::error('Solo Parent PDF generation could not be queued.', [
+                'request_id' => $barangayRequest->request_id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $barangayRequest->document_generation_error,
+            ], 503);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Children details saved. The PDF is being generated in the background.',
+            'data' => [
+                'number_of_children' => $requestData['number_of_children'],
                 'document_generation_status' => 'queued',
             ],
         ], 202);
@@ -589,7 +684,7 @@ class BarangayRequestController extends Controller
             $barangayRequest->update([
                 'document_generation_status' => 'failed',
                 'document_generation_error' =>
-                    'The official PDF could not be queued. Retry generation or check the uploaded template.',
+                    'PDF generation could not be queued. Check that the Laravel queue worker is running, then retry.',
             ]);
             \Log::error('PDF generation could not be queued.', [
                 'request_id' => $barangayRequest->request_id,

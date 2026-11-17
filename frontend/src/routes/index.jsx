@@ -14,6 +14,7 @@ import RequestDetails from "../pages/user/RequestDetails";
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
+import RequestNotificationToast from "../components/requests/RequestNotificationToast";
 
 const UserRequest = lazy(() => import("../pages/user/Request"));
 const UserProfile = lazy(() => import("../pages/user/Profile"));
@@ -73,6 +74,7 @@ export default function AppRoutes() {
     return (
         <BrowserRouter>
             <RouteScrollReset />
+            <RequestNotificationToast />
             <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                     {/* PUBLIC */}

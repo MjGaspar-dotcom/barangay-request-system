@@ -42,6 +42,7 @@ class DocumentTemplateDataFieldService
                     ['key' => 'request.business_name', 'label' => 'Business Name'],
                     ['key' => 'request.business_address', 'label' => 'Business Address'],
                     ['key' => 'request.business_activity', 'label' => 'Business Activity'],
+                    ['key' => 'request.number_of_children', 'label' => 'Number of Children'],
                 ],
             ],
             [
@@ -110,6 +111,8 @@ class DocumentTemplateDataFieldService
             'request.business_name' => $request->request_data['business_name'] ?? null,
             'request.business_address' => $request->request_data['business_address'] ?? null,
             'request.business_activity' => $request->request_data['business_activity'] ?? null,
+            'request.number_of_children' =>
+                $request->request_data['number_of_children'] ?? null,
             'barangay.name' => $profile?->barangay_name,
             'barangay.municipality' => $profile?->municipality,
             'barangay.province' => $profile?->province,

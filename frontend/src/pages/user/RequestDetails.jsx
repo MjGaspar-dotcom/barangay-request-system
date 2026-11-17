@@ -39,6 +39,8 @@ function RequestDetails() {
     const [actionError, setActionError] = useState("");
     const [actionMessage, setActionMessage] = useState("");
     const [busyDocumentId, setBusyDocumentId] = useState(null);
+    const [numberOfChildren, setNumberOfChildren] = useState("");
+    const [savingChildrenCount, setSavingChildrenCount] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const replacementInput = useRef(null);
     const replacementDocumentId = useRef(null);
@@ -191,6 +193,42 @@ function RequestDetails() {
         }
     };
 
+    const saveChildrenCount = async (event) => {
+        event.preventDefault();
+        setActionError("");
+        setActionMessage("");
+        setSavingChildrenCount(true);
+
+        try {
+            const response = await api.patch(
+                `/barangay-requests/${requestId}/solo-parent-details`,
+                { number_of_children: numberOfChildren },
+            );
+            const count = response.data?.data?.number_of_children;
+            setRequest((current) => ({
+                ...current,
+                request_data: {
+                    ...(current.request_data || {}),
+                    number_of_children: count,
+                },
+                document_generation_status: "queued",
+                document_generation_error: null,
+            }));
+            setActionMessage(
+                response.data?.message ||
+                    "Children details saved. The PDF is being generated.",
+            );
+        } catch (saveError) {
+            console.error(saveError);
+            setActionError(
+                saveError.response?.data?.message ||
+                    "The number of children could not be saved.",
+            );
+        } finally {
+            setSavingChildrenCount(false);
+        }
+    };
+
     if (
         loading ||
         (!error && request?.request_id !== Number(requestId))
@@ -224,6 +262,12 @@ function RequestDetails() {
             document.purpose === "prepared_document" &&
             document.request_document_id === request.prepared_document_id,
     );
+    const isSoloParentRequest =
+        request.document_type?.document_name === "Certificate of Solo Parent";
+    const hasChildrenCount =
+        request.request_data?.number_of_children !== undefined &&
+        request.request_data?.number_of_children !== null &&
+        request.request_data?.number_of_children !== "";
 
     return (
         <RequestDetailsPage>
@@ -277,6 +321,18 @@ function RequestDetails() {
                             <RequestDetailLabel>Purpose</RequestDetailLabel>
                             <RequestDetailValue>{request.purpose}</RequestDetailValue>
                         </RequestDetailItem>
+                        {isSoloParentRequest && (
+                            <RequestDetailItem>
+                                <RequestDetailLabel>
+                                    Number of Children
+                                </RequestDetailLabel>
+                                <RequestDetailValue>
+                                    {hasChildrenCount
+                                        ? request.request_data.number_of_children
+                                        : "Not provided"}
+                                </RequestDetailValue>
+                            </RequestDetailItem>
+                        )}
                         <RequestDetailItem>
                             <RequestDetailLabel>Submitted</RequestDetailLabel>
                             <RequestDetailValue>
@@ -321,6 +377,53 @@ function RequestDetails() {
                         )}
                     </RequestDetailsGrid>
                 </RequestDetailsSection>
+
+                {isSoloParentRequest &&
+                    request.status === "request_submitted" &&
+                    !hasChildrenCount && (
+                        <RequestDetailsSection>
+                            <RequestDetailsSectionTitle>
+                                Complete Solo Parent Details
+                            </RequestDetailsSectionTitle>
+                            <p>
+                                Enter the number of children so the Solo Parent
+                                certificate can be generated.
+                            </p>
+                            <form onSubmit={saveChildrenCount}>
+                                <div className="mb-4">
+                                    <label
+                                        className="app-label"
+                                        htmlFor="request-number-of-children"
+                                    >
+                                        Number of Children
+                                    </label>
+                                    <input
+                                        className="app-input"
+                                        id="request-number-of-children"
+                                        min="1"
+                                        onChange={(event) =>
+                                            setNumberOfChildren(
+                                                event.target.value,
+                                            )
+                                        }
+                                        required
+                                        step="1"
+                                        type="number"
+                                        value={numberOfChildren}
+                                    />
+                                </div>
+                                <Button
+                                    disabled={savingChildrenCount}
+                                    type="submit"
+                                    variant="contained"
+                                >
+                                    {savingChildrenCount
+                                        ? "Saving..."
+                                        : "Save and Generate PDF"}
+                                </Button>
+                            </form>
+                        </RequestDetailsSection>
+                    )}
 
                 <RequestTimeline request={request} />
 

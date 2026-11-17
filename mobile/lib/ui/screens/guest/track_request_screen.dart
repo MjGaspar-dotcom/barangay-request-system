@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:zxing2/qrcode.dart';
 
+import '../../../core/services/qr_code_image_scanner.dart';
 import '../../../core/providers/request_provider.dart';
 import '../../../core/models/request_model.dart';
 import '../../widgets/loading_button.dart';
@@ -51,7 +50,6 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
   Future<void> _uploadQrCode() async {
     final imageFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 90,
       maxWidth: 2000,
       maxHeight: 2000,
     );
@@ -61,19 +59,7 @@ class _TrackRequestScreenState extends State<TrackRequestScreen> {
     try {
       final imageBytes = await imageFile.readAsBytes();
       if (!mounted) return;
-      final image = img.decodeImage(imageBytes);
-      if (image == null) {
-        throw const FormatException('The selected file is not a valid image.');
-      }
-
-      final pixels = image
-          .convert(numChannels: 4)
-          .getBytes(order: img.ChannelOrder.abgr)
-          .buffer
-          .asInt32List();
-      final source = RGBLuminanceSource(image.width, image.height, pixels);
-      final bitmap = BinaryBitmap(GlobalHistogramBinarizer(source));
-      final payload = QRCodeReader().decode(bitmap).text;
+      final payload = QrCodeImageScanner.decode(imageBytes);
       final trackingNumber = _trackingNumberFromQr(payload);
       if (trackingNumber.isEmpty) {
         throw const FormatException(

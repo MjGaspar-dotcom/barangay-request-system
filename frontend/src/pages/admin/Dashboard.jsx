@@ -1,7 +1,6 @@
 import Icon from "../../components/ui/Icon.jsx";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import DocumentRequestTrendPreview from "../../components/analytics/DocumentRequestTrendPreview";
 import PortalLayout from "../../layouts/PortalLayout";
 import { ADMIN_NAV_ITEMS } from "../../layouts/adminNavigation";
@@ -420,7 +419,6 @@ function Dashboard() {
                     </div>
                 </div>
 
-                <NotificationCenter />
             </section>
         </PortalLayout>
     );

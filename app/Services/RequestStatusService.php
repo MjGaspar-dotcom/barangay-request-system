@@ -200,6 +200,27 @@ class RequestStatusService
                         'Generate the official PDF from an uploaded template before completing this request.'
                     );
                 }
+                $generatedDocumentIds = $request->generatedDocuments()
+                    ->pluck('generated_document_id')
+                    ->map(fn ($id): int => (int) $id)
+                    ->all();
+                $hasPrintedDocument = AuditLog::query()
+                    ->where('table_name', 'barangay_requests')
+                    ->where('record_id', $request->request_id)
+                    ->whereIn('action', ['document_printed', 'document_reprinted'])
+                    ->get(['new_values'])
+                    ->contains(
+                        fn (AuditLog $event): bool => in_array(
+                            (int) ($event->new_values['generated_document_id'] ?? 0),
+                            $generatedDocumentIds,
+                            true
+                        )
+                    );
+                if (!$hasPrintedDocument) {
+                    throw new \InvalidArgumentException(
+                        'Print the official PDF before completing this request.'
+                    );
+                }
                 $request->update([
                     'status' => self::STATUS_COMPLETED,
                     'claimed_at' => now(),
@@ -398,9 +419,12 @@ class RequestStatusService
                 ->lockForUpdate()
                 ->findOrFail($request->request_id);
 
-            if ($request->status !== self::STATUS_READY_FOR_PICKUP) {
+            if (!in_array($request->status, [
+                self::STATUS_READY_FOR_PICKUP,
+                self::STATUS_COMPLETED,
+            ], true)) {
                 throw new \InvalidArgumentException(
-                    'Only requests ready for pickup can be printed.'
+                    'Only requests ready for pickup or already completed can be printed.'
                 );
             }
             $generatedDocument = $generatedDocumentId
@@ -438,7 +462,8 @@ class RequestStatusService
                                 $documentNumber
                         )
             )->count();
-            $action = $printCount > 0
+            $action = $request->status === self::STATUS_COMPLETED ||
+                $printCount > 0
                 ? 'document_reprinted'
                 : 'document_printed';
             $versionDescription = $generatedDocument

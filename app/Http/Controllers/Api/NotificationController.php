@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Services\RequestStatusService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -13,13 +15,25 @@ class NotificationController extends Controller
      *
      * GET /api/notifications
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        $notifications = Notification::where('user_id', $user->user_id)
-            ->orderByDesc('created_at')
-            ->paginate(30);
+        $query = Notification::where('user_id', $user->user_id);
+        if ($request->boolean('new_request_toasts')) {
+            $query
+                ->where('type', 'new_request')
+                ->where('is_read', false)
+                ->whereHas(
+                    'request',
+                    fn ($requestQuery) => $requestQuery->where(
+                        'status',
+                        RequestStatusService::STATUS_REQUEST_SUBMITTED
+                    )
+                );
+        }
+
+        $notifications = $query->orderByDesc('created_at')->paginate(30);
 
         return response()->json([
             'success' => true,

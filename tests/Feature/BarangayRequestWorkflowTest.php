@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\BarangayRequest;
 use App\Models\DocumentGenerationProfile;
 use App\Models\DocumentType;
+use App\Models\Notification;
 use App\Models\Staff;
 use App\Models\User;
 use App\Services\IdTypeRecognitionService;
@@ -141,6 +142,55 @@ class BarangayRequestWorkflowTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.data.0.request_id', $requestId)
             ->assertJsonPath('data.data.0.type', 'new_request');
+    }
+
+    public function test_new_request_toasts_only_include_active_submissions(): void
+    {
+        $submittedRequest = BarangayRequest::create([
+            'user_id' => $this->user->user_id,
+            'document_type_id' => $this->documentType->document_type_id,
+            'purpose' => 'Current submission',
+            'tracking_number' => 'BR-20261117-TOAST1',
+            'status' => 'request_submitted',
+        ]);
+        $completedRequest = BarangayRequest::create([
+            'user_id' => $this->user->user_id,
+            'document_type_id' => $this->documentType->document_type_id,
+            'purpose' => 'Completed submission',
+            'tracking_number' => 'BR-20261117-TOAST2',
+            'status' => 'completed',
+        ]);
+        $deletedRequest = BarangayRequest::create([
+            'user_id' => $this->user->user_id,
+            'document_type_id' => $this->documentType->document_type_id,
+            'purpose' => 'Deleted submission',
+            'tracking_number' => 'BR-20261117-TOAST3',
+            'status' => 'request_submitted',
+        ]);
+        $deletedRequest->delete();
+
+        foreach ([$submittedRequest, $completedRequest, $deletedRequest] as $request) {
+            Notification::create([
+                'user_id' => $this->adminUser->user_id,
+                'request_id' => $request->request_id,
+                'type' => 'new_request',
+                'title' => 'New Barangay Request',
+                'message' => 'Request submitted.',
+            ]);
+        }
+
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/notifications?new_request_toasts=1')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.data')
+            ->assertJsonPath(
+                'data.data.0.request_id',
+                $submittedRequest->request_id
+            );
+
+        $this->getJson('/api/notifications')
+            ->assertOk()
+            ->assertJsonCount(3, 'data.data');
     }
 
     public function test_pdf_generation_is_queued_without_blocking_request_processing(): void

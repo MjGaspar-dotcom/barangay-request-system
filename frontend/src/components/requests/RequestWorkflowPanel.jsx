@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "../ui/Button";
 import PdfDocumentCanvas from "../documents/PdfDocumentCanvas";
 import SkeletonLoader from "../ui/SkeletonLoader";
@@ -13,29 +13,49 @@ const REJECTION_REASONS = [
     "Requirements Not Met",
     "Other",
 ];
+const PDF_GENERATION_ERROR =
+    "PDF generation failed. Check the uploaded template and its field mappings, then retry. If it still fails, check the Laravel and PDF worker logs.";
+const PDF_QUEUE_ERROR =
+    "PDF generation could not be queued. Check that the Laravel queue worker is running, then retry.";
+const LEGACY_PDF_ERRORS = new Map([
+    [
+        "The official PDF could not be generated. Retry generation or check the uploaded template.",
+        PDF_GENERATION_ERROR,
+    ],
+    [
+        "The official PDF could not be queued. Retry generation or check the uploaded template.",
+        PDF_QUEUE_ERROR,
+    ],
+]);
+
 export default function RequestWorkflowPanel({
     request,
     pdfTemplate,
     pdfTemplatePreviewUrl,
     onRefresh,
+    onToast,
 }) {
     const [busy, setBusy] = useState(false);
-    const [error, setError] = useState("");
-    const [message, setMessage] = useState("");
     const [rejecting, setRejecting] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
     const [rejectionOther, setRejectionOther] = useState("");
     const [pdfPreview, setPdfPreview] = useState(null);
     const [selectedGeneratedDocumentId, setSelectedGeneratedDocumentId] =
         useState(null);
+    const [lastPrintedDocument, setLastPrintedDocument] = useState(null);
     const [pdfVersionsError, setPdfVersionsError] = useState("");
     const [automaticGeneration, setAutomaticGeneration] = useState(null);
+    const previousGenerationStatus = useRef(
+        {
+            requestId: request.request_id,
+            status: request.document_generation_status,
+        },
+    );
     const hasPdfDocument =
         request.document_template_identifier === "uploaded_pdf_template";
     const currentPdfPreview =
         hasPdfDocument &&
         pdfPreview?.requestId === request.request_id &&
-        pdfPreview?.requestUpdatedAt === request.updated_at &&
         String(pdfPreview?.generatedDocumentId) ===
             String(selectedGeneratedDocumentId)
             ? pdfPreview
@@ -81,7 +101,7 @@ export default function RequestWorkflowPanel({
     }, [
         hasPdfDocument,
         request.request_id,
-        request.updated_at,
+        request.document_generated_at,
     ]);
 
     useEffect(() => {
@@ -101,7 +121,6 @@ export default function RequestWorkflowPanel({
                 if (active) {
                     setPdfPreview({
                         requestId: request.request_id,
-                        requestUpdatedAt: request.updated_at,
                         generatedDocumentId: selectedGeneratedDocumentId,
                         url: objectUrl,
                         error: "",
@@ -115,7 +134,6 @@ export default function RequestWorkflowPanel({
                 if (active) {
                     setPdfPreview({
                         requestId: request.request_id,
-                        requestUpdatedAt: request.updated_at,
                         generatedDocumentId: selectedGeneratedDocumentId,
                         url: null,
                         error:
@@ -132,7 +150,6 @@ export default function RequestWorkflowPanel({
     }, [
         hasPdfDocument,
         request.request_id,
-        request.updated_at,
         selectedGeneratedDocumentId,
     ]);
 
@@ -142,6 +159,20 @@ export default function RequestWorkflowPanel({
     const isReady = status === "ready_for_pickup";
     const isCompleted = status === "completed";
     const isRejected = status === "rejected";
+    const hasPrintedSelectedDocument = Boolean(
+        selectedGeneratedDocumentId !== null &&
+            ((lastPrintedDocument?.requestId === request.request_id &&
+                String(lastPrintedDocument.generatedDocumentId) ===
+                    String(selectedGeneratedDocumentId)) ||
+                request.history?.some(
+                    (event) =>
+                        ["document_printed", "document_reprinted"].includes(
+                            event.action,
+                        ) &&
+                        String(event.new_values?.generated_document_id) ===
+                            String(selectedGeneratedDocumentId),
+                )),
+    );
     const residentCanGeneratePdf =
         request.user?.verification_status === "verified" &&
         Boolean(request.user?.valid_id_front_url);
@@ -162,20 +193,34 @@ export default function RequestWorkflowPanel({
     const requestGenerationPending = ["queued", "processing"].includes(
         request.document_generation_status,
     );
+    const localGenerationPending =
+        automaticGeneration?.requestId === request.request_id &&
+        ["pending", "queued"].includes(automaticGeneration.status);
     const automaticPdfPending =
-        needsAutomaticPdf &&
-        (requestGenerationPending ||
-            (automaticGeneration?.requestId === request.request_id &&
-                request.document_generation_status !== "completed" &&
-                ["pending", "queued"].includes(automaticGeneration.status)));
+        needsAutomaticPdf && (requestGenerationPending || localGenerationPending);
     const automaticPdfFailed =
         needsAutomaticPdf &&
-        (request.document_generation_status === "failed" ||
-            automaticGeneration?.status === "failed");
+        ((automaticGeneration?.requestId === request.request_id &&
+            automaticGeneration.status === "failed") ||
+            (request.document_generation_status === "failed" &&
+                !localGenerationPending));
+    const queuedPdfError =
+        automaticGeneration?.requestId === request.request_id &&
+        automaticGeneration.status === "failed"
+            ? automaticGeneration.error
+            : "";
+    const storedPdfError =
+        LEGACY_PDF_ERRORS.get(request.document_generation_error) ||
+        request.document_generation_error;
+    const pdfFailureMessage = !residentCanGeneratePdf
+        ? "The resident needs current verification and an ID image before PDF generation can continue. Update the resident's verification, then retry."
+        : queuedPdfError ||
+          storedPdfError ||
+          automaticGeneration?.error ||
+          PDF_GENERATION_ERROR;
 
     const queuePdfGeneration = useCallback(async () => {
-        setError("");
-        setMessage("");
+        onToast(null);
         setAutomaticGeneration({
             requestId: request.request_id,
             status: "pending",
@@ -191,6 +236,7 @@ export default function RequestWorkflowPanel({
                 status: "queued",
             });
             await onRefresh();
+            setAutomaticGeneration(null);
         } catch (generationError) {
             console.error(generationError);
             setAutomaticGeneration({
@@ -198,10 +244,66 @@ export default function RequestWorkflowPanel({
                 status: "failed",
                 error:
                     generationError.response?.data?.message ||
-                    "The official PDF could not be queued automatically.",
+                    PDF_QUEUE_ERROR,
             });
         }
-    }, [onRefresh, request.request_id]);
+    }, [onRefresh, onToast, request.request_id]);
+
+    useEffect(() => {
+        if (automaticPdfPending) {
+            onToast(
+                "The official PDF is being prepared in the background.",
+                "info",
+            );
+        }
+    }, [automaticPdfPending, onToast]);
+
+    useEffect(() => {
+        if (automaticPdfFailed) {
+            onToast(
+                pdfFailureMessage,
+                "error",
+                residentCanGeneratePdf
+                    ? {
+                          label: "Retry PDF generation",
+                          onClick: () => void queuePdfGeneration(),
+                      }
+                    : null,
+            );
+        }
+    }, [
+        automaticPdfFailed,
+        onToast,
+        pdfFailureMessage,
+        queuePdfGeneration,
+        residentCanGeneratePdf,
+    ]);
+
+    useEffect(() => {
+        if (pdfPreviewError) onToast(pdfPreviewError, "error");
+    }, [onToast, pdfPreviewError]);
+
+    useEffect(() => {
+        if (hasPdfDocument && pdfVersionsError) {
+            onToast(pdfVersionsError, "error");
+        }
+    }, [hasPdfDocument, onToast, pdfVersionsError]);
+
+    useEffect(() => {
+        const previous = previousGenerationStatus.current;
+        if (
+            previous.requestId === request.request_id &&
+            previous.status !== "completed" &&
+            request.document_generation_status === "completed"
+        ) {
+            onToast("Official PDF generation completed successfully.", "success");
+        }
+        previousGenerationStatus.current =
+            {
+                requestId: request.request_id,
+                status: request.document_generation_status,
+            };
+    }, [onToast, request.document_generation_status, request.request_id]);
 
     useEffect(() => {
         if (
@@ -228,18 +330,18 @@ export default function RequestWorkflowPanel({
 
     const runAction = async (action, successMessage) => {
         setBusy(true);
-        setError("");
-        setMessage("");
+        onToast(null);
         try {
             await action();
-            setMessage(successMessage);
+            onToast(successMessage, "success");
             await onRefresh();
             return true;
         } catch (actionError) {
             console.error(actionError);
-            setError(
+            onToast(
                 actionError.response?.data?.message ||
                     "The request action could not be completed.",
+                "error",
             );
             return false;
         } finally {
@@ -265,20 +367,20 @@ export default function RequestWorkflowPanel({
 
     const approveForPickup = async () => {
         setBusy(true);
-        setError("");
-        setMessage("");
+        onToast(null);
         try {
             await api.post(
                 `/barangay-requests/${request.request_id}/approve-and-prepare`,
                 {},
             );
-            setMessage("Request approved and ready for pickup.");
+            onToast("Request approved and ready for pickup.", "success");
             await onRefresh();
         } catch (approvalError) {
             console.error(approvalError);
-            setError(
+            onToast(
                 approvalError.response?.data?.message ||
-                      "The document could not be approved and prepared.",
+                    "The document could not be approved and prepared.",
+                "error",
             );
         } finally {
             setBusy(false);
@@ -290,21 +392,25 @@ export default function RequestWorkflowPanel({
             ? window.open("about:blank", "_blank")
             : null;
         if (pdfPreviewUrl && !printWindow) {
-            setError("Allow pop-ups to open and print the generated PDF.");
+            onToast("Allow pop-ups to open and print the generated PDF.", "warning");
             return;
         }
         setBusy(true);
-        setError("");
-        setMessage("");
+        onToast(null);
         try {
             const response = await api.post(
                 `/barangay-requests/${request.request_id}/generated-document/print`,
                 { generated_document_id: selectedGeneratedDocumentId },
             );
-            setMessage(
+            setLastPrintedDocument({
+                requestId: request.request_id,
+                generatedDocumentId: selectedGeneratedDocumentId,
+            });
+            onToast(
                 response.data.data.action === "document_reprinted"
                     ? "Reprint activity recorded."
                     : "Print activity recorded.",
+                "success",
             );
             if (printWindow) {
                 printWindow.addEventListener(
@@ -322,9 +428,10 @@ export default function RequestWorkflowPanel({
         } catch (printError) {
             console.error(printError);
             printWindow?.close();
-            setError(
+            onToast(
                 printError.response?.data?.message ||
                     "The document could not be sent to print.",
+                "error",
             );
         } finally {
             setBusy(false);
@@ -528,7 +635,7 @@ export default function RequestWorkflowPanel({
                                 Preparing Document
                             </h2>
                             <div className="request-pdf-generation-actions">
-                                <p className="app-alert app-alert-info" role="status">
+                                <p className="request-pdf-generation-guidance">
                                     This request will move to Ready for Pickup after its official PDF is generated successfully.
                                 </p>
                                 <Button
@@ -556,92 +663,67 @@ export default function RequestWorkflowPanel({
                         <div className="admin-form-card request-action-card">
                             <h2 className="form-section-title">Ready for Pickup</h2>
                             <div className="flex flex-wrap gap-2">
-                                <Button
-                                    className="app-button app-button-success"
-                                    disabled={
-                                        busy ||
-                                        automaticPdfPending ||
-                                        !hasPdfDocument ||
-                                        !pdfPreviewUrl
-                                    }
-                                    loading={busy}
-                                    onClick={() => updateStatus("completed")}
-                                >
-                                    Completed
-                                </Button>
-                                {hasPdfDocument && pdfPreviewUrl && (
+                                {hasPdfDocument && (
                                     <Button
                                         className="app-button app-button-outline-primary"
-                                        disabled={busy || automaticPdfPending}
+                                        disabled={
+                                            busy ||
+                                            automaticPdfPending ||
+                                            !pdfPreviewUrl
+                                        }
                                         loading={busy}
                                         onClick={printGeneratedDocument}
                                     >
                                         Print Document
                                     </Button>
                                 )}
+                                {hasPrintedSelectedDocument && (
+                                    <Button
+                                        className="app-button app-button-success"
+                                        disabled={
+                                            busy ||
+                                            automaticPdfPending ||
+                                            !hasPdfDocument ||
+                                            !pdfPreviewUrl
+                                        }
+                                        loading={busy}
+                                        onClick={() => updateStatus("completed")}
+                                    >
+                                        Complete
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {(isCompleted || isRejected) && (
+                    {isCompleted && (
                         <div className="admin-form-card request-action-card">
                             <h2 className="form-section-title">
-                                {isCompleted ? "Completed" : "Rejected"}
+                                Completed
                             </h2>
+                            {hasPdfDocument && (
+                                <Button
+                                    className="app-button app-button-outline-primary"
+                                    disabled={
+                                        busy ||
+                                        automaticPdfPending ||
+                                        !pdfPreviewUrl
+                                    }
+                                    loading={busy}
+                                    onClick={printGeneratedDocument}
+                                >
+                                    Print Document
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                    {isRejected && (
+                        <div className="admin-form-card request-action-card">
+                            <h2 className="form-section-title">Rejected</h2>
                         </div>
                     )}
                 </div>
 
-                {message && (
-                    <div className="app-alert app-alert-success mb-4" role="status">
-                        {message}
-                    </div>
-                )}
-                {error && (
-                    <div className="app-alert app-alert-danger mb-4" role="alert">
-                        {error}
-                    </div>
-                )}
-                {automaticPdfPending && (
-                    <div className="app-alert app-alert-info mb-4" role="status">
-                        The official PDF is being prepared in the background.
-                        This page will refresh automatically.
-                    </div>
-                )}
-                {automaticPdfFailed && (
-                        <div
-                            className="app-alert app-alert-danger mb-4"
-                            role="alert"
-                        >
-                            {!residentCanGeneratePdf
-                                ? "The resident must have a current verification and ID image on file. Re-upload the required ID, complete verification, then refresh this request before retrying."
-                                : request.document_generation_error ||
-                                  automaticGeneration?.error ||
-                                  "The official PDF could not be generated."}
-                            <Button
-                                className="app-button app-button-outline-secondary ml-3"
-                                disabled={
-                                    automaticPdfPending ||
-                                    !residentCanGeneratePdf
-                                }
-                                onClick={() => void queuePdfGeneration()}
-                                type="button"
-                            >
-                                Retry PDF generation
-                            </Button>
-                        </div>
-                    )}
-
-                {pdfPreviewError && (
-                    <div className="app-alert app-alert-danger" role="alert">
-                        {pdfPreviewError}
-                    </div>
-                )}
-                {hasPdfDocument && pdfVersionsError && (
-                    <div className="app-alert app-alert-danger" role="alert">
-                        {pdfVersionsError}
-                    </div>
-                )}
                 {pdfPreviewUrl ? (
                     <>
                         <PdfDocumentCanvas
@@ -655,14 +737,6 @@ export default function RequestWorkflowPanel({
                             key={pdfTemplatePreviewUrl}
                             source={pdfTemplatePreviewUrl}
                         />
-                    ) : automaticPdfFailed ? (
-                        <div
-                            className="app-alert app-alert-warning"
-                            role="status"
-                        >
-                            The PDF preview will appear here after generation
-                            succeeds.
-                        </div>
                     ) : (
                         <SkeletonLoader
                             label="Loading document preview"
@@ -675,11 +749,10 @@ export default function RequestWorkflowPanel({
                         variant="detail"
                     />
                 ) : (
-                    <div className="app-alert app-alert-warning" role="status">
-                        No uploaded PDF template is available for this document
-                        type. An administrator must upload one in Document
-                        Templates before this request can be approved.
-                    </div>
+                    <div
+                        className="request-pdf-preview-placeholder"
+                        aria-hidden="true"
+                    />
                 )}
 
             </section>

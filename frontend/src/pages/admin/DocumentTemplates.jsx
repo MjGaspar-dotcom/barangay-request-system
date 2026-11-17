@@ -538,7 +538,6 @@ export default function DocumentTemplates() {
             cancelUpload();
             setNotice(`${documentType.document_name} template uploaded.`);
             await loadTemplates();
-            await openEditor(documentType);
         } catch (uploadError) {
             console.error(uploadError);
             setError(

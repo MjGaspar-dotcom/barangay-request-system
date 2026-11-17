@@ -1,5 +1,5 @@
 import Icon from "../../components/ui/Icon.jsx";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Table } from "../../components/ui/table";
 import Button from "../../components/ui/Button";
 import { useNavigate } from "react-router-dom";
@@ -15,10 +15,8 @@ import {
     isInCurrentWorkflow,
     REQUEST_STATUS_OPTIONS,
 } from "../../utils/requestWorkflow";
-import "./manage-requests.css";
 
 const PAGE_SIZE = 10;
-const REQUEST_TOAST_DURATION_MS = 3 * 60 * 1000;
 
 const requestListStatus = (status) => {
     const normalizedStatus = canonicalRequestStatus(status);
@@ -48,12 +46,6 @@ export default function ManageRequests({ isAdmin = true } = {}) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [page, setPage] = useState(1);
-    const [requestNotifications, setRequestNotifications] = useState([]);
-    const [toastNotificationId, setToastNotificationId] = useState(null);
-    const [notificationsOpen, setNotificationsOpen] = useState(false);
-    const [notificationError, setNotificationError] = useState("");
-    const [openingNotificationId, setOpeningNotificationId] = useState(null);
-    const seenRequestNotificationIds = useRef(null);
 
     const fetchRequests = useCallback(async () => {
         const response = await api.get("/staff/requests");
@@ -86,158 +78,6 @@ export default function ManageRequests({ isAdmin = true } = {}) {
     }, [loadRequests]);
 
     useLiveRefresh(loadRequests);
-
-    useEffect(() => {
-        let active = true;
-        let polling = false;
-
-        const pollNotifications = async () => {
-            if (
-                !active ||
-                polling ||
-                document.visibilityState !== "visible"
-            ) {
-                return;
-            }
-
-            polling = true;
-            try {
-                const response = await api.get("/notifications", {
-                    params: { per_page: 30 },
-                });
-                const notifications = response.data?.data?.data;
-                if (!Array.isArray(notifications)) {
-                    throw new Error("Unexpected notifications response.");
-                }
-                if (!active) return;
-                setNotificationError("");
-
-                const requestNotifications = notifications.filter(
-                    (notification) =>
-                        notification.type === "new_request" &&
-                        notification.request_id,
-                );
-
-                if (seenRequestNotificationIds.current === null) {
-                    seenRequestNotificationIds.current = new Set(
-                        requestNotifications.map(
-                            (notification) => notification.notification_id,
-                        ),
-                    );
-                    setRequestNotifications(requestNotifications);
-                    setToastNotificationId(
-                        requestNotifications.find(
-                            (notification) => !notification.is_read,
-                        )?.notification_id ?? null,
-                    );
-                    return;
-                }
-
-                const seenIds = seenRequestNotificationIds.current;
-                const newNotifications = requestNotifications.filter(
-                    (notification) =>
-                        !seenIds.has(notification.notification_id),
-                );
-                newNotifications.forEach((notification) =>
-                    seenIds.add(notification.notification_id),
-                );
-                if (newNotifications.length > 0) {
-                    void loadRequests();
-                }
-                setRequestNotifications(requestNotifications);
-                const nextToast = newNotifications.find(
-                    (notification) => !notification.is_read,
-                );
-                if (nextToast) {
-                    setToastNotificationId((current) =>
-                        current ?? nextToast.notification_id,
-                    );
-                }
-            } catch (pollError) {
-                console.error("Failed to refresh new-request notifications:", pollError);
-                if (active) {
-                    setNotificationError(
-                        "New request notifications could not be refreshed.",
-                    );
-                }
-            } finally {
-                polling = false;
-            }
-        };
-
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
-                void pollNotifications();
-            }
-        };
-
-        void pollNotifications();
-        const timer = window.setInterval(pollNotifications, 5000);
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        return () => {
-            active = false;
-            window.clearInterval(timer);
-            document.removeEventListener(
-                "visibilitychange",
-                handleVisibilityChange,
-            );
-        };
-    }, [loadRequests]);
-
-    useEffect(() => {
-        if (toastNotificationId === null) return undefined;
-
-        const timer = window.setTimeout(
-            () => setToastNotificationId(null),
-            REQUEST_TOAST_DURATION_MS,
-        );
-        return () => window.clearTimeout(timer);
-    }, [toastNotificationId]);
-
-    useEffect(() => {
-        if (!notificationsOpen) return undefined;
-
-        const closeOnEscape = (event) => {
-            if (event.key === "Escape") setNotificationsOpen(false);
-        };
-        document.addEventListener("keydown", closeOnEscape);
-        return () => document.removeEventListener("keydown", closeOnEscape);
-    }, [notificationsOpen]);
-
-    const openRequestNotification = async (notification) => {
-        setOpeningNotificationId(notification.notification_id);
-        setNotificationError("");
-
-        try {
-            await api.patch(
-                `/notifications/${notification.notification_id}/read`,
-            );
-            navigate(
-                `/${isAdmin ? "admin" : "staff"}/requests/${notification.request_id}`,
-            );
-        } catch (markError) {
-            console.error("Failed to open new-request notification:", markError);
-            setNotificationError(
-                "The request could not be opened. Please try again.",
-            );
-        } finally {
-            setOpeningNotificationId(null);
-        }
-    };
-
-    const dismissRequestToast = () => {
-        setToastNotificationId(null);
-        setNotificationError("");
-    };
-
-    const activeToast = requestNotifications.find(
-        (notification) =>
-            notification.notification_id === toastNotificationId,
-    );
-    const unreadRequestCount = requestNotifications.filter(
-        (notification) => !notification.is_read,
-    ).length;
 
     const getRequesterName = (request) => {
         if (request.user) {
@@ -308,160 +148,6 @@ export default function ManageRequests({ isAdmin = true } = {}) {
             }`}
         >
             <div className="w-full">
-                {activeToast && (
-                    <aside
-                        className="new-request-toast"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        <div className="new-request-toast-copy">
-                            <strong>
-                                {activeToast.title ||
-                                    "New Barangay Request"}
-                            </strong>
-                            <p>{activeToast.message}</p>
-                            {notificationError && (
-                                <span className="new-request-toast-error">
-                                    {notificationError}
-                                </span>
-                            )}
-                        </div>
-                        <div className="new-request-toast-actions">
-                            <Button
-                                type="button"
-                                className="app-button app-button-success app-button-sm"
-                                disabled={
-                                    openingNotificationId === activeToast.notification_id
-                                }
-                                onClick={() =>
-                                    openRequestNotification(activeToast)
-                                }
-                            >
-                                {openingNotificationId ===
-                                activeToast.notification_id
-                                    ? "Opening..."
-                                    : "View request"}
-                            </Button>
-                            <Button
-                                type="button"
-                                className="app-button app-button-outline-secondary app-button-sm"
-                                disabled={openingNotificationId !== null}
-                                onClick={dismissRequestToast}
-                            >
-                                Dismiss
-                            </Button>
-                        </div>
-                    </aside>
-                )}
-                {notificationError &&
-                    !activeToast && (
-                        <div
-                            className="app-alert app-alert-warning"
-                            role="status"
-                        >
-                            {notificationError}
-                        </div>
-                    )}
-                {requestNotifications.length > 0 && !activeToast && (
-                    <div className="request-notification-control">
-                        {notificationsOpen && (
-                            <section
-                                className="request-notification-panel"
-                                aria-label="New request notifications"
-                            >
-                                <header className="request-notification-panel-header">
-                                    <strong>Request notifications</strong>
-                                    <span>
-                                        {unreadRequestCount} unread
-                                    </span>
-                                </header>
-                                {notificationError && (
-                                    <p
-                                        className="request-notification-panel-error"
-                                        role="alert"
-                                    >
-                                        {notificationError}
-                                    </p>
-                                )}
-                                <div className="request-notification-list">
-                                    {requestNotifications.length ? (
-                                        requestNotifications.map(
-                                            (notification) => (
-                                                <button
-                                                    className={`request-notification-item ${
-                                                        notification.is_read
-                                                            ? ""
-                                                            : "unread"
-                                                    }`}
-                                                    disabled={
-                                                        openingNotificationId ===
-                                                        notification.notification_id
-                                                    }
-                                                    key={notification.notification_id}
-                                                    onClick={() =>
-                                                        openRequestNotification(
-                                                            notification,
-                                                        )
-                                                    }
-                                                    type="button"
-                                                >
-                                                    <strong>
-                                                        {notification.title ||
-                                                            "New Barangay Request"}
-                                                    </strong>
-                                                    <span>
-                                                        {notification.message}
-                                                    </span>
-                                                    <time
-                                                        dateTime={
-                                                            notification.created_at
-                                                        }
-                                                    >
-                                                        {notification.created_at
-                                                            ? new Date(
-                                                                  notification.created_at,
-                                                              ).toLocaleString()
-                                                            : ""}
-                                                    </time>
-                                                </button>
-                                            ),
-                                        )
-                                    ) : (
-                                        <p className="request-notification-empty">
-                                            No request notifications yet.
-                                        </p>
-                                    )}
-                                </div>
-                            </section>
-                        )}
-                        <button
-                            aria-expanded={notificationsOpen}
-                            aria-label={
-                                notificationsOpen
-                                    ? "Close request notifications"
-                                    : `Open request notifications${
-                                          unreadRequestCount
-                                              ? `, ${unreadRequestCount} unread`
-                                              : ""
-                                      }`
-                            }
-                            className="request-notification-bell"
-                            onClick={() =>
-                                setNotificationsOpen((current) => !current)
-                            }
-                            type="button"
-                        >
-                            <Icon name="bell" size={22} />
-                            {unreadRequestCount > 0 && (
-                                <span className="request-notification-badge">
-                                    {unreadRequestCount > 99
-                                        ? "99+"
-                                        : unreadRequestCount}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-                )}
                 <div className="dashboard-page-header">
                     <div>
                         <span className="section-label">

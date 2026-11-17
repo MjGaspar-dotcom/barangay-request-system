@@ -36,6 +36,14 @@ DOCX_PLACEHOLDER_PATTERN = re.compile(
     r"\{\{[A-Z][A-Z0-9_]*\}\}",
     re.IGNORECASE,
 )
+DEFAULT_BRAND_LOGO_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "frontend"
+    / "public"
+    / "assets"
+    / "images"
+    / "logo.webp"
+)
 
 
 def iter_docx_paragraphs(document):
@@ -247,6 +255,94 @@ def convert_docx_to_pdf(docx_path, output_path):
             shutil.rmtree(profile_directory, ignore_errors=True)
 
 
+def draw_brand_logo(page, logo_path):
+    page_box = page.cropbox
+    page_width = float(page_box.width)
+    page_height = float(page_box.height)
+    logo_size = min(36.0, page_width, page_height)
+    top_inset = 18.0
+    x = (page_width - logo_size) / 2
+    y = max(0.0, page_height - top_inset - logo_size)
+    output = BytesIO()
+    pdf = canvas.Canvas(
+        output,
+        pagesize=(page_width, page_height),
+        invariant=1,
+    )
+    pdf.drawImage(
+        str(logo_path),
+        x,
+        y,
+        width=logo_size,
+        height=logo_size,
+        mask="auto",
+    )
+    pdf.save()
+    output.seek(0)
+    overlay = PdfReader(output, strict=False).pages[0]
+    overlay.add_transformation(
+        Transformation().translate(
+            float(page_box.left),
+            float(page_box.bottom),
+        )
+    )
+    return overlay
+
+
+def draw_brand_watermark(page, logo_path):
+    page_box = page.cropbox
+    page_width = float(page_box.width)
+    page_height = float(page_box.height)
+    watermark_size = min(page_width * 0.54, page_height * 0.43)
+    x = (page_width - watermark_size) / 2
+    y = (page_height - watermark_size) / 2
+    output = BytesIO()
+    pdf = canvas.Canvas(
+        output,
+        pagesize=(page_width, page_height),
+        invariant=1,
+    )
+    pdf.setFillAlpha(0.12)
+    pdf.drawImage(
+        str(logo_path),
+        x,
+        y,
+        width=watermark_size,
+        height=watermark_size,
+        mask="auto",
+    )
+    pdf.save()
+    output.seek(0)
+    overlay = PdfReader(output, strict=False).pages[0]
+    overlay.add_transformation(
+        Transformation().translate(
+            float(page_box.left),
+            float(page_box.bottom),
+        )
+    )
+    return overlay
+
+
+def apply_brand_logo(output_path, payload):
+    logo_path = payload.get("brand_logo_path", DEFAULT_BRAND_LOGO_PATH)
+    if not logo_path:
+        return
+
+    logo = Path(logo_path)
+    if not logo.is_file():
+        raise ValueError(f"The configured document logo is missing: {logo}")
+
+    reader = load_pdf(output_path)
+    writer = PdfWriter(clone_from=reader)
+    for page in writer.pages:
+        page.merge_page(draw_brand_watermark(page, logo), over=False)
+    if not payload.get("watermark_only", False):
+        writer.pages[0].merge_page(draw_brand_logo(writer.pages[0], logo))
+    output = BytesIO()
+    writer.write(output)
+    Path(output_path).write_bytes(output.getvalue())
+
+
 def generate_docx_pdf(input_path, output_path, payload):
     document = load_docx(input_path)
     replacements = {
@@ -269,6 +365,7 @@ def generate_docx_pdf(input_path, output_path, payload):
         docx_path = Path(temporary_directory) / f"{output.stem}.docx"
         document.save(docx_path)
         convert_docx_to_pdf(docx_path, output)
+    apply_brand_logo(output, payload)
 
 
 def load_pdf(path):
@@ -664,6 +761,7 @@ def generate_pdf(input_path, output_path, payload):
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("wb") as stream:
         writer.write(stream)
+    apply_brand_logo(output, payload)
 
 
 def main():

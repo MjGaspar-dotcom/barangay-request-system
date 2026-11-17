@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { Alert, Snackbar } from "@mui/material";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
@@ -23,19 +24,70 @@ export default function RequestProcessingPage() {
     const [pdfTemplatePreview, setPdfTemplatePreview] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [refreshError, setRefreshError] = useState("");
+    const [toast, setToast] = useState(null);
+    const toastId = useRef(0);
+    const lastRefreshError = useRef("");
     const pdfTemplatePreviewUrl =
         pdfTemplatePreview?.template === pdfTemplate
             ? pdfTemplatePreview.url
             : null;
+    const showToast = useCallback((message, severity = "info", action = null) => {
+        if (!message) {
+            setToast(null);
+            return;
+        }
+
+        toastId.current += 1;
+        setToast({ id: toastId.current, message, severity, action });
+    }, []);
+    const closeToast = useCallback((_, reason) => {
+        if (reason !== "clickaway") setToast(null);
+    }, []);
+    const toastSnackbar = (
+        <Snackbar
+            key={toast?.id}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            autoHideDuration={7000}
+            onClose={closeToast}
+            open={Boolean(toast)}
+        >
+            <Alert
+                action={
+                    toast?.action ? (
+                        <Button
+                            className="app-button app-button-outline-secondary"
+                            onClick={toast.action.onClick}
+                            type="button"
+                        >
+                            {toast.action.label}
+                        </Button>
+                    ) : undefined
+                }
+                onClose={closeToast}
+                role={toast?.severity === "error" ? "alert" : "status"}
+                severity={toast?.severity || "info"}
+                variant="filled"
+            >
+                {toast?.message || ""}
+            </Alert>
+        </Snackbar>
+    );
+    const notifyRefreshError = useCallback(
+        (message) => {
+            if (lastRefreshError.current === message) return;
+            lastRefreshError.current = message;
+            showToast(message, "warning");
+        },
+        [showToast],
+    );
     const loadRequest = useCallback(
-        async (initial = false) => {
+        async (initial = false, refreshTemplate = initial) => {
             if (initial) {
                 setLoading(true);
                 setError("");
                 setPdfTemplate(null);
+                lastRefreshError.current = "";
             }
-            setRefreshError("");
 
             try {
                 const response = await api.get(
@@ -43,8 +95,12 @@ export default function RequestProcessingPage() {
                 );
                 const requestData = response.data.data;
                 if (!isInCurrentWorkflow(requestData)) {
-                    if (initial) setError("Request not found.");
-                    else setRefreshError("Request not found.");
+                    if (initial) {
+                        setError("Request not found.");
+                        showToast("Request not found.", "error");
+                    } else {
+                        notifyRefreshError("Request not found.");
+                    }
                     if (initial) setLoading(false);
                     return;
                 }
@@ -61,22 +117,33 @@ export default function RequestProcessingPage() {
                 }
                 if (initial) {
                     setError(message);
+                    showToast(message, "error");
                     setLoading(false);
                 } else {
-                    setRefreshError(message);
+                    notifyRefreshError(message);
                 }
                 return;
             }
+
+            if (!refreshTemplate) return;
 
             try {
                 const previewResponse = await api.get(
                     `/barangay-requests/${requestId}/template-preview`,
                 );
-                setPdfTemplate(previewResponse.data.data.pdf_template);
+                const template = previewResponse.data.data.pdf_template;
+                setPdfTemplate(template);
+                if (!template) {
+                    notifyRefreshError(
+                        "No uploaded PDF template is available for this document type. An administrator must upload one before this request can be approved.",
+                    );
+                } else {
+                    lastRefreshError.current = "";
+                }
             } catch (previewError) {
                 console.error(previewError);
                 setPdfTemplate(null);
-                setRefreshError(
+                notifyRefreshError(
                     previewError.response?.data?.message ||
                         "The document template preview is unavailable.",
                 );
@@ -84,7 +151,7 @@ export default function RequestProcessingPage() {
                 if (initial) setLoading(false);
             }
         },
-        [requestId],
+        [notifyRefreshError, requestId, showToast],
     );
 
     useEffect(() => {
@@ -119,13 +186,23 @@ export default function RequestProcessingPage() {
             })
             .catch((previewError) => {
                 console.error(previewError);
+                showToast(
+                    previewError.response?.data?.message ||
+                        "The document template preview could not be loaded.",
+                    "error",
+                );
             });
 
         return () => {
             active = false;
             if (objectUrl) URL.revokeObjectURL(objectUrl);
         };
-    }, [pdfTemplate, request?.document_template_identifier, requestId]);
+    }, [
+        pdfTemplate,
+        request?.document_template_identifier,
+        requestId,
+        showToast,
+    ]);
 
     useEffect(() => {
         Promise.resolve().then(() => loadRequest(true));
@@ -158,7 +235,7 @@ export default function RequestProcessingPage() {
                 ) {
                     return;
                 }
-                void loadRequest(false);
+                void loadRequest(false, true);
             }),
         [loadRequest, request?.document_type_id, request?.document_type?.document_type_id],
     );
@@ -170,6 +247,7 @@ export default function RequestProcessingPage() {
     if (loading) {
         return (
             <Layout>
+                {toastSnackbar}
                 <SkeletonLoader label="Loading request processing" variant="detail" />
             </Layout>
         );
@@ -178,10 +256,8 @@ export default function RequestProcessingPage() {
     if (error || !request) {
         return (
             <Layout>
+                {toastSnackbar}
                 <div className="page-loading">
-                    <h3 className="text-danger-token">
-                        {error || "Request not found."}
-                    </h3>
                     <Button
                         className="app-button app-button-outline-secondary mt-4"
                         onClick={() => navigate(backPath)}
@@ -196,6 +272,7 @@ export default function RequestProcessingPage() {
 
     return (
         <Layout>
+            {toastSnackbar}
             <div className="admin-dashboard request-processing-page">
                 <div className="w-full">
                     <div className="request-processing-toolbar">
@@ -208,17 +285,11 @@ export default function RequestProcessingPage() {
                                 Back to Requests
                             </Button>
                         </div>
-                        {refreshError && (
-                            <div
-                                className="app-alert app-alert-warning mb-3"
-                                role="status"
-                            >
-                                {refreshError}
-                            </div>
-                        )}
                     </div>
 
                     <RequestWorkflowPanel
+                        key={request.request_id}
+                        onToast={showToast}
                         pdfTemplate={pdfTemplate}
                         pdfTemplatePreviewUrl={pdfTemplatePreviewUrl}
                         onRefresh={refreshRequest}

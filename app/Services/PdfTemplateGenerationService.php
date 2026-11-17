@@ -6,7 +6,6 @@ use App\Models\BarangayRequest;
 use App\Models\DocumentTemplate;
 use App\Models\DocumentTemplateVersion;
 use App\Models\GeneratedDocument;
-use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +19,7 @@ class PdfTemplateGenerationService
     public function __construct(
         private readonly PdfWorkerService $pdfWorker,
         private readonly DocumentTemplateDataFieldService $dataFields
-    ) {
-    }
+    ) {}
 
     public function current(BarangayRequest $request): ?GeneratedDocument
     {
@@ -31,7 +29,7 @@ class PdfTemplateGenerationService
     public function activeTemplateFor(BarangayRequest $request): ?DocumentTemplateVersion
     {
         $request->loadMissing('documentType');
-        if (!$request->documentType) {
+        if (! $request->documentType) {
             return null;
         }
 
@@ -41,7 +39,13 @@ class PdfTemplateGenerationService
             ->first()
             ?->activeVersion;
 
-        if ($activeVersion && $activeVersion->mappings->isEmpty()) {
+        $isDocxTemplate = strtolower(
+            pathinfo($activeVersion?->original_name ?? '', PATHINFO_EXTENSION)
+        ) === 'docx';
+        if (
+            $activeVersion &&
+            ($activeVersion->mappings->isEmpty() || $isDocxTemplate)
+        ) {
             app(DocumentTemplateService::class)->autoMapFields($activeVersion);
             $activeVersion->load('mappings');
         }
@@ -68,7 +72,7 @@ class PdfTemplateGenerationService
                     ->lockForUpdate()
                     ->findOrFail($request->request_id);
 
-                if (!in_array($request->status, [
+                if (! in_array($request->status, [
                     RequestStatusService::STATUS_REQUEST_SUBMITTED,
                     RequestStatusService::STATUS_APPROVED,
                     RequestStatusService::STATUS_READY_FOR_PICKUP,
@@ -79,9 +83,9 @@ class PdfTemplateGenerationService
                     );
                 }
                 if (
-                    !$request->user ||
+                    ! $request->user ||
                     $request->user->verification_status !== 'verified' ||
-                    !is_string($request->user->valid_id_front) ||
+                    ! is_string($request->user->valid_id_front) ||
                     trim($request->user->valid_id_front) === ''
                 ) {
                     throw new \InvalidArgumentException(
@@ -91,9 +95,9 @@ class PdfTemplateGenerationService
 
                 $current = $request->generatedDocuments()->first();
                 $templateVersion = $this->activeTemplateFor($request);
-                if ($current && !$regenerate) {
+                if ($current && ! $regenerate) {
                     if (
-                        !$templateVersion ||
+                        ! $templateVersion ||
                         (int) $current->template_version_id ===
                             (int) $templateVersion->template_version_id ||
                         $request->status === RequestStatusService::STATUS_COMPLETED
@@ -110,7 +114,7 @@ class PdfTemplateGenerationService
                     );
                 }
 
-                if (!$templateVersion) {
+                if (! $templateVersion) {
                     throw new \InvalidArgumentException(
                         'No active PDF template is uploaded for this document type.'
                     );
@@ -137,7 +141,17 @@ class PdfTemplateGenerationService
 
                 foreach ($mappings as $mapping) {
                     $value = $values[$mapping->system_field] ?? null;
-                    if ($mapping->is_required && ($value === null || trim($value) === '')) {
+                    $isOptionalBusinessActivity =
+                        $mapping->system_field === 'request.business_activity' &&
+                        strcasecmp(
+                            (string) $request->documentType?->document_name,
+                            'Barangay Business Clearance'
+                        ) === 0;
+                    if (
+                        $mapping->is_required &&
+                        ! $isOptionalBusinessActivity &&
+                        ($value === null || trim($value) === '')
+                    ) {
                         throw new \InvalidArgumentException(
                             "Required information for '{$mapping->field_name}' is missing. "
                             .'Complete the resident, request, or barangay information before generating.'
@@ -156,11 +170,13 @@ class PdfTemplateGenerationService
 
                     if ($mapping->field_type === 'acroform') {
                         $formValues[$mapping->field_name] = $value;
+
                         continue;
                     }
 
                     if ($isPlaceholder) {
                         $placeholderValues[$mapping->field_name] = $value;
+
                         continue;
                     }
 
@@ -179,7 +195,7 @@ class PdfTemplateGenerationService
                 }
 
                 $templateDisk = Storage::disk($templateVersion->storage_disk);
-                if (!$templateDisk->exists($templateVersion->storage_path)) {
+                if (! $templateDisk->exists($templateVersion->storage_path)) {
                     throw new \InvalidArgumentException(
                         'The active document template file is missing from storage.'
                     );
@@ -197,7 +213,7 @@ class PdfTemplateGenerationService
                 try {
                     $templateBytes = $templateDisk->get($templateVersion->storage_path);
                     if (
-                        !is_string($templateBytes) ||
+                        ! is_string($templateBytes) ||
                         file_put_contents($inputPath, $templateBytes) === false
                     ) {
                         throw new RuntimeException('The document template could not be prepared for generation.');
@@ -210,6 +226,9 @@ class PdfTemplateGenerationService
                             'form_values' => $formValues,
                             'overlays' => $overlays,
                             'placeholder_values' => $placeholderValues,
+                            'brand_logo_path' => base_path(
+                                'frontend/public/assets/images/logo.webp'
+                            ),
                         ],
                         $templateFormat
                     );
@@ -224,7 +243,7 @@ class PdfTemplateGenerationService
                         $request->request_id,
                         Str::uuid()
                     );
-                    if (!Storage::disk($storedDisk)->put($storedPath, $generatedBytes)) {
+                    if (! Storage::disk($storedDisk)->put($storedPath, $generatedBytes)) {
                         throw new RuntimeException('The generated PDF could not be stored.');
                     }
                 } finally {
@@ -242,6 +261,7 @@ class PdfTemplateGenerationService
                     'template_version' => $templateVersion->version_number,
                     'issued_at' => $issuedAt->toISOString(),
                     'mapped_values' => $mappedValues,
+                    'branding_version' => 'center-watermark-v1',
                 ];
 
                 $generatedDocument = GeneratedDocument::create([
@@ -335,7 +355,7 @@ class PdfTemplateGenerationService
             .DIRECTORY_SEPARATOR
             .'barangayease-pdf-'
             .Str::uuid();
-        if (!mkdir($directory, 0700, true) && !is_dir($directory)) {
+        if (! mkdir($directory, 0700, true) && ! is_dir($directory)) {
             throw new RuntimeException('Could not create a temporary PDF workspace.');
         }
 

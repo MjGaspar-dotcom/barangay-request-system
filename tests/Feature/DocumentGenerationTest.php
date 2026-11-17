@@ -18,9 +18,10 @@ use App\Services\PdfTemplateGenerationService;
 use App\Services\PdfWorkerService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
@@ -139,7 +140,7 @@ class DocumentGenerationTest extends TestCase
             'has_acroform' => false,
             'is_active' => true,
         ]);
-        GeneratedDocument::create([
+        $generatedDocument = GeneratedDocument::create([
             'request_id' => $request->request_id,
             'template_version_id' => $templateVersion->template_version_id,
             'version_number' => 1,
@@ -161,6 +162,22 @@ class DocumentGenerationTest extends TestCase
             ->putJson("/api/barangay-requests/{$request->request_id}", [
                 'status' => 'completed',
             ])
+            ->assertUnprocessable()
+            ->assertJsonPath(
+                'message',
+                'Print the official PDF before completing this request.'
+            );
+
+        $printUrl = "/api/barangay-requests/{$request->request_id}/generated-document/print";
+        $this->postJson($printUrl, [
+            'generated_document_id' => $generatedDocument->generated_document_id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.action', 'document_printed');
+
+        $this->putJson("/api/barangay-requests/{$request->request_id}", [
+            'status' => 'completed',
+        ])
             ->assertOk()
             ->assertJsonPath('data.status', 'completed')
             ->assertJsonPath('data.release_recipient_name', null);
@@ -168,6 +185,12 @@ class DocumentGenerationTest extends TestCase
         $request->refresh();
         $this->assertNotNull($request->claimed_at);
         $this->assertSame($this->staffUser->user_id, $request->released_by);
+
+        $this->postJson($printUrl, [
+            'generated_document_id' => $generatedDocument->generated_document_id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.action', 'document_reprinted');
     }
 
     public function test_staff_cannot_complete_a_legacy_request_without_a_generated_pdf(): void
@@ -301,7 +324,7 @@ class DocumentGenerationTest extends TestCase
             'data_snapshot' => [],
             'generated_at' => now(),
         ]);
-        $generation = \Mockery::mock(PdfTemplateGenerationService::class);
+        $generation = Mockery::mock(PdfTemplateGenerationService::class);
         $generation->shouldReceive('generate')
             ->once()
             ->andReturn($generatedDocument);
@@ -349,10 +372,10 @@ class DocumentGenerationTest extends TestCase
         ]);
         $version->setRelation('mappings', collect([new \stdClass]));
 
-        $mock = \Mockery::mock(PdfTemplateGenerationService::class);
+        $mock = Mockery::mock(PdfTemplateGenerationService::class);
         $mock->shouldReceive('activeTemplateFor')
             ->once()
-            ->with(\Mockery::on(fn ($request) => $request instanceof BarangayRequest && $request->document_type_id === $documentType->document_type_id))
+            ->with(Mockery::on(fn ($request) => $request instanceof BarangayRequest && $request->document_type_id === $documentType->document_type_id))
             ->andReturn($version);
         app()->instance(PdfTemplateGenerationService::class, $mock);
 
@@ -377,8 +400,7 @@ class DocumentGenerationTest extends TestCase
         }
         Queue::assertPushed(
             GenerateRequestPdf::class,
-            fn (GenerateRequestPdf $job): bool =>
-                $job->requestId === $requestId
+            fn (GenerateRequestPdf $job): bool => $job->requestId === $requestId
         );
     }
 
@@ -466,7 +488,6 @@ class DocumentGenerationTest extends TestCase
                 'request_data' => [
                     'business_name' => 'Aurora Bakery',
                     'business_address' => '12 Sample Street, Barangay Aurora',
-                    'business_activity' => 'Retail bakery',
                 ],
             ])
             ->assertCreated()
@@ -495,6 +516,10 @@ class DocumentGenerationTest extends TestCase
         $this->assertSame(
             'AURORA BAKERY',
             $previewResponse->json('data.document.mapped_values')['request.business_name']
+        );
+        $this->assertSame(
+            '',
+            $previewResponse->json('data.document.mapped_values')['request.business_activity']
         );
 
         $fileResponse = $this->actingAs($this->resident)
@@ -527,8 +552,147 @@ class DocumentGenerationTest extends TestCase
             ->assertJsonValidationErrors([
                 'request_data.business_name',
                 'request_data.business_address',
-                'request_data.business_activity',
             ]);
+    }
+
+    public function test_solo_parent_requests_require_the_number_of_children(): void
+    {
+        $documentType = $this->createDocumentType([
+            'document_name' => 'Certificate of Solo Parent',
+            'description' => 'Solo Parent certificate',
+        ]);
+
+        $this->actingAs($this->resident)
+            ->postJson('/api/barangay-requests', [
+                'document_type_id' => $documentType->document_type_id,
+                'purpose' => 'Solo Parent certificate',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['request_data.number_of_children']);
+
+        $response = $this->actingAs($this->resident)
+            ->postJson('/api/barangay-requests', [
+                'document_type_id' => $documentType->document_type_id,
+                'purpose' => 'Solo Parent certificate',
+                'request_data' => ['number_of_children' => 2],
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('barangay_requests', [
+            'request_id' => $response->json('data.request.request_id'),
+            'request_data->number_of_children' => 2,
+        ]);
+    }
+
+    public function test_resident_can_add_children_count_to_existing_solo_parent_request_and_generate_pdf(): void
+    {
+        $documentType = $this->createDocumentType([
+            'document_name' => 'Certificate of Solo Parent',
+            'description' => 'Solo Parent certificate',
+        ]);
+        $request = $this->submittedRequest($documentType, 'solo-parent-details');
+        $template = DocumentTemplate::create([
+            'document_type_id' => $documentType->document_type_id,
+        ]);
+        $version = DocumentTemplateVersion::create([
+            'template_id' => $template->template_id,
+            'version_number' => 1,
+            'storage_disk' => config('filesystems.private_upload_disk'),
+            'storage_path' => 'document-templates/solo-parent.docx',
+            'original_name' => 'solo-parent.docx',
+            'mime_type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'file_size' => 12,
+            'sha256' => hash('sha256', 'DOCX template'),
+            'page_count' => 1,
+            'has_acroform' => false,
+            'is_active' => true,
+        ]);
+        $disk = config('filesystems.private_upload_disk');
+        Storage::fake($disk);
+        Storage::disk($disk)->put($version->storage_path, 'DOCX template fixture');
+
+        $inspection = [
+            'page_count' => 1,
+            'has_acroform' => false,
+            'fields' => [[
+                'name' => '{{NUMBER_OF_CHILDREN}}',
+                'type' => '/DocxPlaceholder',
+                'supported' => false,
+            ]],
+            'pages' => [],
+        ];
+        $this->mock(PdfWorkerService::class, function (MockInterface $mock) use (
+            $inspection
+        ): void {
+            $mock->shouldReceive('inspect')
+                ->twice()
+                ->with(Mockery::type('string'), 'docx')
+                ->andReturn($inspection);
+            $mock->shouldReceive('generate')
+                ->once()
+                ->andReturnUsing(function (
+                    string $templatePath,
+                    string $outputPath,
+                    array $payload,
+                    string $format
+                ): void {
+                    $this->assertSame('docx', $format);
+                    $this->assertSame(
+                        '3',
+                        $payload['placeholder_values']['{{NUMBER_OF_CHILDREN}}']
+                    );
+                    file_put_contents($outputPath, "%PDF-1.4\nSolo Parent certificate.\n");
+                });
+        });
+
+        Queue::fake();
+        $otherResident = User::factory()->create([
+            'verification_status' => 'verified',
+        ]);
+        $this->actingAs($otherResident)
+            ->patchJson(
+                "/api/barangay-requests/{$request->request_id}/solo-parent-details",
+                ['number_of_children' => 3]
+            )
+            ->assertNotFound();
+
+        $this->actingAs($this->resident)
+            ->patchJson(
+                "/api/barangay-requests/{$request->request_id}/solo-parent-details",
+                ['number_of_children' => 0]
+            )
+            ->assertUnprocessable();
+
+        $this->actingAs($this->resident)
+            ->patchJson(
+                "/api/barangay-requests/{$request->request_id}/solo-parent-details",
+                ['number_of_children' => 3]
+            )
+            ->assertStatus(202)
+            ->assertJsonPath('data.document_generation_status', 'queued');
+
+        $this->assertDatabaseHas('barangay_requests', [
+            'request_id' => $request->request_id,
+            'request_data->number_of_children' => 3,
+        ]);
+        $this->assertDatabaseHas('document_template_field_mappings', [
+            'template_version_id' => $version->template_version_id,
+            'field_name' => '{{NUMBER_OF_CHILDREN}}',
+            'system_field' => 'request.number_of_children',
+        ]);
+        Queue::assertPushed(
+            GenerateRequestPdf::class,
+            fn (GenerateRequestPdf $job): bool => $job->requestId === $request->request_id
+        );
+
+        (new GenerateRequestPdf($request->request_id))->handle(
+            app(PdfTemplateGenerationService::class)
+        );
+
+        $this->assertDatabaseHas('barangay_requests', [
+            'request_id' => $request->request_id,
+            'document_generation_status' => 'completed',
+        ]);
     }
 
     public function test_resident_can_complete_business_details_on_an_existing_request_and_get_the_pdf(): void
@@ -606,8 +770,7 @@ class DocumentGenerationTest extends TestCase
 
         Queue::assertPushed(
             GenerateRequestPdf::class,
-            fn (GenerateRequestPdf $job): bool =>
-                $job->requestId === $request->request_id
+            fn (GenerateRequestPdf $job): bool => $job->requestId === $request->request_id
         );
         (new GenerateRequestPdf($request->request_id))->handle(
             app(PdfTemplateGenerationService::class)
@@ -874,7 +1037,7 @@ class DocumentGenerationTest extends TestCase
         ]);
         $request = $this->submittedRequest($documentType, 'approve-and-pickup');
         $template = new DocumentTemplateVersion;
-        $pdfGeneration = \Mockery::mock(PdfTemplateGenerationService::class);
+        $pdfGeneration = Mockery::mock(PdfTemplateGenerationService::class);
         $pdfGeneration->shouldReceive('activeTemplateFor')
             ->once()
             ->andReturn($template);
