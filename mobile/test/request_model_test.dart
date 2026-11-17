@@ -78,7 +78,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Submitted'), findsOneWidget);
+    expect(find.text('Request Submitted'), findsOneWidget);
     expect(find.text('Ready for Pickup'), findsOneWidget);
   });
 }

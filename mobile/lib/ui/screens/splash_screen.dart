@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/providers/auth_provider.dart';
+import '../../core/theme/app_theme.dart';
 import 'landing_screen.dart';
 import '../screens/home/home_screen.dart';
 
@@ -65,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A6B4A), Color(0xFF0D3D29)],
+            colors: [AppColors.primary, AppColors.primaryDark],
           ),
         ),
         child: Center(
@@ -80,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: AppColors.surface.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: ClipRRect(
@@ -97,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.surface,
                       letterSpacing: -0.5,
                     ),
                   ),
@@ -106,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                     'Document Request System',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.7),
+                      color: AppColors.surface.withValues(alpha: 0.7),
                       letterSpacing: 1.2,
                     ),
                   ),
@@ -116,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                     height: 28,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: Colors.white.withOpacity(0.6),
+                      color: AppColors.surface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],

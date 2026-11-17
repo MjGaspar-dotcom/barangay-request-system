@@ -31,6 +31,8 @@ reachable from the target:
 For example, add
 `--dart-define="API_BASE_URL=http://10.0.2.2:8000/api"` to the Flutter run
 command when testing on the Android emulator.
+Android debug builds permit cleartext traffic for local HTTP API testing; use
+HTTPS for release deployments.
 
 ### Google Sign-In setup
 
@@ -129,7 +131,10 @@ lib/
 
 ### Request Tracking
 - Track request status using a tracking number
-- View the request status timeline
+- View the request status timeline, decision date, and rejection details
+- Display the QR SVG returned with the request; it links to the backend-configured public tracker
+- Download/share the QR receipt image from its visible receipt button (SVG format)
+- Scan a receipt QR image to look up its tracking number through the public tracking API
 
 ### Resident Workflow
 - Register with multi-step stepper form
@@ -140,7 +145,13 @@ lib/
 - **Verification banner** if ID not yet uploaded
 - Simple request form (doc type + purpose only)
 - Full request list with status chips
+- Request history actions for receipt QR, live tracking, and generated documents
 - Notification center with unread badge and in-app pickup-ready alerts while the app is open
+
+### Generated Documents
+- Load generated document data from the authenticated request API
+- Preview server-generated PDFs in the app and use the platform share/save action where available
+- Show server-provided document fields when no PDF file is available; no sample document is substituted
 
 ### Profile
 - View personal info
@@ -164,7 +175,7 @@ profile after app reload.
 ---
 
 ## 🎨 Design System
-- **Color**: Rich emerald green `#1A6B4A`
-- **Typography**: Google Fonts — Outfit
-- **Theme**: Material 3 with custom seed color
-- **Components**: Cards, chips, steppers, bottom nav all themed consistently
+- **Color**: Rich emerald green `#1A6B4A`  
+- **Typography**: Google Fonts — Outfit  
+- **Theme**: Material 3 with custom seed color  
+- **Components**: Cards, chips, steppers, bottom nav all themed consistently  

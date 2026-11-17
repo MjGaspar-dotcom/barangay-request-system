@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/models/request_model.dart';
 import '../../core/providers/request_provider.dart';
+import '../../core/theme/app_theme.dart';
 
 class ForYouSection extends StatelessWidget {
   final List<DocumentType> recommendedDocuments;
@@ -33,7 +34,7 @@ class ForYouSection extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1A2E1F),
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 2),
@@ -41,7 +42,10 @@ class ForYouSection extends StatelessWidget {
           ageGroup == null
               ? 'General document recommendations'
               : 'Top documents for $ageGroup',
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
         ),
         const SizedBox(height: 12),
         if (status == DocumentTypesStatus.initial ||
@@ -147,7 +151,7 @@ class _DocumentTypesSectionState extends State<_DocumentTypesSection> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1A2E1F),
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 10),
@@ -178,7 +182,7 @@ class _DocumentTypesSectionState extends State<_DocumentTypesSection> {
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A2E1F),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         trailing: TextButton(
@@ -239,7 +243,10 @@ class _FeedRefreshWarning extends StatelessWidget {
           Expanded(
             child: Text(
               'Showing saved results. Refresh failed: $message',
-              style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           TextButton(onPressed: onRetry, child: const Text('Retry')),
@@ -274,13 +281,13 @@ class _RecommendationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A6B4A).withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
                   'RECOMMENDED DOCUMENT',
                   style: TextStyle(
-                    color: Color(0xFF1A6B4A),
+                    color: AppColors.primary,
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
                   ),
@@ -294,7 +301,7 @@ class _RecommendationCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A2E1F),
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
@@ -305,17 +312,20 @@ class _RecommendationCard extends StatelessWidget {
                       : 'Available from the barangay.',
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     height: 1.3,
-                    color: Colors.grey[700],
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
               if (documentType.processingTimeMinutes != null)
                 Text(
                   'Processing: ${documentType.processingTimeMinutes} min',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               Align(
                 alignment: Alignment.centerRight,
@@ -341,18 +351,21 @@ class _FeedEmpty extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDF0EC)),
+        border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const Icon(Icons.campaign_outlined, color: Color(0xFF1A6B4A)),
-          const SizedBox(width: 12),
+          Icon(Icons.campaign_outlined, color: AppColors.primary),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               'No documents match your age eligibility yet.',
-              style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ],
@@ -372,14 +385,17 @@ class _FeedError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDF0EC)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [
           Expanded(
-            child: Text(message, style: TextStyle(color: Colors.grey[700])),
+            child: Text(
+              message,
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],

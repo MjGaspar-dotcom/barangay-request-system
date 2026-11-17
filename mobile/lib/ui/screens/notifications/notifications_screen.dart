@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/models/request_model.dart';
 import '../../../core/providers/notification_provider.dart';
+import '../../../core/providers/request_provider.dart';
 import '../../../core/models/notification_model.dart';
+import '../../../core/theme/app_theme.dart';
+import '../requests/generated_document_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -24,6 +30,43 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     await context.read<NotificationProvider>().markAsRead(notification);
   }
 
+  Future<void> _handleNotificationTap(AppNotification notification) async {
+    unawaited(_markAsRead(notification));
+    if (!mounted || !notification.isReadyForPickup) return;
+
+    final requestId = notification.requestId;
+    if (requestId == null || requestId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This notification is not linked to a request.'),
+        ),
+      );
+      return;
+    }
+
+    final requests = context.read<RequestProvider>().requests;
+    BarangayRequest? request;
+    for (final item in requests) {
+      if (item.id == requestId) {
+        request = item;
+        break;
+      }
+    }
+    final requestToPreview = request ??
+        BarangayRequest(
+          id: requestId,
+          status: 'ready_for_pickup',
+          createdAt: notification.createdAt,
+          purpose: '',
+        );
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GeneratedDocumentScreen(request: requestToPreview),
+      ),
+    );
+  }
+
   Future<void> _markAllAsRead() async {
     final provider = context.read<NotificationProvider>();
     final success = await provider.markAllAsRead();
@@ -41,7 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final provider = context.watch<NotificationProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F8F6),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Notifications'),
         actions: [
@@ -89,7 +132,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           provider.notifications[notificationIndex];
                       return _NotifCard(
                         notif: notification,
-                        onTap: () => _markAsRead(notification),
+                        onTap: () => _handleNotificationTap(notification),
                       );
                     },
                   ),
@@ -105,7 +148,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           const Icon(
             Icons.notifications_off_outlined,
             size: 48,
-            color: Color(0xFF738078),
+            color: AppColors.textSubtle,
           ),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
@@ -129,29 +172,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             width: 76,
             height: 76,
             decoration: const BoxDecoration(
-              color: Color(0xFFE7F2EC),
+              color: AppColors.primaryContainer,
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.notifications_none_rounded,
               size: 36,
-              color: Color(0xFF1A6B4A),
+              color: AppColors.primary,
             ),
           ),
           const SizedBox(height: 16),
           const Text(
             'You’re all caught up',
             style: TextStyle(
-              color: Color(0xFF1A2E1F),
+              color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 6),
-          Text(
+          const Text(
             'Updates about your requests will appear here.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -171,12 +217,11 @@ class _NotifCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      color: notif.isRead ? Colors.white : const Color(0xFFF0F8F4),
+      color: notif.isRead ? AppColors.surface : AppColors.surfaceMuted,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color:
-              notif.isRead ? const Color(0xFFEDF0EC) : const Color(0xFFB7D7C6),
+          color: notif.isRead ? AppColors.border : AppColors.borderEmphasis,
         ),
       ),
       child: InkWell(
@@ -219,7 +264,7 @@ class _NotifCard extends StatelessWidget {
                               fontWeight: notif.isRead
                                   ? FontWeight.w600
                                   : FontWeight.w700,
-                              color: const Color(0xFF1A2E1F),
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -231,13 +276,13 @@ class _NotifCard extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE0F0E7),
+                              color: AppColors.primaryContainer,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Text(
                               'NEW',
                               style: TextStyle(
-                                color: Color(0xFF1A6B4A),
+                                color: AppColors.primary,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.4,
@@ -255,22 +300,24 @@ class _NotifCard extends StatelessWidget {
                         height: 1.4,
                         fontWeight:
                             notif.isRead ? FontWeight.normal : FontWeight.w500,
-                        color: const Color(0xFF34463B),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 9),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.schedule_rounded,
                           size: 13,
-                          color: Colors.grey[600],
+                          color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           _formatDate(notif.createdAt),
-                          style:
-                              TextStyle(fontSize: 11, color: Colors.grey[600]),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         if (!notif.isRead) ...[
                           const Spacer(),
@@ -314,12 +361,12 @@ class _InlineError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFFFFF8E8),
+      color: AppColors.warningContainer,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            const Icon(Icons.info_outline, color: Color(0xFF8A5A00)),
+            const Icon(Icons.info_outline, color: AppColors.warningDark),
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             TextButton(onPressed: onRetry, child: const Text('Retry')),

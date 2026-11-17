@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 
 import '../../../core/providers/request_provider.dart';
 import '../../../core/models/request_model.dart';
 import '../../../core/services/api_service.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../widgets/qr_receipt_dialog.dart';
 import '../../widgets/status_chip.dart';
+import '../guest/track_request_screen.dart';
 import 'create_request_screen.dart';
 import 'generated_document_screen.dart';
 
@@ -31,7 +33,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final provider = context.watch<RequestProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F8F6),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('My Requests'),
         actions: [
@@ -47,14 +49,16 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
           context,
           MaterialPageRoute(builder: (_) => const CreateRequestScreen()),
         ),
-        backgroundColor: const Color(0xFF1A6B4A),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('New Request', style: TextStyle(color: Colors.white)),
+        icon: const Icon(Icons.add),
+        label: const Text('New Request'),
       ),
       body: Builder(
         builder: (_) {
           if (provider.status == RequestStatus.loading) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (provider.requests.isEmpty && provider.errorMessage != null) {
+            return _buildError(context, provider.errorMessage!);
           }
           if (provider.requests.isEmpty) {
             return _buildEmpty(context);
@@ -63,13 +67,49 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             onRefresh: () => context.read<RequestProvider>().fetchMyRequests(),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: provider.requests.length,
+              itemCount: provider.requests.length +
+                  (provider.errorMessage == null ? 0 : 1),
               separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, i) =>
-                  _RequestListItem(request: provider.requests[i]),
+              itemBuilder: (_, i) {
+                if (provider.errorMessage != null && i == 0) {
+                  return _InlineRequestError(
+                    message: provider.errorMessage!,
+                    onRetry: () =>
+                        context.read<RequestProvider>().fetchMyRequests(),
+                  );
+                }
+                final requestIndex =
+                    i - (provider.errorMessage == null ? 0 : 1);
+                return _RequestListItem(
+                  request: provider.requests[requestIndex],
+                );
+              },
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildError(BuildContext context, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_outlined, size: 48),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () =>
+                  context.read<RequestProvider>().fetchMyRequests(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try again'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -79,20 +119,25 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.folder_open, size: 72, color: Colors.grey[300]),
+          const Icon(
+            Icons.folder_open,
+            size: 72,
+            color: AppColors.borderEmphasis,
+          ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No requests found',
             style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600]),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Tap the button below to make your first request.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500]),
+            style: TextStyle(color: AppColors.textSubtle),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -231,12 +276,12 @@ class _RequestListItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEDF0EC)),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -253,7 +298,7 @@ class _RequestListItem extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
-                    color: Color(0xFF1A2E1F),
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -263,25 +308,34 @@ class _RequestListItem extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Purpose: ${request.purpose}',
-            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
           ),
           if (request.remarks != null && request.remarks!.isNotEmpty) ...[
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0F0F0),
+                color: AppColors.surfaceMuted,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, size: 14, color: Colors.grey),
+                  const Icon(
+                    Icons.info_outline,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       request.remarks!,
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 ],
@@ -291,7 +345,10 @@ class _RequestListItem extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             _formatDate(request.createdAt),
-            style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSubtle,
+            ),
           ),
           if (request.needsBusinessDetails) ...[
             const SizedBox(height: 8),
@@ -306,75 +363,59 @@ class _RequestListItem extends StatelessWidget {
               ),
             ),
           ],
-          if (request.qrCode != null && request.qrCode!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            TextButton.icon(
-              key: Key('btn_request_receipt_${request.id}'),
-              onPressed: () => showDialog<void>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Request QR Receipt'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SvgPicture.string(
-                        request.qrCode!,
-                        width: 180,
-                        height: 180,
-                        semanticsLabel: 'Request tracking QR code',
-                      ),
-                      const SizedBox(height: 12),
-                      SelectableText(
-                        request.trackingNumber ?? '',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              ),
-              icon: const Icon(Icons.qr_code_2),
-              label: const Text('View QR Receipt'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF1A6B4A),
-              ),
-            ),
-          ],
-          if (request.hasGeneratedPdf ||
-              [
-                'ready_for_pickup',
-                'completed',
-              ].contains(request.status.toLowerCase())) ...[
+          if (request.trackingNumber?.isNotEmpty == true) ...[
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              key: Key('btn_generated_document_${request.id}'),
-              onPressed: request.id <= 0
-                  ? null
-                  : () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => GeneratedDocumentScreen(
-                            requestId: request.id,
-                            documentName:
-                                request.documentType?.name ?? 'Generated PDF',
-                          ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TrackRequestScreen(
+                        initialTracking: request.trackingNumber,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.timeline, size: 18),
+                  label: const Text('Track'),
+                ),
+                if (request.qrCodeSvg?.isNotEmpty == true)
+                  TextButton.icon(
+                    onPressed: () => QrReceiptDialog.show(
+                      context,
+                      trackingNumber: request.trackingNumber!,
+                      qrCodeSvg: request.qrCodeSvg,
+                      documentName: request.documentType?.name,
+                    ),
+                    icon: const Icon(Icons.qr_code_2, size: 18),
+                    label: const Text('QR receipt'),
+                  ),
+                if (_hasGeneratedDocument)
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => GeneratedDocumentScreen(
+                          request: request,
                         ),
                       ),
-              icon: const Icon(Icons.picture_as_pdf_outlined),
-              label: const Text('View Generated Document'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A6B4A),
-                side: const BorderSide(color: Color(0xFF1A6B4A)),
-              ),
+                    ),
+                    icon: const Icon(Icons.description_outlined, size: 18),
+                    label: const Text('Generated document'),
+                  ),
+              ],
             ),
           ],
         ],
       ),
     );
+  }
+
+  bool get _hasGeneratedDocument {
+    final status = request.status.toLowerCase().replaceAll('_', ' ');
+    return request.hasGeneratedPdf ||
+        status == 'ready for pickup' ||
+        status == 'completed';
   }
 
   String _formatDate(String raw) {
@@ -384,5 +425,33 @@ class _RequestListItem extends StatelessWidget {
     } catch (_) {
       return raw;
     }
+  }
+}
+
+class _InlineRequestError extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _InlineRequestError({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.warningContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline, color: AppColors.warningDark),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+            TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+      ),
+    );
   }
 }

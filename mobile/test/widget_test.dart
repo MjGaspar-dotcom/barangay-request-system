@@ -98,7 +98,7 @@ void main() {
       ),
     );
 
-    expect(find.text('At least 8 characters'), findsOneWidget);
+    expect(find.text('At least 8 characters'), findsNothing);
 
     await tester.enterText(find.byKey(const Key('reg_username')), 'resident');
     await tester.enterText(
@@ -192,5 +192,47 @@ void main() {
           .enabled,
       isTrue,
     );
+  });
+
+  testWidgets('registration collects address components with fixed locality',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(
+          home: RegisterScreen(
+            googleIdToken: 'google-id-token',
+            googleEmail: 'resident@example.com',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byKey(const Key('reg_street_name')), findsOneWidget);
+    expect(find.byKey(const Key('reg_barangay_name')), findsOneWidget);
+
+    final municipality =
+        tester.widget<TextFormField>(find.byKey(const Key('reg_municipality')));
+    final province =
+        tester.widget<TextFormField>(find.byKey(const Key('reg_province')));
+    final postalCode =
+        tester.widget<TextFormField>(find.byKey(const Key('reg_postal_code')));
+
+    expect(municipality.controller?.text, 'Alicia');
+    expect(province.controller?.text, 'Isabela');
+    expect(postalCode.controller?.text, '3306');
+    for (final key in [
+      const Key('reg_municipality'),
+      const Key('reg_province'),
+      const Key('reg_postal_code'),
+    ]) {
+      final editableText = tester.widget<EditableText>(
+        find.descendant(
+          of: find.byKey(key),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editableText.readOnly, isTrue);
+    }
   });
 }

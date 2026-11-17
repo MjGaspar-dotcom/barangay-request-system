@@ -53,7 +53,8 @@ class BarangayRequest {
   final String status;
   final String? remarks;
   final String? trackingNumber;
-  final String? qrCode;
+  final String? qrCodeSvg;
+  String? get qrCode => qrCodeSvg;
   final String createdAt;
   final String? updatedAt;
   final DocumentType? documentType;
@@ -66,28 +67,57 @@ class BarangayRequest {
     required this.status,
     this.remarks,
     this.trackingNumber,
-    this.qrCode,
+    String? qrCode,
+    String? qrCodeSvg,
     required this.createdAt,
     this.updatedAt,
     this.documentType,
     required this.purpose,
     this.hasGeneratedPdf = false,
     this.requestData,
-  });
+  }) : qrCodeSvg = qrCodeSvg ?? qrCode;
+
+  static int compareNewestFirst(BarangayRequest a, BarangayRequest b) {
+    final aCreatedAt = DateTime.tryParse(a.createdAt);
+    final bCreatedAt = DateTime.tryParse(b.createdAt);
+    if (aCreatedAt == null) {
+      return bCreatedAt == null ? b.id.compareTo(a.id) : 1;
+    }
+    if (bCreatedAt == null) return -1;
+
+    final byDate = bCreatedAt.compareTo(aCreatedAt);
+    return byDate != 0 ? byDate : b.id.compareTo(a.id);
+  }
+
+  BarangayRequest copyWithQrCode(String? value) {
+    return BarangayRequest(
+      id: id,
+      status: status,
+      remarks: remarks,
+      trackingNumber: trackingNumber,
+      qrCodeSvg: value ?? qrCodeSvg,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      documentType: documentType,
+      purpose: purpose,
+      hasGeneratedPdf: hasGeneratedPdf,
+      requestData: requestData,
+    );
+  }
 
   factory BarangayRequest.fromJson(Map<String, dynamic> json) {
     return BarangayRequest(
       id: int.tryParse(
-            (json['id'] ?? json['request_id'])?.toString() ?? '',
+            (json['id'] ?? json['request_id'] ?? 0).toString(),
           ) ??
           0,
-      status: json['status']?.toString() ?? 'request_submitted',
+      status: json['status']?.toString() ?? 'unknown',
       remarks: json['remarks']?.toString(),
       trackingNumber: json['tracking_number']?.toString(),
-      qrCode: json['qr_code']?.toString(),
+      qrCodeSvg: json['qr_code']?.toString(),
       createdAt: json['created_at']?.toString() ?? '',
       updatedAt: json['updated_at']?.toString(),
-      documentType: json['document_type'] != null
+      documentType: json['document_type'] is Map
           ? DocumentType.fromJson(
               Map<String, dynamic>.from(json['document_type'] as Map),
             )
@@ -127,20 +157,27 @@ class TrackResult {
   final String? requestType; // 'registered' | 'guest'
   final String? trackingNumber;
   final String? createdAt;
+  final String? decisionAt;
+  final String? rejectionReason;
+  final String? rejectionOther;
 
-  TrackResult({
+  const TrackResult({
     required this.status,
     this.remarks,
     this.documentTypeName,
     this.requestType,
     this.trackingNumber,
     this.createdAt,
+    this.decisionAt,
+    this.rejectionReason,
+    this.rejectionOther,
   });
 
   factory TrackResult.fromJson(Map<String, dynamic> json) {
     final rawDocumentType = json['document_type'];
     final documentTypeName = rawDocumentType is Map
-        ? rawDocumentType['name']?.toString()
+        ? (rawDocumentType['name'] ?? rawDocumentType['document_name'])
+            ?.toString()
         : rawDocumentType?.toString() ?? json['document_type_name']?.toString();
 
     return TrackResult(
@@ -149,7 +186,10 @@ class TrackResult {
       documentTypeName: documentTypeName,
       requestType: json['request_type']?.toString(),
       trackingNumber: json['tracking_number']?.toString(),
-      createdAt: json['created_at']?.toString(),
+      createdAt: (json['created_at'] ?? json['submitted_at'])?.toString(),
+      decisionAt: json['decision_at']?.toString(),
+      rejectionReason: json['rejection_reason']?.toString(),
+      rejectionOther: json['rejection_other']?.toString(),
     );
   }
 }

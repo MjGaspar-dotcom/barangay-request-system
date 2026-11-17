@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/utils/input_validators.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../home/home_screen.dart';
 import 'register_screen.dart';
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: const Color(0xFF1A6B4A),
-        leading: BackButton(color: const Color(0xFF1A6B4A)),
+        leading: const BackButton(color: Color(0xFF1A6B4A)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -126,8 +127,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   label: 'Username',
                   controller: _usernameCtrl,
                   prefixIcon: Icons.person_outline,
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Username is required' : null,
+                  validator: (value) => InputValidators.username(
+                    value,
+                    requiredMessage: 'Username is required',
+                  ),
                 ),
                 const SizedBox(height: 16),
                 AppTextField(

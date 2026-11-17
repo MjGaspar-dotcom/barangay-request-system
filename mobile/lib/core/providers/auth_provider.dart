@@ -6,6 +6,13 @@ import '../services/api_service.dart';
 import '../services/google_sign_in_service.dart';
 import '../services/storage_service.dart';
 
+class _NonResidentAccountException implements Exception {
+  const _NonResidentAccountException();
+
+  String get message =>
+      'This app is for resident accounts. Please use the web system for staff or administrator access.';
+}
+
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 class GoogleAuthResult {
@@ -53,8 +60,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final response = await ApiService.getUser();
-      _user = AppUser.fromJson(_userDataFromResponse(response.data));
+      final userData = _userDataFromResponse(response.data);
+      _ensureResidentRole(userData);
+      _user = AppUser.fromJson(userData);
       _status = AuthStatus.authenticated;
+    } on _NonResidentAccountException catch (error) {
+      await StorageService.clearToken();
+      _user = null;
+      _errorMessage = error.message;
+      _status = AuthStatus.unauthenticated;
     } on DioException catch (error) {
       _errorMessage = ApiService.errorMessage(error);
       if (error.response?.statusCode == 401) {
@@ -76,15 +90,24 @@ class AuthProvider extends ChangeNotifier {
     try {
       final response = await ApiService.login(username, password);
       final data = response.data;
+      final userData = _userDataFromResponse(data);
+      _ensureResidentRole(userData);
+      final user = AppUser.fromJson(userData);
       await StorageService.saveToken(data['token']);
-      if (data['role'] != null) {
-        await StorageService.saveRole(data['role']);
+      final role = userData['role'];
+      if (role != null) {
+        await StorageService.saveRole(role.toString());
       }
-      _user = AppUser.fromJson(_userDataFromResponse(data));
+      _user = user;
       _status = AuthStatus.authenticated;
       _errorMessage = null;
       notifyListeners();
       return true;
+    } on _NonResidentAccountException catch (error) {
+      _errorMessage = error.message;
+      _status = AuthStatus.unauthenticated;
+      notifyListeners();
+      return false;
     } on DioException catch (e) {
       _errorMessage = _extractError(e);
       _status = AuthStatus.unauthenticated;
@@ -108,6 +131,8 @@ class AuthProvider extends ChangeNotifier {
 
       final response = await ApiService.googleAuth({'id_token': idToken});
       return _handleGoogleAuthResponse(response.data, idToken: idToken);
+    } on _NonResidentAccountException catch (error) {
+      _errorMessage = error.message;
     } on DioException catch (e) {
       _errorMessage = _extractError(e);
     } catch (e) {
@@ -177,9 +202,14 @@ class AuthProvider extends ChangeNotifier {
     }
     final role = responseData['role'];
     final userData = _userDataFromResponse(responseData);
-    _user = AppUser.fromJson(userData);
+    _ensureResidentRole(userData);
+    final user = AppUser.fromJson(userData);
     await StorageService.saveToken(token);
-    if (role != null) await StorageService.saveRole(role.toString());
+    final resolvedRole = userData['role'] ?? role;
+    if (resolvedRole != null) {
+      await StorageService.saveRole(resolvedRole.toString());
+    }
+    _user = user;
     _status = AuthStatus.authenticated;
     _errorMessage = null;
     notifyListeners();
@@ -230,7 +260,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void applyProfileUpdate(dynamic responseData) {
-    _user = AppUser.fromJson(_userDataFromResponse(responseData));
+    final userData = _userDataFromResponse(responseData);
+    userData['role'] ??= _user?.role ?? 'user';
+    _user = AppUser.fromJson(userData);
     _errorMessage = null;
     notifyListeners();
   }
@@ -252,26 +284,51 @@ class AuthProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  void _ensureResidentRole(Map<String, dynamic> userData) {
+    final role = userData['role'];
+    if (role == null) throw const _NonResidentAccountException();
+    final normalizedRole = role.toString().toLowerCase();
+    if (normalizedRole != 'user' && normalizedRole != 'resident') {
+      throw const _NonResidentAccountException();
+    }
+    userData['role'] = normalizedRole;
+  }
+
   Map<String, dynamic> _userDataFromResponse(dynamic responseData) {
     if (responseData is! Map) {
       throw const FormatException('Invalid user response.');
     }
 
-    final user = responseData['user'];
-    if (user is Map) {
-      return Map<String, dynamic>.from(user);
+    final data = responseData['data'];
+    Map<String, dynamic> withRole(Map user) {
+      final userData = Map<String, dynamic>.from(user);
+      final role = userData['role'] ??
+          responseData['role'] ??
+          (data is Map ? data['role'] : null);
+      if (role != null) {
+        final normalizedRole = role.toString().toLowerCase();
+        if (normalizedRole != 'user' && normalizedRole != 'resident') {
+          throw const _NonResidentAccountException();
+        }
+        userData['role'] = normalizedRole;
+      }
+      return userData;
     }
 
-    final data = responseData['data'];
+    final user = responseData['user'];
+    if (user is Map) {
+      return withRole(user);
+    }
+
     if (data is Map) {
       final nestedUser = data['user'];
       if (nestedUser is Map) {
-        return Map<String, dynamic>.from(nestedUser);
+        return withRole(nestedUser);
       }
-      return Map<String, dynamic>.from(data);
+      return withRole(data);
     }
 
-    return Map<String, dynamic>.from(responseData);
+    return withRole(responseData);
   }
 
   String _extractError(DioException e) {
