@@ -1,0 +1,90 @@
+.alert-dialog-content {
+    width: min(calc(100vw - 2rem), 32rem);
+    max-height: min(85vh, 48rem);
+    overflow-y: auto;
+    border: 1px solid var(--gray-200);
+    border-radius: 1rem;
+    background: var(--white);
+    padding: 1.5rem;
+    box-shadow: 0 24px 64px rgb(20 38 27 / 24%);
+}
+
+.alert-dialog-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.9rem;
+    padding-right: 1rem;
+}
+
+.alert-dialog-media {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    place-items: center;
+    border-radius: 0.85rem;
+    background: var(--brand-100);
+    color: var(--brand-800);
+}
+
+.alert-dialog-media svg {
+    width: 1.35rem;
+    height: 1.35rem;
+}
+
+.alert-dialog-media.is-danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+}
+
+.alert-dialog-copy {
+    display: grid;
+    gap: 0.5rem;
+    padding-top: 0.15rem;
+}
+
+.alert-dialog-title {
+    color: var(--deep-forest);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.alert-dialog-description {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.alert-dialog-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+}
+
+.alert-dialog-footer .app-button {
+    min-width: 6rem;
+}
+
+.alert-dialog-footer .app-button:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--brand-500) 35%, transparent);
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .alert-dialog-content {
+        padding: 1.15rem;
+    }
+
+    .alert-dialog-footer {
+        flex-direction: column-reverse;
+    }
+
+    .alert-dialog-footer .app-button {
+        width: 100%;
+    }
+}

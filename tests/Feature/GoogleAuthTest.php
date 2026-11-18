@@ -60,13 +60,16 @@ class GoogleAuthTest extends TestCase
             'gender' => 'Prefer not to say',
             'civil_status' => 'Single',
             'street_name' => 'Main Street',
-            'address' => '1 Main Street',
             'contact_number' => '09123456789',
         ]);
 
         $response->assertCreated()
             ->assertJsonPath('role', 'user')
             ->assertJsonPath('data.email', 'resident@example.com')
+            ->assertJsonPath(
+                'data.address',
+                'Main Street, Barangay Aurora, Alicia, Isabela, 3306'
+            )
             ->assertJsonStructure(['token', 'data' => ['user_id']]);
 
         $this->assertDatabaseHas('users', [

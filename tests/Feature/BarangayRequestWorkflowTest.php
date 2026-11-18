@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\BarangayRequest;
 use App\Models\DocumentGenerationProfile;
 use App\Models\DocumentType;
+use App\Models\GuestApplicant;
 use App\Models\Notification;
 use App\Models\Staff;
 use App\Models\User;
@@ -186,6 +187,22 @@ class BarangayRequestWorkflowTest extends TestCase
             ->assertJsonPath(
                 'data.data.0.request_id',
                 $submittedRequest->request_id
+            )
+            ->assertJsonPath(
+                'data.data.0.request_summary.requester_name',
+                "{$this->user->first_name} {$this->user->last_name}"
+            )
+            ->assertJsonPath(
+                'data.data.0.request_summary.document_name',
+                'Barangay Clearance'
+            )
+            ->assertJsonPath(
+                'data.data.0.request_summary.tracking_number',
+                $submittedRequest->tracking_number
+            )
+            ->assertJsonPath(
+                'data.data.0.request_summary.status_label',
+                'Awaiting processing'
             );
 
         $this->getJson('/api/notifications')
@@ -741,16 +758,101 @@ class BarangayRequestWorkflowTest extends TestCase
         $this->assertSame('local', $document->fresh()->storage_disk);
     }
 
-    public function test_guest_request_endpoints_are_removed(): void
+    public function test_guest_request_requires_identity_and_supports_public_tracking(): void
     {
         $this->assertFalse(Schema::hasTable('guest_requests'));
-        $this->assertFalse(Schema::hasColumn('notifications', 'guest_request_id'));
+        $this->assertTrue(Schema::hasTable('guest_applicants'));
 
-        $this->postJson('/api/guest-requests')
-            ->assertNotFound();
+        Storage::fake('local');
+        config(['filesystems.private_upload_disk' => 'local']);
+        $onePixelPng = base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC',
+            true
+        );
+        $this->assertIsString($onePixelPng);
 
-        $this->getJson('/api/guest-requests/track/GR-20260904-OLD')
-            ->assertNotFound();
+        $guestDetails = [
+            'first_name' => 'Guest',
+            'no_middle_name' => '1',
+            'last_name' => 'Resident',
+            'birth_date' => '1998-06-15',
+            'contact_number' => '09171234567',
+            'street_name' => 'Main Street',
+            'document_type_id' => $this->documentType->document_type_id,
+            'purpose' => 'Employment requirement',
+        ];
+        $this->postJson('/api/guest-requests', $guestDetails)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['valid_id_front', 'valid_id_back']);
+
+        $this->post('/api/guest-requests', [
+            ...$guestDetails,
+            'valid_id_front' => UploadedFile::fake()->createWithContent(
+                'front.png',
+                $onePixelPng
+            ),
+            'valid_id_back' => UploadedFile::fake()->createWithContent(
+                'back.png',
+                $onePixelPng
+            ),
+        ], ['Accept' => 'application/json'])
+            ->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.request.user_id', null);
+
+        $request = BarangayRequest::query()->whereNull('user_id')->firstOrFail();
+        $applicant = GuestApplicant::query()
+            ->where('request_id', $request->request_id)
+            ->firstOrFail();
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/notifications?new_request_toasts=1')
+            ->assertOk()
+            ->assertJsonPath(
+                'data.data.0.request_summary.requester_name',
+                'Guest Resident'
+            )
+            ->assertJsonPath(
+                'data.data.0.request_summary.document_name',
+                'Barangay Clearance'
+            )
+            ->assertJsonPath(
+                'data.data.0.request_summary.tracking_number',
+                $request->tracking_number
+            );
+        $this->assertSame('Main Street, Barangay Aurora, Alicia, Isabela, 3306', $applicant->address);
+        $this->assertNull($applicant->middle_name);
+        $this->assertTrue((bool) $applicant->no_middle_name);
+        $this->assertSame('1998-06-15', $applicant->birth_date->toDateString());
+        $this->assertNull($applicant->valid_id_type);
+        $this->assertSame(2, count(Storage::disk('local')->allFiles('guest-request-ids')));
+
+        $this->getJson("/api/track/{$request->tracking_number}")
+            ->assertOk()
+            ->assertJsonPath('data.request_type', 'guest')
+            ->assertJsonPath('data.tracking_number', $request->tracking_number);
+
+        $this->patchJson(
+            "/api/barangay-requests/{$request->request_id}/guest-applicant/id-type",
+            ['valid_id_type' => 'Passport']
+        )->assertUnauthorized();
+
+        $this->actingAs($this->staffUser)
+            ->patchJson(
+                "/api/barangay-requests/{$request->request_id}/guest-applicant/id-type",
+                ['valid_id_type' => 'Passport']
+            )
+            ->assertOk()
+            ->assertJsonPath('data.valid_id_type', 'Passport');
+
+        $this->actingAs($this->staffUser)
+            ->getJson('/api/staff/requests')
+            ->assertOk()
+            ->assertJsonPath('data.0.guest_applicant.first_name', 'Guest')
+            ->assertJsonPath('data.0.guest_applicant.valid_id_type', 'Passport');
+
+        $this->get($applicant->valid_id_front_url)
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/png');
     }
 
     public function test_ready_transition_requires_an_uploaded_pdf_template(): void

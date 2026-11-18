@@ -553,11 +553,21 @@ class RequestStatusService
     private static function assertResidentIdVerified(
         BarangayRequest $request
     ): void {
-        $request->loadMissing('user');
+        $request->loadMissing(['user', 'guestApplicant']);
         $resident = $request->user;
+        $guestApplicant = $request->guestApplicant;
+        if (
+            $guestApplicant &&
+            is_string($guestApplicant->valid_id_front) &&
+            trim($guestApplicant->valid_id_front) !== '' &&
+            is_string($guestApplicant->valid_id_back) &&
+            trim($guestApplicant->valid_id_back) !== ''
+        ) {
+            return;
+        }
         if (!$resident || $resident->verification_status !== 'verified') {
             throw new \InvalidArgumentException(
-                'The resident account is not verified. Review the mobile ID in resident verification first.'
+                'The resident account is not verified, and the guest request does not have both required ID images.'
             );
         }
         if (

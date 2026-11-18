@@ -87,6 +87,11 @@ class BarangayRequest extends Model
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
+    public function guestApplicant()
+    {
+        return $this->hasOne(GuestApplicant::class, 'request_id', 'request_id');
+    }
+
     public function documentType()
     {
         return $this->belongsTo(

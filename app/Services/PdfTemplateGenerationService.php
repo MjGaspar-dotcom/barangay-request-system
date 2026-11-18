@@ -68,7 +68,7 @@ class PdfTemplateGenerationService
                 &$storedDisk
             ): GeneratedDocument {
                 $request = BarangayRequest::query()
-                    ->with(['user', 'documentType'])
+                    ->with(['user', 'guestApplicant', 'documentType'])
                     ->lockForUpdate()
                     ->findOrFail($request->request_id);
 
@@ -82,14 +82,20 @@ class PdfTemplateGenerationService
                         'A PDF can only be generated for a request being processed, ready for pickup, or missing a PDF after completion.'
                     );
                 }
-                if (
-                    ! $request->user ||
-                    $request->user->verification_status !== 'verified' ||
-                    ! is_string($request->user->valid_id_front) ||
-                    trim($request->user->valid_id_front) === ''
-                ) {
+                $hasVerifiedResidentId =
+                    $request->user &&
+                    $request->user->verification_status === 'verified' &&
+                    is_string($request->user->valid_id_front) &&
+                    trim($request->user->valid_id_front) !== '';
+                $hasGuestId =
+                    $request->guestApplicant &&
+                    is_string($request->guestApplicant->valid_id_front) &&
+                    trim($request->guestApplicant->valid_id_front) !== '' &&
+                    is_string($request->guestApplicant->valid_id_back) &&
+                    trim($request->guestApplicant->valid_id_back) !== '';
+                if (! $hasVerifiedResidentId && ! $hasGuestId) {
                     throw new \InvalidArgumentException(
-                        'The resident account and ID must be verified before generating an official PDF.'
+                        'A verified resident ID or guest applicant ID is required before generating an official PDF.'
                     );
                 }
 

@@ -1,4 +1,3 @@
-import { Alert, Snackbar } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -8,6 +7,7 @@ import StaffLayout from "../../layouts/StaffLayout";
 import Button from "../../components/ui/Button";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import RequestWorkflowPanel from "../../components/requests/RequestWorkflowPanel";
+import { useToast } from "../../components/ui/toast-context";
 import { isInCurrentWorkflow } from "../../utils/requestWorkflow";
 import { subscribeToDocumentTemplateUpdates } from "../../utils/documentTemplateUpdates";
 import "./request-processing.css";
@@ -24,61 +24,59 @@ export default function RequestProcessingPage() {
     const [pdfTemplatePreview, setPdfTemplatePreview] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [toast, setToast] = useState(null);
-    const toastId = useRef(0);
     const lastRefreshError = useRef("");
+    const { dismissToast, showToast } = useToast();
+    const requestToastId = "request-processing-toast";
     const pdfTemplatePreviewUrl =
         pdfTemplatePreview?.template === pdfTemplate
             ? pdfTemplatePreview.url
             : null;
-    const showToast = useCallback((message, severity = "info", action = null) => {
-        if (!message) {
-            setToast(null);
-            return;
-        }
+    const showRequestToast = useCallback(
+        (message, severity = "info", action = null) => {
+            if (!message) {
+                dismissToast(requestToastId);
+                return;
+            }
 
-        toastId.current += 1;
-        setToast({ id: toastId.current, message, severity, action });
-    }, []);
-    const closeToast = useCallback((_, reason) => {
-        if (reason !== "clickaway") setToast(null);
-    }, []);
-    const toastSnackbar = (
-        <Snackbar
-            key={toast?.id}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-            autoHideDuration={7000}
-            onClose={closeToast}
-            open={Boolean(toast)}
-        >
-            <Alert
-                action={
-                    toast?.action ? (
-                        <Button
-                            className="app-button app-button-outline-secondary"
-                            onClick={toast.action.onClick}
-                            type="button"
-                        >
-                            {toast.action.label}
-                        </Button>
-                    ) : undefined
-                }
-                onClose={closeToast}
-                role={toast?.severity === "error" ? "alert" : "status"}
-                severity={toast?.severity || "info"}
-                variant="filled"
-            >
-                {toast?.message || ""}
-            </Alert>
-        </Snackbar>
+            const variant = [
+                "success",
+                "info",
+                "warning",
+                "error",
+                "rejected",
+            ].includes(severity)
+                ? severity
+                : "info";
+            const titles = {
+                success: "Success",
+                info: "Request update",
+                warning: "Attention",
+                error: "Action failed",
+                rejected: "Request rejected",
+            };
+            showToast({
+                id: requestToastId,
+                resetTimer: true,
+                title: titles[variant],
+                description: message,
+                variant,
+                action,
+                duration: 7000,
+            });
+        },
+        [dismissToast, showToast],
+    );
+    useEffect(
+        () => () => dismissToast(requestToastId),
+        [dismissToast],
     );
     const notifyRefreshError = useCallback(
         (message) => {
             if (lastRefreshError.current === message) return;
             lastRefreshError.current = message;
-            showToast(message, "warning");
+            showRequestToast(message, "warning");
         },
-        [showToast],
+        [showRequestToast],
     );
     const loadRequest = useCallback(
         async (initial = false, refreshTemplate = initial) => {
@@ -97,7 +95,7 @@ export default function RequestProcessingPage() {
                 if (!isInCurrentWorkflow(requestData)) {
                     if (initial) {
                         setError("Request not found.");
-                        showToast("Request not found.", "error");
+                        showRequestToast("Request not found.", "error");
                     } else {
                         notifyRefreshError("Request not found.");
                     }
@@ -105,6 +103,7 @@ export default function RequestProcessingPage() {
                     return;
                 }
                 setRequest(requestData);
+                lastRefreshError.current = "";
             } catch (requestError) {
                 console.error(requestError);
                 let message;
@@ -117,7 +116,7 @@ export default function RequestProcessingPage() {
                 }
                 if (initial) {
                     setError(message);
-                    showToast(message, "error");
+                    showRequestToast(message, "error");
                     setLoading(false);
                 } else {
                     notifyRefreshError(message);
@@ -151,7 +150,7 @@ export default function RequestProcessingPage() {
                 if (initial) setLoading(false);
             }
         },
-        [notifyRefreshError, requestId, showToast],
+        [notifyRefreshError, requestId, showRequestToast],
     );
 
     useEffect(() => {
@@ -186,7 +185,7 @@ export default function RequestProcessingPage() {
             })
             .catch((previewError) => {
                 console.error(previewError);
-                showToast(
+                showRequestToast(
                     previewError.response?.data?.message ||
                         "The document template preview could not be loaded.",
                     "error",
@@ -201,7 +200,7 @@ export default function RequestProcessingPage() {
         pdfTemplate,
         request?.document_template_identifier,
         requestId,
-        showToast,
+        showRequestToast,
     ]);
 
     useEffect(() => {
@@ -247,7 +246,6 @@ export default function RequestProcessingPage() {
     if (loading) {
         return (
             <Layout>
-                {toastSnackbar}
                 <SkeletonLoader label="Loading request processing" variant="detail" />
             </Layout>
         );
@@ -256,7 +254,6 @@ export default function RequestProcessingPage() {
     if (error || !request) {
         return (
             <Layout>
-                {toastSnackbar}
                 <div className="page-loading">
                     <Button
                         className="app-button app-button-outline-secondary mt-4"
@@ -272,7 +269,6 @@ export default function RequestProcessingPage() {
 
     return (
         <Layout>
-            {toastSnackbar}
             <div className="admin-dashboard request-processing-page">
                 <div className="w-full">
                     <div className="request-processing-toolbar">
@@ -289,7 +285,7 @@ export default function RequestProcessingPage() {
 
                     <RequestWorkflowPanel
                         key={request.request_id}
-                        onToast={showToast}
+                        onToast={showRequestToast}
                         pdfTemplate={pdfTemplate}
                         pdfTemplatePreviewUrl={pdfTemplatePreviewUrl}
                         onRefresh={refreshRequest}

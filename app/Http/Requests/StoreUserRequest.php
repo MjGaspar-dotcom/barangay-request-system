@@ -79,12 +79,6 @@ class StoreUserRequest extends FormRequest
                 'in:Single,Married,Separated,Divorced,Widowed',
             ],
 
-            'address' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
             'street_name' => [
                 'required',
                 'string',
@@ -128,7 +122,6 @@ class StoreUserRequest extends FormRequest
             'gender.required' => 'Gender is required.',
             'civil_status.required' => 'Civil status is required.',
 
-            'address.required' => 'Address is required.',
             'street_name.required' => 'Street name is required.',
             'contact_number.required' => 'Contact number is required.',
 

@@ -90,19 +90,6 @@ export default function SkeletonLoader({
                     </div>
                 </div>
 
-                <div
-                    className="skeleton-loader-dashboard-notifications"
-                    aria-hidden="true"
-                >
-                    <span />
-                    {Array.from({ length: 2 }, (_, index) => (
-                        <div key={index}>
-                            <span />
-                            <span />
-                            <span />
-                        </div>
-                    ))}
-                </div>
             </div>
         );
     }

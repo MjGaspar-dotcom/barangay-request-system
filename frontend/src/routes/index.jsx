@@ -15,6 +15,7 @@ import RequestDetails from "../pages/user/RequestDetails";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import LoadingState from "../components/ui/LoadingState";
 import RequestNotificationToast from "../components/requests/RequestNotificationToast";
+import { ToastProvider } from "../components/ui/ToastProvider";
 
 const UserRequest = lazy(() => import("../pages/user/Request"));
 const UserProfile = lazy(() => import("../pages/user/Profile"));
@@ -34,6 +35,9 @@ const ManageRecommendations = lazy(
     () => import("../pages/admin/ManageRecommendations"),
 );
 const RecentActivity = lazy(() => import("../pages/admin/RecentActivity"));
+const ManageBarangayOfficials = lazy(
+    () => import("../pages/admin/ManageBarangayOfficials"),
+);
 const StaffLogin = lazy(() => import("../pages/staff/Login"));
 const StaffDashboard = lazy(() => import("../pages/staff/Dashboard"));
 const StaffRequestQueue = lazy(() => import("../pages/staff/RequestQueue"));
@@ -73,10 +77,11 @@ function RouteLoadingFallback() {
 export default function AppRoutes() {
     return (
         <BrowserRouter>
-            <RouteScrollReset />
-            <RequestNotificationToast />
-            <Suspense fallback={<RouteLoadingFallback />}>
-                <Routes>
+            <ToastProvider>
+                <RouteScrollReset />
+                <RequestNotificationToast />
+                <Suspense fallback={<RouteLoadingFallback />}>
+                    <Routes>
                     {/* PUBLIC */}
                     <Route
                         path="/"
@@ -278,7 +283,11 @@ export default function AppRoutes() {
                     />
                     <Route
                         path="/admin/barangay-settings"
-                        element={<Navigate to="/admin/dashboard" replace />}
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <ManageBarangayOfficials />
+                            </ProtectedRoute>
+                        }
                     />
                     <Route
                         path="/admin/recent-activity"
@@ -295,8 +304,9 @@ export default function AppRoutes() {
                     />
                     <Route path="/staff/login" element={<StaffLogin />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </Suspense>
+                    </Routes>
+                </Suspense>
+            </ToastProvider>
         </BrowserRouter>
     );
 }

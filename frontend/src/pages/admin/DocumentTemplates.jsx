@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import DocxDocumentPreview from "../../components/documents/DocxDocumentPreview";
 import PdfDocumentCanvas from "../../components/documents/PdfDocumentCanvas";
 import api from "../../services/api";
@@ -24,6 +25,45 @@ const formatSize = (bytes = 0) => {
 
 const getErrorMessage = (error, fallback) =>
     error.response?.data?.message || fallback;
+
+function DocumentTemplateSkeleton() {
+    return (
+        <div
+            className="document-template-skeleton-grid"
+            role="status"
+            aria-label="Loading document templates"
+        >
+            {Array.from({ length: 4 }, (_, index) => (
+                <article
+                    className="document-template-skeleton-card"
+                    key={index}
+                    aria-hidden="true"
+                >
+                    <div className="document-template-skeleton-heading">
+                        <div>
+                            <span className="skeleton-status" />
+                            <span className="skeleton-title" />
+                        </div>
+                        <span className="skeleton-version" />
+                    </div>
+                    <div className="document-template-skeleton-metadata">
+                        {Array.from({ length: 4 }, (_, row) => (
+                            <div key={row}>
+                                <span />
+                                <span />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="document-template-skeleton-actions">
+                        <span />
+                        <span />
+                        <span />
+                    </div>
+                </article>
+            ))}
+        </div>
+    );
+}
 
 function MappingSelect({ value, options, disabled, onChange }) {
     return (
@@ -429,6 +469,7 @@ export default function DocumentTemplates() {
     const [loadError, setLoadError] = useState("");
     const [notice, setNotice] = useState("");
     const [detailLoading, setDetailLoading] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
     const loadTemplates = useCallback(async () => {
         setLoading(true);
@@ -464,20 +505,27 @@ export default function DocumentTemplates() {
         [upload],
     );
 
-    const chooseFile = (documentType) => {
-        if (
-            documentType.active_version &&
-            !window.confirm(
-                "Replace the active template? The current file remains available until the new file is validated and saved.",
-            )
-        ) {
-            return;
-        }
+    const openFilePicker = (documentType) => {
         targetTypeRef.current = documentType;
         if (inputRef.current) {
             inputRef.current.value = "";
             inputRef.current.click();
         }
+    };
+
+    const chooseFile = (documentType) => {
+        if (documentType.active_version) {
+            setConfirmDialog({
+                title: "Replace active template?",
+                message:
+                    "The current file remains available until the new file is validated and saved.",
+                confirmLabel: "Choose replacement",
+                variant: "primary",
+                onConfirm: () => openFilePicker(documentType),
+            });
+            return;
+        }
+        openFilePicker(documentType);
     };
 
     const onChooseFile = (event) => {
@@ -620,14 +668,17 @@ export default function DocumentTemplates() {
         setEditor(null);
     };
 
-    const deleteTemplate = async (documentType) => {
-        if (
-            !window.confirm(
-                `Deactivate the active ${documentType.document_name} template? Its history and generated documents will be preserved.`,
-            )
-        ) {
-            return;
-        }
+    const deleteTemplate = (documentType) => {
+        setConfirmDialog({
+            title: "Delete active template?",
+            message: `Delete the active ${documentType.document_name} template? Its history and generated documents will be preserved.`,
+            confirmLabel: "Delete template",
+            variant: "danger",
+            onConfirm: () => void performDeleteTemplate(documentType),
+        });
+    };
+
+    const performDeleteTemplate = async (documentType) => {
         setError("");
         try {
             await api.delete(
@@ -689,7 +740,7 @@ export default function DocumentTemplates() {
                     </div>
                 )}
                 {loading ? (
-                    <p>Loading document types…</p>
+                    <DocumentTemplateSkeleton />
                 ) : loadError ? null : templates.length === 0 ? (
                     <div className="app-alert app-alert-warning" role="status">
                         No document types are configured in the database.
@@ -931,6 +982,20 @@ export default function DocumentTemplates() {
                     onSaved={() => openEditor(editor.document_type)}
                 />
             )}
+            <ConfirmDialog
+                confirmLabel={confirmDialog?.confirmLabel}
+                isOpen={Boolean(confirmDialog)}
+                onClose={() => setConfirmDialog(null)}
+                onConfirm={() => {
+                    const action = confirmDialog?.onConfirm;
+                    setConfirmDialog(null);
+                    action?.();
+                }}
+                title={confirmDialog?.title}
+                variant={confirmDialog?.variant}
+            >
+                {confirmDialog?.message}
+            </ConfirmDialog>
         </AdminLayout>
     );
 }

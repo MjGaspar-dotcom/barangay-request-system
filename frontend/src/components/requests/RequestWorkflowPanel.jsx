@@ -45,12 +45,10 @@ export default function RequestWorkflowPanel({
     const [lastPrintedDocument, setLastPrintedDocument] = useState(null);
     const [pdfVersionsError, setPdfVersionsError] = useState("");
     const [automaticGeneration, setAutomaticGeneration] = useState(null);
-    const previousGenerationStatus = useRef(
-        {
-            requestId: request.request_id,
-            status: request.document_generation_status,
-        },
-    );
+    const previousGenerationStatus = useRef({
+        requestId: request.request_id,
+        status: request.document_generation_status,
+    });
     const hasPdfDocument =
         request.document_template_identifier === "uploaded_pdf_template";
     const currentPdfPreview =
@@ -174,8 +172,10 @@ export default function RequestWorkflowPanel({
                 )),
     );
     const residentCanGeneratePdf =
-        request.user?.verification_status === "verified" &&
-        Boolean(request.user?.valid_id_front_url);
+        (request.user?.verification_status === "verified" &&
+            Boolean(request.user?.valid_id_front_url)) ||
+        (Boolean(request.guest_applicant?.valid_id_front_url) &&
+            Boolean(request.guest_applicant?.valid_id_back_url));
     const requestHasLatestTemplate =
         pdfTemplate &&
         String(request.document_template_version) ===
@@ -296,13 +296,15 @@ export default function RequestWorkflowPanel({
             previous.status !== "completed" &&
             request.document_generation_status === "completed"
         ) {
-            onToast("Official PDF generation completed successfully.", "success");
+            onToast(
+                "Official PDF generation completed successfully.",
+                "success",
+            );
         }
-        previousGenerationStatus.current =
-            {
-                requestId: request.request_id,
-                status: request.document_generation_status,
-            };
+        previousGenerationStatus.current = {
+            requestId: request.request_id,
+            status: request.document_generation_status,
+        };
     }, [onToast, request.document_generation_status, request.request_id]);
 
     useEffect(() => {
@@ -328,12 +330,16 @@ export default function RequestWorkflowPanel({
         request.request_id,
     ]);
 
-    const runAction = async (action, successMessage) => {
+    const runAction = async (
+        action,
+        successMessage,
+        successVariant = "success",
+    ) => {
         setBusy(true);
         onToast(null);
         try {
             await action();
-            onToast(successMessage, "success");
+            onToast(successMessage, successVariant);
             await onRefresh();
             return true;
         } catch (actionError) {
@@ -363,6 +369,7 @@ export default function RequestWorkflowPanel({
                   : nextStatus === "ready_for_pickup"
                     ? "Official document generated; request is ready for pickup."
                     : "Request marked completed.",
+            nextStatus === "rejected" ? "rejected" : "success",
         );
 
     const approveForPickup = async () => {
@@ -392,7 +399,10 @@ export default function RequestWorkflowPanel({
             ? window.open("about:blank", "_blank")
             : null;
         if (pdfPreviewUrl && !printWindow) {
-            onToast("Allow pop-ups to open and print the generated PDF.", "warning");
+            onToast(
+                "Allow pop-ups to open and print the generated PDF.",
+                "warning",
+            );
             return;
         }
         setBusy(true);
@@ -458,6 +468,7 @@ export default function RequestWorkflowPanel({
             complete: isReady || isCompleted,
             current: isSubmitted || isApproved,
             failed: isRejected,
+            pending: automaticPdfPending,
             tone: isRejected
                 ? "rejected"
                 : isReady || isCompleted
@@ -481,7 +492,8 @@ export default function RequestWorkflowPanel({
     ];
 
     return (
-        <div className="request-processing-grid grid items-start gap-4">
+        <>
+            <div className="request-processing-grid grid items-start gap-4">
             <aside className="admin-form-card request-progress-card">
                 <h2 className="form-section-title">Request Progress</h2>
                 <ol className="m-0 list-none space-y-3 p-0">
@@ -756,6 +768,7 @@ export default function RequestWorkflowPanel({
                 )}
 
             </section>
-        </div>
+            </div>
+        </>
     );
 }

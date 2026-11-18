@@ -189,6 +189,10 @@ export default function Profile() {
         const streetNameValue = streetName ?? user?.street_name ?? "";
         const streetNameChanged =
             streetNameValue.trim() !== (user?.street_name || "").trim();
+        if (streetNameChanged && !streetNameValue.trim()) {
+            setError("Enter your street name to update your address.");
+            return;
+        }
         if (
             !Object.keys(files).length &&
             validIdType === (user?.valid_id_type || "") &&
@@ -248,7 +252,7 @@ export default function Profile() {
             <div style={{ width: "100%", maxWidth: 980, margin: "0 auto" }}>
                 <PageHeader
                     title="My Profile"
-                    description="Keep your street name separate from your complete address for accurate document generation."
+                    description="Update your street name. Barangay Aurora, Alicia, Isabela, and postal code 3306 are added automatically."
                 />
                 <SectionCard eyebrow="Account" title={user?.first_name || "Resident"}>
                     <form onSubmit={saveProfile}>
@@ -275,6 +279,7 @@ export default function Profile() {
                             label="Street Name"
                             value={streetName ?? user?.street_name ?? ""}
                             onChange={(event) => setStreetName(event.target.value)}
+                            helperText="Only your street name is editable; the barangay and municipality are fixed."
                             fullWidth
                             margin="normal"
                             inputProps={{ maxLength: 255 }}

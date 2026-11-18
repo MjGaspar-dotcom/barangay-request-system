@@ -7,13 +7,13 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\AuditService;
 use App\Services\IdTypeRecognitionService;
+use App\Support\ResidentAddress;
 use Dunn\LaravelOcr\Exceptions\OcrProcessingException;
 use Dunn\LaravelOcr\Exceptions\TesseractNotFoundException;
 use Dunn\LaravelOcr\Exceptions\UnsupportedLanguageException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
@@ -23,7 +23,7 @@ class UserController extends Controller
     {
         $user = $request->user();
         $validated = $request->validated();
-        $this->composeStructuredAddress($user, $validated);
+        $this->composeStructuredAddress($validated);
         $idTypeDetection = null;
         if ($request->hasFile('valid_id_front')) {
             try {
@@ -168,52 +168,16 @@ class UserController extends Controller
         ]);
     }
 
-    private function composeStructuredAddress(User $user, array &$validated): void
+    private function composeStructuredAddress(array &$validated): void
     {
-        $addressFields = [
-            'street_name',
-            'barangay_name',
-            'municipality',
-            'province',
-            'postal_code',
-        ];
-        if (array_intersect($addressFields, array_keys($validated)) === []) {
+        if (!array_key_exists('street_name', $validated)) {
             return;
         }
 
-        $values = [];
-        foreach (array_slice($addressFields, 0, 4) as $field) {
-            $value = $validated[$field] ?? $user->{$field};
-            if (! is_string($value) || trim($value) === '') {
-                if (array_intersect(
-                    ['barangay_name', 'municipality', 'province', 'postal_code'],
-                    array_keys($validated)
-                ) !== []) {
-                    throw ValidationException::withMessages([
-                        $field => 'Complete all address fields before saving the address.',
-                    ]);
-                }
-
-                return;
-            }
-            $values[] = trim($value);
-        }
-
-        $postalCode = array_key_exists('postal_code', $validated)
-            ? $validated['postal_code']
-            : $user->postal_code;
-        if (is_string($postalCode) && trim($postalCode) !== '') {
-            $values[] = trim($postalCode);
-        }
-
-        $address = implode(', ', $values);
-        if (mb_strlen($address) > 255) {
-            throw ValidationException::withMessages([
-                'address' => 'The combined address must not exceed 255 characters.',
-            ]);
-        }
-
-        $validated['address'] = $address;
+        $validated = array_replace(
+            $validated,
+            ResidentAddress::fromStreetName($validated['street_name'])
+        );
     }
 
     public function showFile(Request $request, User $user, string $field)

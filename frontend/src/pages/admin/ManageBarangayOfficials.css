@@ -1,0 +1,106 @@
+.barangay-officials-page .officials-load-error {
+    margin-bottom: 18px;
+}
+
+.officials-form-heading {
+    margin-bottom: 26px;
+}
+
+.officials-form-heading .form-section-title {
+    margin: 8px 0 6px;
+}
+
+.officials-form-heading p {
+    max-width: 620px;
+    margin: 0;
+    color: var(--gray-600);
+    line-height: 1.6;
+}
+
+.officials-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.officials-field {
+    min-width: 0;
+}
+
+.officials-field .app-input {
+    min-height: 48px;
+}
+
+.officials-field .app-input.is-invalid {
+    border-color: #b42318;
+    box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.1);
+}
+
+.officials-field .app-input.is-invalid:focus {
+    outline-color: rgba(180, 35, 24, 0.22);
+}
+
+.officials-field-error {
+    margin: 7px 0 0;
+    color: #b42318;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+.officials-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.officials-form-note {
+    color: var(--gray-500);
+    font-size: 0.8125rem;
+}
+
+.officials-form-card[aria-busy="true"] {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--gray-600);
+}
+
+.officials-loading-indicator {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--gray-200);
+    border-top-color: var(--brand-700);
+    border-radius: 50%;
+    animation: officials-loading-spin 0.8s linear infinite;
+}
+
+@keyframes officials-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 640px) {
+    .officials-fields {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .officials-form-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .officials-form-actions .app-button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .officials-loading-indicator {
+        animation: none;
+    }
+}

@@ -14,7 +14,12 @@ export function DialogClose(props) {
     return <DialogPrimitive.Close {...props} />;
 }
 
-export function DialogContent({ className, children, ...props }) {
+export function DialogContent({
+    className,
+    children,
+    showCloseButton = true,
+    ...props
+}) {
     return (
         <DialogPrimitive.Portal>
             <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 transition-opacity data-[state=open]:opacity-100 data-[state=closed]:opacity-0" />
@@ -23,10 +28,12 @@ export function DialogContent({ className, children, ...props }) {
                 {...props}
             >
                 {children}
-                <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <X className="h-4 w-4" aria-hidden="true" />
-                    <span className="sr-only">Close</span>
-                </DialogPrimitive.Close>
+                {showCloseButton && (
+                    <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <X className="h-4 w-4" aria-hidden="true" />
+                        <span className="sr-only">Close</span>
+                    </DialogPrimitive.Close>
+                )}
             </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
     );

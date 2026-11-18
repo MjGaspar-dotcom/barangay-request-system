@@ -65,7 +65,7 @@ class DocumentTemplateDataFieldService
         CarbonImmutable $issuedAt
     ): array {
         $request->loadMissing(['user', 'documentType']);
-        $resident = $request->user;
+        $resident = $request->user ?? $request->guestApplicant;
         $profile = DocumentGenerationProfile::query()->find(1);
         $birthDate = $resident?->birth_date
             ? CarbonImmutable::parse($resident->birth_date)

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, LinearProgress } from "@mui/material";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SkeletonLoader from "../../components/ui/SkeletonLoader";
 import { useNavigate, useParams } from "react-router-dom";
 import StatusBadge from "../../components/ui/StatusBadge";
@@ -39,6 +40,7 @@ function RequestDetails() {
     const [actionError, setActionError] = useState("");
     const [actionMessage, setActionMessage] = useState("");
     const [busyDocumentId, setBusyDocumentId] = useState(null);
+    const [documentToDelete, setDocumentToDelete] = useState(null);
     const [numberOfChildren, setNumberOfChildren] = useState("");
     const [savingChildrenCount, setSavingChildrenCount] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -163,10 +165,6 @@ function RequestDetails() {
     };
 
     const deleteSupportingDocument = async (document) => {
-        if (!window.confirm(`Remove "${document.original_name}" from this request?`)) {
-            return;
-        }
-
         setActionError("");
         setActionMessage("");
         setBusyDocumentId(document.request_document_id);
@@ -484,7 +482,9 @@ function RequestDetails() {
                                                 Replace
                                             </Button>
                                             <Button
-                                                onClick={() => deleteSupportingDocument(document)}
+                                                onClick={() =>
+                                                    setDocumentToDelete(document)
+                                                }
                                                 type="button"
                                                 color="error"
                                                 disabled={busyDocumentId !== null}
@@ -545,6 +545,20 @@ function RequestDetails() {
                     </Button>
                 </RequestBackRow>
             </RequestDetailsCard>
+            <ConfirmDialog
+                confirmLabel="Remove document"
+                isOpen={Boolean(documentToDelete)}
+                onClose={() => setDocumentToDelete(null)}
+                onConfirm={() => {
+                    const target = documentToDelete;
+                    setDocumentToDelete(null);
+                    if (target) void deleteSupportingDocument(target);
+                }}
+                title="Remove supporting document?"
+                variant="danger"
+            >
+                Remove “{documentToDelete?.original_name}” from this request?
+            </ConfirmDialog>
         </RequestDetailsPage>
     );
 }

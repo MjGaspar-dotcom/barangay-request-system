@@ -122,10 +122,16 @@ function Dashboard() {
     const adminName =
         user?.first_name || user?.firstName || user?.name || "Administrator";
     const recentRequests = requests.filter(isInCurrentWorkflow).slice(0, 5);
-    const requesterName = (request) =>
-        [request.user?.first_name, request.user?.last_name]
+    const requesterName = (request) => {
+        const applicant = request.user || request.guest_applicant;
+        return [
+            applicant?.first_name,
+            applicant?.middle_name,
+            applicant?.last_name,
+        ]
             .filter(Boolean)
             .join(" ") || "Unknown requester";
+    };
     const formatDate = (value) => {
         if (!value) return "—";
         const date = new Date(value);

@@ -83,6 +83,15 @@ export default function ManageRequests({ isAdmin = true } = {}) {
         if (request.user) {
             return `${request.user.first_name} ${request.user.last_name}`;
         }
+        if (request.guest_applicant) {
+            return [
+                request.guest_applicant.first_name,
+                request.guest_applicant.middle_name,
+                request.guest_applicant.last_name,
+            ]
+                .filter(Boolean)
+                .join(" ");
+        }
         return "Unknown";
     };
 

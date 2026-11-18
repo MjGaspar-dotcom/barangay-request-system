@@ -49,6 +49,12 @@ export const ADMIN_NAV_ITEMS = [
         icon: "person-badge",
     },
     {
+        label: "Barangay Officials",
+        group: "SYSTEM",
+        to: "/admin/barangay-settings",
+        icon: "person-badge",
+    },
+    {
         label: "Recent Activity",
         group: "SYSTEM",
         to: "/admin/recent-activity",

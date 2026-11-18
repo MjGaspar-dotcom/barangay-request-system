@@ -13,10 +13,16 @@ import {
     REQUEST_STATUS_OPTIONS,
 } from "../../utils/requestWorkflow";
 
-const formatRequesterName = (request) =>
-    [request.user?.first_name, request.user?.last_name]
+const formatRequesterName = (request) => {
+    const applicant = request.user || request.guest_applicant;
+    return [
+        applicant?.first_name,
+        applicant?.middle_name,
+        applicant?.last_name,
+    ]
         .filter(Boolean)
         .join(" ") || "Unknown requester";
+};
 
 const formatSubmittedAt = (value) => {
     if (!value) return "—";

@@ -45,12 +45,7 @@ class UpdateUserRequest extends FormRequest
                 'max:50',
                 'in:Single,Married,Separated,Divorced,Widowed',
             ],
-            'address' => ['sometimes', 'string', 'max:255'],
             'street_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'barangay_name' => ['sometimes', 'required', 'string', 'max:255'],
-            'municipality' => ['sometimes', 'required', 'string', 'max:255'],
-            'province' => ['sometimes', 'required', 'string', 'max:255'],
-            'postal_code' => ['sometimes', 'nullable', 'string', 'max:20'],
             'contact_number' => ['sometimes', 'string', 'max:20'],
             'email' => [
                 'sometimes',

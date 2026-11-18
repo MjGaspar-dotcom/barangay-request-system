@@ -5,10 +5,12 @@ use App\Http\Controllers\Api\AdminStaffController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BarangayOfficialsController;
 use App\Http\Controllers\Api\BarangayRequestController;
 use App\Http\Controllers\Api\DocumentRequestTrendController;
 use App\Http\Controllers\Api\DocumentTemplateController;
 use App\Http\Controllers\Api\DocumentTypeController;
+use App\Http\Controllers\Api\GuestApplicantController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OcrTestController;
 use App\Http\Controllers\Api\RecommendationController;
@@ -44,7 +46,17 @@ Route::post('/register', [AuthController::class, 'register'])
 Route::get(
     '/track/{trackingNumber}',
     [BarangayRequestController::class, 'track']
-);
+)->middleware('throttle:30,1');
+
+Route::post(
+    '/guest-requests',
+    [GuestApplicantController::class, 'store']
+)->middleware('throttle:5,1');
+
+Route::get(
+    '/guest-applicants/{guestApplicant}/files/{field}',
+    [GuestApplicantController::class, 'showIdFile']
+)->middleware('signed')->name('api.guest-applicant-file');
 
 // ==========================
 // PROTECTED API
@@ -150,6 +162,10 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
     Route::get('/staff/dashboard-stats', [StaffController::class, 'dashboardStats']);
     Route::get('/staff/requests', [StaffController::class, 'allRequests']);
     Route::get('/staff/recent-activity', [AdminUserController::class, 'recentActivity']);
+    Route::patch(
+        '/barangay-requests/{barangayRequest}/guest-applicant/id-type',
+        [GuestApplicantController::class, 'updateIdType']
+    );
     Route::post(
         '/barangay-requests/{barangayRequest}/approve-and-prepare',
         [BarangayRequestController::class, 'approveAndPrepareForPickup']
@@ -194,6 +210,9 @@ Route::middleware(['auth:sanctum', 'staff.or.admin'])->group(function () {
 // ==========================
 
 Route::middleware(['auth:sanctum', 'admin.only'])->group(function () {
+
+    Route::get('/admin/barangay-officials', [BarangayOfficialsController::class, 'show']);
+    Route::put('/admin/barangay-officials', [BarangayOfficialsController::class, 'update']);
 
     Route::get('/admin/document-templates', [DocumentTemplateController::class, 'index']);
     Route::get(

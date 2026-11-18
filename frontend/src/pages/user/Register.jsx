@@ -17,7 +17,6 @@ function Register() {
         gender: "",
         civil_status: "",
         street_name: "",
-        address: "",
         contact_number: "",
         email: "",
     });
@@ -336,22 +335,10 @@ function Register() {
                                     onChange={handleChange}
                                     required
                                 />
-                            </div>
-
-                            <div className="col-span-full">
-                                <label htmlFor="address" className="app-label">
-                                    Complete Address
-                                </label>
-
-                                <textarea
-                                    id="address"
-                                    name="address"
-                                    className="app-input"
-                                    rows="3"
-                                    value={form.address}
-                                    onChange={handleChange}
-                                    required
-                                />
+                                <p className="field-hint">
+                                    Barangay Aurora, Alicia, Isabela 3306 will
+                                    be added automatically.
+                                </p>
                             </div>
 
                             <div className="md:col-span-6">

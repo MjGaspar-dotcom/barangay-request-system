@@ -40,13 +40,15 @@ class NotificationService
                 ($remarks ? "Feedback: {$remarks}" : '')
             );
 
-        Notification::create([
-            'type' => 'request_status_changed',
-            'user_id' => $request->user_id,
-            'request_id' => $request->request_id,
-            'title' => $title,
-            'message' => $message,
-        ]);
+        if ($request->user_id !== null) {
+            Notification::create([
+                'type' => 'request_status_changed',
+                'user_id' => $request->user_id,
+                'request_id' => $request->request_id,
+                'title' => $title,
+                'message' => $message,
+            ]);
+        }
     }
 
     /**

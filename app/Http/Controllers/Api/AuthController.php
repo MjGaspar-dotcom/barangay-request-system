@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Services\GoogleIdTokenVerifier;
+use App\Support\ResidentAddress;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -134,7 +135,6 @@ class AuthController extends Controller
             'birth_date',
             'gender',
             'civil_status',
-            'address',
             'street_name',
             'contact_number',
         ];
@@ -155,13 +155,13 @@ class AuthController extends Controller
             'birth_date' => ['required', 'date', 'before_or_equal:today'],
             'gender' => ['required', 'string', 'in:Male,Female,Prefer not to say'],
             'civil_status' => ['required', 'string', 'in:Single,Married,Separated,Divorced,Widowed'],
-            'address' => ['required', 'string', 'max:255'],
             'street_name' => ['required', 'string', 'max:255'],
             'contact_number' => ['required', 'string', 'max:20'],
         ]);
 
         $user = User::create([
             ...$profile,
+            ...ResidentAddress::fromStreetName($profile['street_name']),
             'username' => $this->availableGoogleUsername($email),
             'password' => Hash::make(Str::random(64)),
             'email' => $email,
@@ -252,8 +252,7 @@ class AuthController extends Controller
             'birth_date' => $validated['birth_date'],
             'gender' => $validated['gender'],
             'civil_status' => $validated['civil_status'],
-            'address' => $validated['address'],
-            'street_name' => $validated['street_name'],
+            ...ResidentAddress::fromStreetName($validated['street_name']),
             'contact_number' => $validated['contact_number'],
             'email' => $validated['email'],
             'verification_status' => 'pending',

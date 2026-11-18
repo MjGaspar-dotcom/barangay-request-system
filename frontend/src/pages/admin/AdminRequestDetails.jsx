@@ -1,6 +1,7 @@
 import Icon from "../../components/ui/Icon.jsx";
 import { useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
+import GuestApplicantIdVerification from "../../components/requests/GuestApplicantIdVerification";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import AdminLayout from "../../layouts/AdminLayout";
@@ -95,8 +96,14 @@ export default function AdminRequestDetails() {
 
     if (!request) return null;
 
+    const guestApplicant = request.guest_applicant;
     const formatDate = (value) =>
         value ? new Date(value).toLocaleString() : "ΓÇö";
+    const formatBirthDate = (value) => {
+        if (!value) return "—";
+        const date = new Date(`${value}T00:00:00`);
+        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+    };
 
     return (
         <AdminLayout>
@@ -145,7 +152,11 @@ export default function AdminRequestDetails() {
                         <div className="request-details-heading">
                             <span className="section-label">REQUEST DETAILS</span>
                             <h1>{request.tracking_number}</h1>
-                            <p>Registered resident document request</p>
+                            <p>
+                                {guestApplicant
+                                    ? "Guest document request"
+                                    : "Registered resident document request"}
+                            </p>
                         </div>
                     </header>
 
@@ -257,6 +268,66 @@ export default function AdminRequestDetails() {
                                                 </span>
                                             </div>
                                         </div>
+                                    ) : guestApplicant ? (
+                                        <div className="detail-grid">
+                                            <div>
+                                                <span className="detail-label">Name</span>
+                                                <span className="detail-value">
+                                                    {[
+                                                        guestApplicant.first_name,
+                                                        guestApplicant.middle_name,
+                                                        guestApplicant.last_name,
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(" ")}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Middle Name
+                                                </span>
+                                                <span className="detail-value">
+                                                    {guestApplicant.no_middle_name
+                                                        ? "No middle name"
+                                                        : guestApplicant.middle_name ||
+                                                          "Not provided"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Birthday
+                                                </span>
+                                                <span className="detail-value">
+                                                    {formatBirthDate(
+                                                        guestApplicant.birth_date,
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Contact
+                                                </span>
+                                                <span className="detail-value">
+                                                    {guestApplicant.contact_number || "—"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Street Name
+                                                </span>
+                                                <span className="detail-value">
+                                                    {guestApplicant.street_name || "—"}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">
+                                                    Address
+                                                </span>
+                                                <span className="detail-value">
+                                                    {guestApplicant.address || "—"}
+                                                </span>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <p className="mb-0">
                                             Resident profile information is not
@@ -264,6 +335,14 @@ export default function AdminRequestDetails() {
                                         </p>
                                     )}
                                 </div>
+                                {guestApplicant && (
+                                    <GuestApplicantIdVerification
+                                        applicant={guestApplicant}
+                                        key={request.request_id}
+                                        requestId={request.request_id}
+                                        requestStatus={request.status}
+                                    />
+                                )}
                                 <RequestTimeline request={request} />
                             </section>
                         </div>

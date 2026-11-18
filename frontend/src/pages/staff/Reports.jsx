@@ -135,7 +135,7 @@ export default function StaffReports({ isAdmin = false }) {
     const analytics = useMemo(() => {
         const total = requests.length;
         const completed = counts.completed || 0;
-        const open = total - completed - (counts.rejected || 0);
+        const active = (counts.open || 0) + (counts.ready_for_pickup || 0);
 
         const today = new Date();
         const months = Array.from({ length: 6 }, (_, index) => {
@@ -205,7 +205,7 @@ export default function StaffReports({ isAdmin = false }) {
         return {
             total,
             completed,
-            open,
+            active,
             completionRate: total ? Math.round((completed / total) * 100) : 0,
             months,
             topDocuments,
@@ -232,8 +232,12 @@ export default function StaffReports({ isAdmin = false }) {
 
     const requesterName = (request) => {
         const requester = request.user;
+        const guest = request.guest_applicant;
         return (
-            [requester?.first_name, requester?.last_name]
+            [
+                requester?.first_name || guest?.first_name,
+                requester?.last_name || guest?.last_name,
+            ]
                 .filter(Boolean)
                 .join(" ") || "Unknown requester"
         );
@@ -310,15 +314,17 @@ export default function StaffReports({ isAdmin = false }) {
                     <article className="staff-analytics-kpi">
                         <div className="staff-analytics-kpi-heading">
                             <span className="staff-analytics-kpi-label">
-                                OPEN REQUESTS
+                                ACTIVE REQUESTS
                             </span>
                             <span className="staff-analytics-kpi-icon staff-analytics-kpi-icon-open">
                                 <Icon name="inbox" size={18} />
                             </span>
                         </div>
-                        <strong>{loading || error ? "—" : analytics.open}</strong>
+                        <strong>
+                            {loading || error ? "—" : analytics.active}
+                        </strong>
                         <span className="staff-analytics-kpi-note">
-                            Awaiting review, processing, or pickup
+                            Under review, being prepared, or ready for pickup
                         </span>
                     </article>
                     <article className="staff-analytics-kpi">
@@ -338,7 +344,7 @@ export default function StaffReports({ isAdmin = false }) {
                         <span className="staff-analytics-kpi-note">
                             {loading || error
                                 ? "Requests completed"
-                                : `${analytics.completed} of ${analytics.total} requests completed`}
+                                : `${analytics.completed} of ${analytics.total} current requests completed`}
                         </span>
                     </article>
                     <article className="staff-analytics-kpi">
@@ -353,10 +359,12 @@ export default function StaffReports({ isAdmin = false }) {
                         <strong>
                             {loading || error || analytics.averageClaimDays === null
                                 ? "—"
-                                : `${analytics.averageClaimDays.toFixed(1)} days`}
+                                : analytics.averageClaimDays < 1
+                                  ? `${(analytics.averageClaimDays * 24).toFixed(1)} hours`
+                                  : `${analytics.averageClaimDays.toFixed(1)} days`}
                         </strong>
                         <span className="staff-analytics-kpi-note">
-                            Average time from submission to collection
+                            Submission to claim, for completed requests
                         </span>
                     </article>
                     <article className="staff-analytics-kpi">
@@ -374,7 +382,7 @@ export default function StaffReports({ isAdmin = false }) {
                                 : analytics.total}
                         </strong>
                         <span className="staff-analytics-kpi-note">
-                            All requests submitted to the system
+                            All requests in the current workflow
                         </span>
                     </article>
                 </section>

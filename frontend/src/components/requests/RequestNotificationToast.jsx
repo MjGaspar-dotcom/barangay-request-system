@@ -3,14 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import useLiveRefresh from "../../hooks/useLiveRefresh";
-import "./request-notification-toast.css";
+import { useToast } from "../ui/toast-context";
 
 const REQUEST_TOAST_DURATION_MS = 3 * 60 * 1000;
 
 export default function RequestNotificationToast() {
     const { user } = useAuth();
+    const userRole = user?.role;
     const navigate = useNavigate();
     const { pathname } = useLocation();
+    const { dismissToast, showToast } = useToast();
     const isLoginPage = pathname === "/staff/login" || pathname === "/login";
     const isStaffOrAdmin =
         !isLoginPage && ["admin", "staff"].includes(user?.role);
@@ -118,7 +120,7 @@ export default function RequestNotificationToast() {
 
     const activeToast = toastQueue[0] ?? null;
 
-    const dismissToast = useCallback((notificationId) => {
+    const dismissNotification = useCallback((notificationId) => {
         setToastQueue((current) =>
             current.filter(
                 (notification) =>
@@ -128,17 +130,11 @@ export default function RequestNotificationToast() {
         setNotificationError("");
     }, []);
 
-    useEffect(() => {
-        if (!activeToast) return undefined;
+    const notificationToastId = activeToast
+        ? `new-request-${activeToast.notification_id}`
+        : "new-request-notification-error";
 
-        const timer = window.setTimeout(
-            () => dismissToast(activeToast.notification_id),
-            REQUEST_TOAST_DURATION_MS,
-        );
-        return () => window.clearTimeout(timer);
-    }, [activeToast, dismissToast]);
-
-    const openRequest = async () => {
+    const openRequest = useCallback(async () => {
         if (!activeToast) return;
 
         setOpeningNotificationId(activeToast.notification_id);
@@ -147,9 +143,9 @@ export default function RequestNotificationToast() {
             await api.patch(
                 `/notifications/${activeToast.notification_id}/read`,
             );
-            dismissToast(activeToast.notification_id);
+            dismissNotification(activeToast.notification_id);
             navigate(
-                `/${user.role}/requests/${activeToast.request_id}`,
+                `/${userRole}/requests/${activeToast.request_id}`,
             );
         } catch (openError) {
             console.error("Failed to open new-request notification:", openError);
@@ -159,63 +155,64 @@ export default function RequestNotificationToast() {
         } finally {
             setOpeningNotificationId(null);
         }
-    };
+    }, [activeToast, dismissNotification, navigate, userRole]);
 
-    if (!isStaffOrAdmin || (!activeToast && !notificationError)) return null;
+    const dismissActiveToast = useCallback(() => {
+        if (activeToast) {
+            dismissNotification(activeToast.notification_id);
+        } else {
+            setNotificationError("");
+        }
+    }, [activeToast, dismissNotification]);
 
-    return (
-        <aside
-            className="request-notification-toast"
-            role="status"
-            aria-live="polite"
-        >
-            <div className="request-notification-toast-copy">
-                <strong>
-                    {activeToast?.title ||
-                        (notificationError
-                            ? "Notification issue"
-                            : "New Barangay Request")}
-                </strong>
-                <p>
-                    {activeToast?.message ||
-                        "Request notifications could not be refreshed."}
-                </p>
-                {notificationError && (
-                    <span className="request-notification-toast-error">
-                        {notificationError}
-                    </span>
-                )}
-            </div>
-            <div className="request-notification-toast-actions">
-                {activeToast && (
-                    <button
-                        type="button"
-                        className="request-notification-toast-button primary"
-                        disabled={
-                            openingNotificationId ===
-                            activeToast.notification_id
-                        }
-                        onClick={openRequest}
-                    >
-                        {openingNotificationId ===
-                        activeToast.notification_id
-                            ? "Opening..."
-                            : "View request"}
-                    </button>
-                )}
-                <button
-                    type="button"
-                    className="request-notification-toast-button"
-                    disabled={openingNotificationId !== null}
-                    onClick={() =>
-                        activeToast
-                            ? dismissToast(activeToast.notification_id)
-                            : setNotificationError("")
-                    }
-                >
-                    {activeToast ? "Dismiss" : "Close"}
-                </button>
-            </div>
-        </aside>
-    );
+    useEffect(() => {
+        if (!isStaffOrAdmin || (!activeToast && !notificationError)) {
+            return undefined;
+        }
+
+        showToast({
+            id: notificationToastId,
+            title:
+                activeToast?.title ||
+                (notificationError
+                    ? "Notification issue"
+                    : "New Barangay Request"),
+            description:
+                [activeToast?.message, notificationError]
+                    .filter(Boolean)
+                    .join("\n") ||
+                "Request notifications could not be refreshed.",
+            variant: notificationError ? "warning" : "info",
+            duration: activeToast ? REQUEST_TOAST_DURATION_MS : null,
+            action: activeToast
+                ? {
+                      label:
+                          openingNotificationId ===
+                          activeToast.notification_id
+                              ? "Opening..."
+                              : "View request",
+                      disabled:
+                          openingNotificationId ===
+                          activeToast.notification_id,
+                      onClick: openRequest,
+                  }
+                : null,
+            dismissDisabled: openingNotificationId !== null,
+            onDismiss: dismissActiveToast,
+        });
+
+        return () => dismissToast(notificationToastId);
+    }, [
+        activeToast,
+        dismissActiveToast,
+        dismissToast,
+        isStaffOrAdmin,
+        notificationError,
+        notificationToastId,
+        openRequest,
+        openingNotificationId,
+        showToast,
+    ]);
+
+    return null;
 }

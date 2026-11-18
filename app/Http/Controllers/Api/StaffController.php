@@ -57,6 +57,7 @@ class StaffController extends Controller
     {
         $requests = BarangayRequest::with([
             'user',
+            'guestApplicant',
             'documentType',
             'verifier',
             'workflowMigrationIssue',
@@ -76,6 +77,7 @@ class StaffController extends Controller
                     'prepared_document_id'=> $request->prepared_document_id,
                     'workflow_migration_issue' => $request->workflowMigrationIssue,
                     'user'                => $request->user,
+                    'guest_applicant'     => $request->guestApplicant,
                     'document_type'       => $request->documentType,
                     'verified_by'         => $request->verifier,
                     'verified_at'         => $request->verified_at,

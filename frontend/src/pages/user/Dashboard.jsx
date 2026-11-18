@@ -2,7 +2,6 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ListAltRoundedIcon from "@mui/icons-material/ListAltRounded";
 import { Chip } from "@mui/material";
 import ActionCard from "../../components/ui/ActionCard";
-import NotificationCenter from "../../components/dashboard/NotificationCenter";
 import ForYouRecommendations from "../../components/ForYouRecommendations";
 import PageHeader from "../../components/ui/PageHeader";
 import PortalWorkspace from "../../components/ui/PortalWorkspace";
@@ -39,8 +38,6 @@ function Dashboard() {
                         }
                         description="Access your barangay document services, submit requests, and monitor their progress in one place."
                     />
-
-                    <NotificationCenter />
 
                     <ResidentActions>
                         <ActionCard

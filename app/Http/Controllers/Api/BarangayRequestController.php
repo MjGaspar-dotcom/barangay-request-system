@@ -40,6 +40,7 @@ class BarangayRequestController extends Controller
         $query = BarangayRequest::with([
             'documentType',
             'verifier',
+            'guestApplicant',
             'workflowMigrationIssue',
         ]);
 
@@ -238,6 +239,7 @@ class BarangayRequestController extends Controller
 
         if ($user->staff || $user->admin) {
             $relations[] = 'user';
+            $relations[] = 'guestApplicant';
         }
 
         $barangayRequest->load($relations);
@@ -1277,6 +1279,7 @@ class BarangayRequestController extends Controller
                 'rejection_reason' => $request->rejection_reason,
                 'rejection_other' => $request->rejection_other,
                 'decision_at' => $request->decision_at,
+                'request_type' => $request->user_id === null ? 'guest' : 'registered',
             ],
         ]);
     }

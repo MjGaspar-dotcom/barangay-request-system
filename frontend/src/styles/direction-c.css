@@ -1467,8 +1467,7 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
   box-shadow: none;
 }
 .portal-staff-workspace .staff-stat-card,
-.portal-staff-workspace .staff-work-card,
-.portal-staff-workspace .dashboard-notifications {
+.portal-staff-workspace .staff-work-card {
   border-color: #d8e7e4;
   border-radius: 8px;
   background: #fff;
@@ -1485,15 +1484,6 @@ body { font-family: var(--font-sans); color: var(--c-text); background: var(--su
 .portal-staff-workspace .staff-dashboard-page .staff-work-card {
   min-height: 0;
   padding: 16px;
-}
-.portal-staff-workspace .dashboard-notifications-header {
-  border-bottom-color: #dcebe8;
-}
-.portal-staff-workspace .dashboard-notifications-label {
-  color: var(--brand-800);
-}
-.portal-staff-workspace .dashboard-notification.unread {
-  border-left-color: var(--brand-800);
 }
 .portal-staff-workspace .staff-request-queue-page .staff-queue-panel {
   border-color: #d3e4e0;

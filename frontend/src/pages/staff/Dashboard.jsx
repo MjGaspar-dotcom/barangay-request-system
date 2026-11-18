@@ -110,10 +110,16 @@ function Dashboard() {
         const date = new Date(value);
         return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
     };
-    const requesterName = (request) =>
-        [request.user?.first_name, request.user?.last_name]
+    const requesterName = (request) => {
+        const applicant = request.user || request.guest_applicant;
+        return [
+            applicant?.first_name,
+            applicant?.middle_name,
+            applicant?.last_name,
+        ]
             .filter(Boolean)
             .join(" ") || "Unknown requester";
+    };
     const overviewCards = [
         {
             label: "DOCUMENT REQUESTS",

@@ -1,12 +1,15 @@
-import Button from "./Button";
+import { CircleAlert, ShieldCheck } from "lucide-react";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "./dialog";
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogMedia,
+    AlertDialogTitle,
+} from "./alert-dialog";
 
 export default function ConfirmDialog({
     isOpen = false,
@@ -19,29 +22,49 @@ export default function ConfirmDialog({
     contentClassName,
 }) {
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
-            <DialogContent
+        <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose?.()}>
+            <AlertDialogContent
                 aria-describedby="confirm-dialog-description"
+                aria-labelledby="confirm-dialog-title"
                 className={contentClassName}
             >
-                <DialogHeader>
-                    <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
-                </DialogHeader>
-                <DialogDescription id="confirm-dialog-description" asChild>
-                    <div>{children}</div>
-                </DialogDescription>
-                <DialogFooter>
-                    <Button variant="outline-secondary" onClick={onClose}>
+                <AlertDialogHeader>
+                    <AlertDialogMedia
+                        className={
+                            variant === "danger"
+                                ? "is-danger"
+                                : undefined
+                        }
+                    >
+                        {variant === "danger" ? (
+                            <CircleAlert aria-hidden="true" />
+                        ) : (
+                            <ShieldCheck aria-hidden="true" />
+                        )}
+                    </AlertDialogMedia>
+                    <div className="alert-dialog-copy">
+                        <AlertDialogTitle id="confirm-dialog-title">
+                            {title}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription
+                            id="confirm-dialog-description"
+                        >
+                            {children}
+                        </AlertDialogDescription>
+                    </div>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>
                         Cancel
-                    </Button>
-                    <Button
+                    </AlertDialogCancel>
+                    <AlertDialogAction
                         variant={variant === "danger" ? "danger" : "primary"}
                         onClick={onConfirm}
                     >
                         {confirmLabel}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 }
