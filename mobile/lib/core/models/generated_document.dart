@@ -1,14 +1,12 @@
 class GeneratedDocument {
-  final int? id;
   final bool isPdf;
   final Map<String, dynamic> documentData;
   final String? documentNumber;
   final String? originalName;
   final int? versionNumber;
-  final DateTime? generatedAt;
+  final String? generatedAt;
 
   const GeneratedDocument({
-    this.id,
     required this.isPdf,
     required this.documentData,
     this.documentNumber,
@@ -27,18 +25,6 @@ class GeneratedDocument {
     }
 
     return 'barangay-document.pdf';
-  }
-
-  factory GeneratedDocument.fromJson(Map<String, dynamic> json) {
-    return GeneratedDocument(
-      id: int.tryParse(json['generated_document_id']?.toString() ?? ''),
-      isPdf: true,
-      documentData: const {},
-      documentNumber: json['document_number']?.toString(),
-      originalName: json['original_name']?.toString(),
-      versionNumber: int.tryParse(json['version_number']?.toString() ?? ''),
-      generatedAt: DateTime.tryParse(json['generated_at']?.toString() ?? ''),
-    );
   }
 
   factory GeneratedDocument.fromApiResponse(dynamic response) {
@@ -64,7 +50,6 @@ class GeneratedDocument {
         : <String, dynamic>{};
 
     return GeneratedDocument(
-      id: int.tryParse(metadataMap['generated_document_id']?.toString() ?? ''),
       isPdf: payload['is_pdf'] == true,
       documentData: document,
       documentNumber:
@@ -74,11 +59,9 @@ class GeneratedDocument {
       versionNumber: int.tryParse(
         metadataMap['version_number']?.toString() ?? '',
       ),
-      generatedAt: DateTime.tryParse(
-        (metadataMap['generated_at'] ?? document['document_generated_at'])
-                ?.toString() ??
-            '',
-      ),
+      generatedAt:
+          (metadataMap['generated_at'] ?? document['document_generated_at'])
+              ?.toString(),
     );
   }
 }

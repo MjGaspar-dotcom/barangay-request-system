@@ -9,6 +9,7 @@ import 'package:barangay_mobile/core/providers/notification_provider.dart';
 import 'package:barangay_mobile/core/providers/request_provider.dart';
 import 'package:barangay_mobile/ui/screens/guest/track_request_screen.dart';
 import 'package:barangay_mobile/ui/screens/home/home_screen.dart';
+import 'package:barangay_mobile/ui/screens/profile/profile_screen.dart';
 import 'package:barangay_mobile/ui/widgets/status_chip.dart';
 
 class _AutoSyncRequestProvider extends RequestProvider {
@@ -174,6 +175,51 @@ void main() {
       requestProvider.refreshCalls.where((silent) => silent).length,
       silentRefreshCountBefore + 1,
     );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('dashboard does not show the settings menu', (tester) async {
+    final requestProvider = _AutoSyncRequestProvider();
+    final notificationProvider = _IdleNotificationProvider();
+    addTearDown(requestProvider.dispose);
+    addTearDown(notificationProvider.dispose);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider<RequestProvider>.value(
+            value: requestProvider,
+          ),
+          ChangeNotifierProvider<NotificationProvider>.value(
+            value: notificationProvider,
+          ),
+        ],
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byTooltip('Settings'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('profile settings menu includes account actions', (tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(home: ProfileScreen()),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Personal information'), findsOneWidget);
+    expect(find.text('Change password'), findsOneWidget);
+    expect(find.text('Logout'), findsOneWidget);
+
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:dio/dio.dart';
 
 import '../../../core/providers/request_provider.dart';
 import '../../../core/models/request_model.dart';
-import '../../../core/services/api_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../widgets/qr_receipt_dialog.dart';
 import '../../widgets/status_chip.dart';
-import '../guest/track_request_screen.dart';
 import 'create_request_screen.dart';
-import 'generated_document_screen.dart';
+import '../guest/track_request_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
@@ -158,119 +155,6 @@ class _RequestListItem extends StatelessWidget {
   final BarangayRequest request;
   const _RequestListItem({required this.request});
 
-  Future<void> _completeBusinessDetails(BuildContext context) async {
-    final requestProvider = context.read<RequestProvider>();
-    final formKey = GlobalKey<FormState>();
-    final businessName = TextEditingController(
-      text: request.requestData?['business_name']?.toString() ?? '',
-    );
-    final businessAddress = TextEditingController(
-      text: request.requestData?['business_address']?.toString() ?? '',
-    );
-    final businessActivity = TextEditingController(
-      text: request.requestData?['business_activity']?.toString() ?? '',
-    );
-
-    final shouldSave = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Business Details'),
-        content: SingleChildScrollView(
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: businessName,
-                  decoration: const InputDecoration(labelText: 'Business name'),
-                  validator: _requiredValue,
-                ),
-                TextFormField(
-                  controller: businessAddress,
-                  decoration:
-                      const InputDecoration(labelText: 'Business address'),
-                  validator: _requiredValue,
-                ),
-                TextFormField(
-                  controller: businessActivity,
-                  decoration:
-                      const InputDecoration(labelText: 'Nature of business'),
-                  validator: _requiredValue,
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() ?? false) {
-                Navigator.of(dialogContext).pop(true);
-              }
-            },
-            child: const Text('Generate PDF'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldSave != true) {
-      businessName.dispose();
-      businessAddress.dispose();
-      businessActivity.dispose();
-      return;
-    }
-
-    try {
-      final response = await ApiService.updateBusinessDetails(
-        request.id,
-        {
-          'business_name': businessName.text.trim(),
-          'business_address': businessAddress.text.trim(),
-          'business_activity': businessActivity.text.trim(),
-        },
-      );
-      if (response.data is! Map || response.data['success'] != true) {
-        throw const FormatException('The PDF could not be generated.');
-      }
-
-      await requestProvider.fetchMyRequests();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Business details saved. Your PDF is generating in the background.',
-            ),
-          ),
-        );
-      }
-    } on DioException catch (exception) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiService.errorMessage(exception))),
-        );
-      }
-    } on FormatException catch (exception) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(exception.message)),
-        );
-      }
-    } finally {
-      businessName.dispose();
-      businessAddress.dispose();
-      businessActivity.dispose();
-    }
-  }
-
-  String? _requiredValue(String? value) =>
-      value == null || value.trim().isEmpty ? 'This field is required' : null;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -350,19 +234,6 @@ class _RequestListItem extends StatelessWidget {
               color: AppColors.textSubtle,
             ),
           ),
-          if (request.needsBusinessDetails) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              key: Key('btn_business_details_${request.id}'),
-              onPressed: () => _completeBusinessDetails(context),
-              icon: const Icon(Icons.edit_note),
-              label: const Text('Complete Business Details'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A6B4A),
-                side: const BorderSide(color: Color(0xFF1A6B4A)),
-              ),
-            ),
-          ],
           if (request.trackingNumber?.isNotEmpty == true) ...[
             const SizedBox(height: 12),
             Wrap(
@@ -380,28 +251,15 @@ class _RequestListItem extends StatelessWidget {
                   icon: const Icon(Icons.timeline, size: 18),
                   label: const Text('Track'),
                 ),
-                if (request.qrCodeSvg?.isNotEmpty == true)
+                if (request.trackingNumber?.isNotEmpty == true)
                   TextButton.icon(
                     onPressed: () => QrReceiptDialog.show(
                       context,
                       trackingNumber: request.trackingNumber!,
-                      qrCodeSvg: request.qrCodeSvg,
                       documentName: request.documentType?.name,
                     ),
                     icon: const Icon(Icons.qr_code_2, size: 18),
                     label: const Text('QR receipt'),
-                  ),
-                if (_hasGeneratedDocument)
-                  TextButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => GeneratedDocumentScreen(
-                          request: request,
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.description_outlined, size: 18),
-                    label: const Text('Generated document'),
                   ),
               ],
             ),
@@ -409,13 +267,6 @@ class _RequestListItem extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  bool get _hasGeneratedDocument {
-    final status = request.status.toLowerCase().replaceAll('_', ' ');
-    return request.hasGeneratedPdf ||
-        status == 'ready for pickup' ||
-        status == 'completed';
   }
 
   String _formatDate(String raw) {

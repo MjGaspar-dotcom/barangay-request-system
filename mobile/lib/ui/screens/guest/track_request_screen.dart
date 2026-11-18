@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/services/qr_code_image_scanner.dart';
 import '../../../core/providers/request_provider.dart';
 import '../../../core/models/request_model.dart';
+import '../../../core/utils/qr_image_decoder.dart';
 import '../../widgets/loading_button.dart';
 import '../../widgets/status_chip.dart';
 
@@ -26,6 +27,7 @@ class _TrackRequestScreenState extends State<TrackRequestScreen>
   String? _trackingNumberToRefresh;
   bool _isAppResumed = true;
   bool _isReadingQr = false;
+  String? _qrProgressMessage;
 
   @override
   void initState() {
@@ -90,34 +92,57 @@ class _TrackRequestScreenState extends State<TrackRequestScreen>
   Future<void> _uploadQrCode() async {
     final imageFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
+      imageQuality: 90,
       maxWidth: 2000,
       maxHeight: 2000,
     );
     if (imageFile == null || !mounted) return;
 
-    setState(() => _isReadingQr = true);
+    setState(() {
+      _isReadingQr = true;
+      _qrProgressMessage = 'Preparing image...';
+    });
+    String trackingNumber;
     try {
+      await Future<void>.delayed(Duration.zero);
       final imageBytes = await imageFile.readAsBytes();
       if (!mounted) return;
-      final payload = QrCodeImageScanner.decode(imageBytes);
-      final trackingNumber = _trackingNumberFromQr(payload);
-      if (trackingNumber.isEmpty) {
+
+      setState(() => _qrProgressMessage = 'Reading QR code...');
+      await Future<void>.delayed(Duration.zero);
+      final payload = await compute(
+        decodeQrPayloadFromImageBytes,
+        imageBytes,
+        debugLabel: 'decode-request-qr',
+      );
+      final decodedTrackingNumber = _trackingNumberFromQr(payload);
+      if (decodedTrackingNumber.isEmpty) {
         throw const FormatException(
             'The QR code does not contain a tracking number.');
       }
-
-      _trackingCtrl.text = trackingNumber;
-      setState(() => _isReadingQr = false);
-      await _track();
-    } catch (_) {
+      trackingNumber = decodedTrackingNumber;
+    } catch (error, stackTrace) {
+      debugPrint('Uploaded QR code could not be read: $error\n$stackTrace');
       if (!mounted) return;
-      setState(() => _isReadingQr = false);
+      setState(() {
+        _isReadingQr = false;
+        _qrProgressMessage = null;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Could not read a tracking number from that QR image.'),
         ),
       );
+      return;
     }
+
+    if (!mounted) return;
+    _trackingCtrl.text = trackingNumber;
+    setState(() {
+      _isReadingQr = false;
+      _qrProgressMessage = null;
+    });
+    await _track();
   }
 
   String _trackingNumberFromQr(String payload) {
@@ -220,6 +245,25 @@ class _TrackRequestScreenState extends State<TrackRequestScreen>
                         ),
                       ),
                     ),
+                    if (_isReadingQr) ...[
+                      const SizedBox(height: 10),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: const LinearProgressIndicator(
+                          minHeight: 4,
+                          semanticsLabel: 'Reading uploaded QR code',
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _qrProgressMessage ?? 'Reading QR code...',
+                        key: const Key('track_qr_progress_message'),
+                        style: const TextStyle(
+                          color: Color(0xFF52645A),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     LoadingButton(
                       id: 'btn_track_submit',
@@ -399,19 +443,10 @@ class RequestStatusTimeline extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(height: 24),
-        Text(
-          isRejected ? 'Request Rejected' : 'Status timeline',
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+        const Text(
+          'Status timeline',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         ),
-        if (isRejected &&
-            result.remarks != null &&
-            result.remarks!.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Text(
-            result.remarks!,
-            style: const TextStyle(color: Color(0xFFC62828), fontSize: 12),
-          ),
-        ],
         const SizedBox(height: 12),
         for (final entry in steps.asMap().entries)
           _TimelineRow(

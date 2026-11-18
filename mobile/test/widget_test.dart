@@ -25,7 +25,7 @@ void main() {
     expect(find.text('Try again'), findsOneWidget);
   });
 
-  testWidgets('landing screen omits guest requests but keeps request tracking',
+  testWidgets('landing screen offers guest access and request tracking',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: LandingScreen()),
@@ -33,9 +33,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Image), findsOneWidget);
-    expect(find.text('Guest Request (No Account)'), findsNothing);
     expect(find.byKey(const Key('btn_guest_request')), findsNothing);
+    expect(find.byKey(const Key('btn_continue_as_guest')), findsOneWidget);
     expect(find.text('Track an Existing Request'), findsOneWidget);
+    expect(find.text("Don't have an account? Register"), findsNothing);
+  });
+
+  testWidgets('landing guest option opens guest request and tracking choices',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: LandingScreen()),
+    );
+
+    await tester.tap(find.byKey(const Key('btn_continue_as_guest')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No account is needed'), findsOneWidget);
+    expect(find.byKey(const Key('btn_guest_request')), findsOneWidget);
+    expect(find.byKey(const Key('btn_guest_track_request')), findsOneWidget);
   });
 
   testWidgets('login screen shows the unconfigured Google sign-in option',
@@ -55,6 +70,19 @@ void main() {
       find.textContaining('GOOGLE_WEB_CLIENT_ID'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('guest access is not shown on the resident login screen',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthProvider(),
+        child: const MaterialApp(home: LoginScreen()),
+      ),
+    );
+
+    expect(find.byKey(const Key('btn_continue_as_guest')), findsNothing);
+    expect(find.text("Don't have an account? Register"), findsOneWidget);
   });
 
   testWidgets('registration screen shows the Google sign-in option',
@@ -84,7 +112,7 @@ void main() {
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, 0);
+    expect(find.text('Step 1 of 2'), findsOneWidget);
     expect(find.text('Required'), findsOneWidget);
     expect(find.text('Valid email required'), findsOneWidget);
   });
@@ -112,7 +140,7 @@ void main() {
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, 0);
+    expect(find.text('Step 1 of 2'), findsOneWidget);
     expect(find.text('Password must be at least 8 characters'), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('reg_password')), '12345678');
@@ -122,7 +150,7 @@ void main() {
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
 
-    expect(tester.widget<Stepper>(find.byType(Stepper)).currentStep, 1);
+    expect(find.text('Step 2 of 2'), findsOneWidget);
   });
 
   testWidgets('registration name fields stack on narrow mobile screens',
@@ -211,6 +239,8 @@ void main() {
     expect(find.byKey(const Key('reg_street_name')), findsOneWidget);
     expect(find.byKey(const Key('reg_barangay_name')), findsOneWidget);
 
+    final barangayName = tester
+        .widget<TextFormField>(find.byKey(const Key('reg_barangay_name')));
     final municipality =
         tester.widget<TextFormField>(find.byKey(const Key('reg_municipality')));
     final province =
@@ -218,10 +248,19 @@ void main() {
     final postalCode =
         tester.widget<TextFormField>(find.byKey(const Key('reg_postal_code')));
 
+    expect(barangayName.controller?.text, 'Barangay Aurora');
     expect(municipality.controller?.text, 'Alicia');
     expect(province.controller?.text, 'Isabela');
     expect(postalCode.controller?.text, '3306');
+    final streetEditableText = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byKey(const Key('reg_street_name')),
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(streetEditableText.readOnly, isFalse);
     for (final key in [
+      const Key('reg_barangay_name'),
       const Key('reg_municipality'),
       const Key('reg_province'),
       const Key('reg_postal_code'),

@@ -58,9 +58,9 @@ class BarangayRequest {
   final String createdAt;
   final String? updatedAt;
   final DocumentType? documentType;
+  final Map<String, dynamic>? requestData;
   final String purpose;
   final bool hasGeneratedPdf;
-  final Map<String, dynamic>? requestData;
 
   BarangayRequest({
     required this.id,
@@ -72,9 +72,9 @@ class BarangayRequest {
     required this.createdAt,
     this.updatedAt,
     this.documentType,
+    this.requestData,
     required this.purpose,
     this.hasGeneratedPdf = false,
-    this.requestData,
   }) : qrCodeSvg = qrCodeSvg ?? qrCode;
 
   static int compareNewestFirst(BarangayRequest a, BarangayRequest b) {
@@ -99,9 +99,9 @@ class BarangayRequest {
       createdAt: createdAt,
       updatedAt: updatedAt,
       documentType: documentType,
+      requestData: requestData,
       purpose: purpose,
       hasGeneratedPdf: hasGeneratedPdf,
-      requestData: requestData,
     );
   }
 
@@ -122,12 +122,12 @@ class BarangayRequest {
               Map<String, dynamic>.from(json['document_type'] as Map),
             )
           : null,
-      purpose: json['purpose']?.toString() ?? '',
-      hasGeneratedPdf: json['has_generated_pdf'] == true ||
-          json['has_generated_pdf']?.toString() == '1',
       requestData: json['request_data'] is Map
           ? Map<String, dynamic>.from(json['request_data'] as Map)
           : null,
+      purpose: json['purpose']?.toString() ?? '',
+      hasGeneratedPdf: json['has_generated_pdf'] == true ||
+          json['has_generated_pdf']?.toString() == '1',
     );
   }
 

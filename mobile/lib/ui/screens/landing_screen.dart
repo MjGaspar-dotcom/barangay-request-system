@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'auth/login_screen.dart';
-import 'auth/register_screen.dart';
+import 'guest/guest_access_screen.dart';
 import 'guest/track_request_screen.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -110,6 +110,19 @@ class LandingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _LandingButton(
+                    id: 'btn_continue_as_guest',
+                    label: 'Continue as Guest',
+                    icon: Icons.person_outline,
+                    isPrimary: false,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const GuestAccessScreen(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _LandingButton(
                     id: 'btn_track_request',
                     label: 'Track an Existing Request',
                     icon: Icons.search,
@@ -120,23 +133,6 @@ class LandingScreen extends StatelessWidget {
                           builder: (_) => const TrackRequestScreen()),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Center(
-                    child: TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const RegisterScreen()),
-                      ),
-                      child: Text(
-                        "Don't have an account? Register",
-                        style: TextStyle(
-                          color: AppColors.surface.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),

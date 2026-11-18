@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/request_model.dart';
 import '../services/api_service.dart';
@@ -17,8 +18,6 @@ class RequestProvider extends ChangeNotifier {
   DocumentTypesStatus _documentTypesStatus = DocumentTypesStatus.initial;
   String? _documentTypesError;
   TrackResult? _trackResult;
-  BarangayRequest? _submittedRequest;
-  int? _submittedGeneratedDocumentId;
   String? _errorMessage;
   String? _successMessage;
   BarangayRequest? _lastCreatedRequest;
@@ -34,8 +33,6 @@ class RequestProvider extends ChangeNotifier {
   DocumentTypesStatus get documentTypesStatus => _documentTypesStatus;
   String? get documentTypesError => _documentTypesError;
   TrackResult? get trackResult => _trackResult;
-  BarangayRequest? get submittedRequest => _submittedRequest;
-  int? get submittedGeneratedDocumentId => _submittedGeneratedDocumentId;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
   BarangayRequest? get lastCreatedRequest => _lastCreatedRequest;
@@ -174,61 +171,50 @@ class RequestProvider extends ChangeNotifier {
   Future<bool> createRegisteredRequest({
     required int documentTypeId,
     required String purpose,
-    Map<String, dynamic>? requestData,
     Map<String, dynamic>? requestDetails,
   }) async {
     if (_status == RequestStatus.submitting) return false;
 
     _status = RequestStatus.submitting;
     _errorMessage = null;
-    _submittedRequest = null;
     _lastCreatedRequest = null;
-    _submittedGeneratedDocumentId = null;
     notifyListeners();
     try {
-      final requestPayload = <String, dynamic>{
+      final response = await ApiService.createRequest({
         'document_type_id': documentTypeId,
         'purpose': purpose,
-      };
-      final submittedDetails = requestData ?? requestDetails;
-      if (submittedDetails != null && submittedDetails.isNotEmpty) {
-        requestPayload['request_data'] = submittedDetails;
-      }
-      final response = await ApiService.createRequest(requestPayload);
+        if (requestDetails != null) 'request_data': requestDetails,
+      });
       final payload = response.data;
-      if (payload is! Map || payload['success'] != true) {
-        throw const FormatException(
-            'The request submission response was invalid.');
+      if (payload is! Map || payload['success'] == false) {
+        throw FormatException(
+          payload is Map
+              ? payload['message']?.toString() ??
+                  'The server did not confirm the request.'
+              : 'Invalid request submission response.',
+        );
       }
 
       final data = payload['data'];
-      if (data is! Map || data['request'] is! Map) {
-        throw const FormatException('The submitted request was not returned.');
-      }
-
-      final qrCode = data['qr_code']?.toString();
-
-      final submittedRequestData =
-          Map<String, dynamic>.from(data['request'] as Map);
-      final generatedDocument = data['generated_document'];
-      if (generatedDocument is Map) {
-        _submittedGeneratedDocumentId = int.tryParse(
-          generatedDocument['generated_document_id']?.toString() ?? '',
+      final requestData = data is Map ? data['request'] : null;
+      if (requestData is! Map) {
+        throw const FormatException(
+          'The server did not return the submitted request.',
         );
       }
-      if (qrCode?.trimLeft().startsWith('<svg') == true) {
-        submittedRequestData['qr_code'] = qrCode;
+      final request = BarangayRequest.fromJson(
+        Map<String, dynamic>.from(requestData),
+      );
+      if (request.trackingNumber == null ||
+          request.trackingNumber!.trim().isEmpty) {
+        throw const FormatException(
+          'The server did not return a tracking number.',
+        );
       }
-      submittedRequestData['document_type'] ??= {
-        'id': documentTypeId,
-        'name': _documentTypeName(documentTypeId),
-      };
-      _submittedRequest = BarangayRequest.fromJson(submittedRequestData);
-      _lastCreatedRequest = _submittedRequest;
-      _requests = [
-        _submittedRequest!,
-        ..._requests.where((request) => request.id != _submittedRequest!.id),
-      ];
+
+      _lastCreatedRequest = request.copyWithQrCode(
+        data is Map ? data['qr_code']?.toString() : null,
+      );
       _status = RequestStatus.success;
       _successMessage = 'Request submitted successfully!';
       notifyListeners();
@@ -247,13 +233,6 @@ class RequestProvider extends ChangeNotifier {
     }
   }
 
-  String _documentTypeName(int id) {
-    for (final documentType in _documentTypes) {
-      if (documentType.id == id) return documentType.name;
-    }
-    return 'Document Request';
-  }
-
   Future<bool> trackRequest(
     String trackingNumber, {
     bool silent = false,
@@ -268,6 +247,7 @@ class RequestProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
     }
+
     try {
       final response = await ApiService.trackRequest(trackingNumber);
       final data = response.data;
@@ -314,6 +294,101 @@ class RequestProvider extends ChangeNotifier {
       if (_activeTrackRequestId == requestId) {
         _activeTrackRequestId = null;
       }
+    }
+  }
+
+  Future<bool> createGuestRequest({
+    required String firstName,
+    required String? middleName,
+    required bool noMiddleName,
+    required String lastName,
+    required String birthDate,
+    required String contactNumber,
+    required String streetName,
+    required XFile validIdFront,
+    required XFile validIdBack,
+    required int documentTypeId,
+    required String purpose,
+    Map<String, dynamic>? requestDetails,
+  }) async {
+    if (_status == RequestStatus.submitting) return false;
+
+    _status = RequestStatus.submitting;
+    _errorMessage = null;
+    _lastCreatedRequest = null;
+    notifyListeners();
+    try {
+      final formData = FormData.fromMap({
+        'first_name': firstName,
+        'middle_name': middleName ?? '',
+        'no_middle_name': noMiddleName ? '1' : '0',
+        'last_name': lastName,
+        'birth_date': birthDate,
+        'contact_number': contactNumber,
+        'street_name': streetName,
+        'valid_id_front': MultipartFile.fromBytes(
+          await validIdFront.readAsBytes(),
+          filename: validIdFront.name,
+        ),
+        'valid_id_back': MultipartFile.fromBytes(
+          await validIdBack.readAsBytes(),
+          filename: validIdBack.name,
+        ),
+        'document_type_id': documentTypeId,
+        'purpose': purpose,
+        if (requestDetails != null) 'request_data': requestDetails,
+      });
+      final response = await ApiService.createGuestRequest(formData);
+      final payload = response.data;
+      if (payload is! Map || payload['success'] != true) {
+        throw FormatException(
+          payload is Map
+              ? payload['message']?.toString() ??
+                  'The server did not confirm the guest request.'
+              : 'Invalid guest request submission response.',
+        );
+      }
+
+      final data = payload['data'];
+      final requestData = data is Map ? data['request'] : null;
+      if (requestData is! Map) {
+        throw const FormatException(
+          'The server did not return the guest request receipt.',
+        );
+      }
+      final request = BarangayRequest.fromJson(
+        Map<String, dynamic>.from(requestData),
+      );
+      if (request.trackingNumber == null ||
+          request.trackingNumber!.trim().isEmpty) {
+        throw const FormatException(
+          'The server did not return a tracking number.',
+        );
+      }
+
+      _lastCreatedRequest = request.copyWithQrCode(
+        data is Map ? data['qr_code']?.toString() : null,
+      );
+      _status = RequestStatus.success;
+      _successMessage = 'Guest request submitted successfully!';
+      notifyListeners();
+      return true;
+    } on DioException catch (error) {
+      _errorMessage = ApiService.errorMessage(error);
+      _status = RequestStatus.error;
+      notifyListeners();
+      return false;
+    } on FormatException catch (error) {
+      _errorMessage = error.message;
+      _status = RequestStatus.error;
+      notifyListeners();
+      return false;
+    } on Exception {
+      _errorMessage =
+          'Could not prepare the ID photos. Please select both images again.';
+      _status = RequestStatus.error;
+      notifyListeners();
+      return false;
     }
   }
 

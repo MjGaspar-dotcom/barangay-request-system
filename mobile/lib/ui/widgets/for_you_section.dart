@@ -6,7 +6,6 @@ import '../../core/theme/app_theme.dart';
 
 class ForYouSection extends StatelessWidget {
   final List<DocumentType> recommendedDocuments;
-  final List<DocumentType> documentTypes;
   final DocumentTypesStatus status;
   final String? ageGroup;
   final String? errorMessage;
@@ -16,7 +15,6 @@ class ForYouSection extends StatelessWidget {
   const ForYouSection({
     super.key,
     required this.recommendedDocuments,
-    required this.documentTypes,
     required this.status,
     required this.ageGroup,
     required this.errorMessage,
@@ -87,138 +85,6 @@ class ForYouSection extends StatelessWidget {
           _FeedRefreshWarning(
             message: errorMessage!,
             onRetry: onRetry,
-          ),
-        const SizedBox(height: 20),
-        _DocumentTypesSection(
-          documentTypes: documentTypes,
-          status: status,
-          errorMessage: errorMessage,
-          onRetry: onRetry,
-          onRequest: onRequestDocument,
-        ),
-      ],
-    );
-  }
-}
-
-class _DocumentTypesSection extends StatefulWidget {
-  final List<DocumentType> documentTypes;
-  final DocumentTypesStatus status;
-  final String? errorMessage;
-  final VoidCallback onRetry;
-  final ValueChanged<DocumentType> onRequest;
-
-  const _DocumentTypesSection({
-    required this.documentTypes,
-    required this.status,
-    required this.errorMessage,
-    required this.onRetry,
-    required this.onRequest,
-  });
-
-  @override
-  State<_DocumentTypesSection> createState() => _DocumentTypesSectionState();
-}
-
-class _DocumentTypesSectionState extends State<_DocumentTypesSection> {
-  static const _pageSize = 3;
-  int _currentPage = 0;
-
-  @override
-  void didUpdateWidget(covariant _DocumentTypesSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final lastPage = widget.documentTypes.isEmpty
-        ? 0
-        : (widget.documentTypes.length - 1) ~/ _pageSize;
-    if (_currentPage > lastPage) {
-      _currentPage = lastPage;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final pageCount = (widget.documentTypes.length / _pageSize).ceil();
-    final pageDocuments = widget.documentTypes
-        .skip(_currentPage * _pageSize)
-        .take(_pageSize)
-        .toList(growable: false);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Available Documents',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 10),
-        if (widget.status == DocumentTypesStatus.initial ||
-            widget.status == DocumentTypesStatus.loading)
-          const SizedBox(
-            height: 110,
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else if (widget.status == DocumentTypesStatus.error)
-          _FeedError(
-            message: widget.errorMessage ?? 'Documents are unavailable.',
-            onRetry: widget.onRetry,
-          )
-        else if (widget.documentTypes.isEmpty)
-          const Text('No active document types are currently available.')
-        else
-          Column(
-            children: pageDocuments
-                .map(
-                  (documentType) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      child: ListTile(
-                        title: Text(
-                          documentType.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        trailing: TextButton(
-                          onPressed: () => widget.onRequest(documentType),
-                          child: const Text('Request'),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-                .toList(growable: false),
-          ),
-        if (pageCount > 1 && widget.status == DocumentTypesStatus.loaded)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: _currentPage > 0
-                    ? () => setState(() => _currentPage--)
-                    : null,
-                child: const Text('Previous'),
-              ),
-              Text('${_currentPage + 1} of $pageCount'),
-              TextButton(
-                onPressed: _currentPage < pageCount - 1
-                    ? () => setState(() => _currentPage++)
-                    : null,
-                child: const Text('Next'),
-              ),
-            ],
-          ),
-        if (widget.status == DocumentTypesStatus.loaded &&
-            widget.errorMessage != null)
-          _FeedRefreshWarning(
-            message: widget.errorMessage!,
-            onRetry: widget.onRetry,
           ),
       ],
     );

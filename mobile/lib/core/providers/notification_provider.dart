@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 
 class NotificationProvider extends ChangeNotifier {
   List<AppNotification> _notifications = [];
+  final Set<int> _dismissedNotificationIds = {};
   bool _loading = false;
   bool _hasFetched = false;
   String? _errorMessage;
@@ -14,6 +15,31 @@ class NotificationProvider extends ChangeNotifier {
   bool get loading => _loading;
   String? get errorMessage => _errorMessage;
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
+
+  void resetForSession() {
+    _notifications = [];
+    _dismissedNotificationIds.clear();
+    _hasFetched = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  Future<void> dismiss(AppNotification notification) async {
+    _dismissedNotificationIds.add(notification.id);
+    _notifications = _notifications
+        .where((item) => item.id != notification.id)
+        .toList(growable: false);
+    notifyListeners();
+
+    if (notification.isRead) return;
+    try {
+      await ApiService.markNotificationAsRead(notification.id);
+      _errorMessage = null;
+    } on DioException catch (error) {
+      _errorMessage = ApiService.errorMessage(error);
+      notifyListeners();
+    }
+  }
 
   Future<bool> markAsRead(AppNotification notification) async {
     final index =
@@ -65,7 +91,10 @@ class NotificationProvider extends ChangeNotifier {
     try {
       final response = await ApiService.getNotifications();
       final fetchedNotifications =
-          AppNotification.fromApiResponse(response.data);
+          AppNotification.fromApiResponse(response.data)
+              .where((notification) =>
+                  !_dismissedNotificationIds.contains(notification.id))
+              .toList(growable: false);
 
       if (_hasFetched) {
         final knownIds =

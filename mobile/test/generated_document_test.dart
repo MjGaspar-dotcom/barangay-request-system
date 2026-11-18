@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:barangay_mobile/core/models/notification_model.dart';
@@ -55,20 +56,6 @@ class _PreviewRequestProvider extends RequestProvider {
 
 void main() {
   group('GeneratedDocument', () {
-    test('parses generated PDF metadata returned by the API', () {
-      final document = GeneratedDocument.fromJson({
-        'generated_document_id': 17,
-        'version_number': 3,
-        'document_number': 'BA-2026-000017',
-        'generated_at': '2026-11-15T10:30:00Z',
-      });
-
-      expect(document.id, 17);
-      expect(document.versionNumber, 3);
-      expect(document.documentNumber, 'BA-2026-000017');
-      expect(document.generatedAt, DateTime.parse('2026-11-15T10:30:00Z'));
-    });
-
     test('parses generated PDF metadata and builds a safe filename', () {
       final document = GeneratedDocument.fromApiResponse({
         'success': true,
@@ -117,23 +104,23 @@ void main() {
     });
   });
 
-  testWidgets('QR receipt displays the tracking number and backend image',
-      (tester) async {
+  testWidgets('QR receipt displays the generated tracking QR', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
           body: QrReceiptDialog(
             trackingNumber: 'BR-20261115-ABC123',
-            qrCodeSvg:
-                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1"/></svg>',
           ),
         ),
       ),
     );
 
     expect(find.text('BR-20261115-ABC123'), findsOneWidget);
-    expect(find.text('Scan this QR code to open the public request tracker.'),
-        findsOneWidget);
+    expect(
+      find.text('Upload this QR code in the app to track your request.'),
+      findsOneWidget,
+    );
+    expect(find.byType(SvgPicture), findsOneWidget);
     expect(find.byKey(const Key('download_qr_button')), findsOneWidget);
     expect(find.text('Download QR image'), findsOneWidget);
     expect(tester.takeException(), isNull);

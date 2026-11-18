@@ -29,6 +29,7 @@ class StatusChip extends StatelessWidget {
 
   _StatusConfig _getConfig(String s) {
     switch (s) {
+      case 'pending':
       case 'submitted':
       case 'request submitted':
         return const _StatusConfig(
@@ -36,21 +37,10 @@ class StatusChip extends StatelessWidget {
           background: AppColors.warningContainer,
           foreground: AppColors.warningDark,
         );
-      case 'pending':
-        return const _StatusConfig(
-          label: 'Pending',
-          background: AppColors.warningContainer,
-          foreground: AppColors.warningDark,
-        );
+      case 'processing':
       case 'approved':
         return const _StatusConfig(
           label: 'Processing & Approval',
-          background: AppColors.informationContainer,
-          foreground: AppColors.information,
-        );
-      case 'processing':
-        return const _StatusConfig(
-          label: 'Processing',
           background: AppColors.informationContainer,
           foreground: AppColors.information,
         );

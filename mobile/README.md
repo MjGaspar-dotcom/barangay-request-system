@@ -34,6 +34,15 @@ command when testing on the Android emulator.
 Android debug builds permit cleartext traffic for local HTTP API testing; use
 HTTPS for release deployments.
 
+### Guest document requests
+
+From the login screen, choose **Continue as Guest** to submit a request without
+creating an account or track an existing request. Guest submissions require a
+name, contact number, street, ID type, and photos of both sides of a valid ID.
+ID images are stored in the backend's private upload storage for staff review.
+After submission, save the tracking code or download the QR receipt; either can
+be used on the guest tracking screen.
+
 ### Google Sign-In setup
 
 Google sign-in requires a Google OAuth **Web application** client ID and backend
@@ -81,6 +90,32 @@ both IDs there, comma-separated (Web client first, Android client second), so
 the API accepts Google's authorized-party claim as well as the Web audience.
 When using the Android emulator, set the API URL to
 `http://10.0.2.2:8000/api` with `--dart-define="API_BASE_URL=http://10.0.2.2:8000/api"`.
+
+#### Keep the local API running after closing VS Code
+
+From a standalone PowerShell window (not VS Code's integrated terminal), go to
+the mobile project folder and run:
+
+```powershell
+.\scripts\start-local-api.ps1
+```
+
+This opens a separate PowerShell window for Laravel. Keep that window open;
+closing VS Code will not stop the API, but closing the API window or shutting
+down the PC will. The script expects `barangay_mobile` and
+`barangay-request-system` to remain sibling folders, with the backend `.env`
+and Composer dependencies already set up. Configure `GOOGLE_CLIENT_IDS` in the
+backend `.env` before testing Google sign-in.
+
+An installed Android app can be opened without VS Code as long as the API is
+running and reachable. The Android emulator uses `http://10.0.2.2:8000/api`;
+a physical phone needs the PC's LAN IP instead of `10.0.2.2`, and both devices
+must be on the same network. Allow the local PHP server through Windows
+Firewall only on a trusted private network.
+
+For the web app to keep working after closing VS Code, deploy the Flutter web
+build and Laravel API to reachable hosting; `flutter run` is only a development
+server and ends when its process is stopped.
 
 ---
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/models/notification_model.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/request_provider.dart';
 import '../../../core/providers/notification_provider.dart';
@@ -31,8 +32,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Timer? _notificationPollingTimer;
   Timer? _requestPollingTimer;
   Timer? _birthdayRefreshTimer;
+  final Set<int> _removedDocumentTypeIds = {};
   bool _isAppResumed = true;
   bool _redirectingForExpiredSession = false;
+  bool _isCreateRequestOpen = false;
+  AppNotification? _pendingNotification;
   late final AuthProvider _authProvider;
 
   @override
@@ -42,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _authProvider = context.read<AuthProvider>();
     _authProvider.addListener(_onAuthChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().resetForSession();
       context.read<RequestProvider>().fetchMyRequests();
       context.read<RequestProvider>().fetchDocumentTypes();
       unawaited(_refreshNotifications());
@@ -126,45 +131,106 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final notification = await context.read<NotificationProvider>().fetch();
     if (!mounted || notification == null) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.notifications_active_outlined,
-              color: AppColors.primaryContainer,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                notification.message,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
+    if (_isCreateRequestOpen) {
+      _pendingNotification = notification;
+      return;
+    }
+
+    await _showNotification(notification);
+  }
+
+  Future<void> _showNotification(AppNotification notification) async {
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    var viewed = false;
+    final controller = messenger.showMaterialBanner(
+      MaterialBanner(
+        leading: const Icon(
+          Icons.notifications_active_outlined,
+          color: AppColors.primaryContainer,
         ),
-        behavior: SnackBarBehavior.floating,
+        content: Text(
+          notification.message,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         backgroundColor: AppColors.darkSurface,
-        duration: const Duration(seconds: 4),
-        dismissDirection: DismissDirection.horizontal,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         elevation: 6,
-        action: SnackBarAction(
-          label: 'View',
-          onPressed: () {
-            if (mounted) setState(() => _selectedIndex = 2);
-          },
-        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              viewed = true;
+              if (mounted) setState(() => _selectedIndex = 2);
+              messenger.hideCurrentMaterialBanner();
+            },
+            child: const Text('View'),
+          ),
+        ],
       ),
     );
+    final timeout = Timer(const Duration(seconds: 5), () {
+      if (mounted && !viewed) messenger.hideCurrentMaterialBanner();
+    });
+    final closeReason = await controller.closed;
+    timeout.cancel();
+    if (!mounted || viewed || closeReason != MaterialBannerClosedReason.hide) {
+      return;
+    }
+
+    final requestId = notification.requestId;
+    final requestProvider = context.read<RequestProvider>();
+    int? documentTypeId;
+    if (requestId != null) {
+      for (final request in requestProvider.requests) {
+        if (request.id == requestId && request.documentType != null) {
+          documentTypeId = request.documentType!.id;
+          break;
+        }
+      }
+    }
+    if (documentTypeId == null) {
+      final notificationText =
+          '${notification.title} ${notification.message}'.toLowerCase();
+      for (final documentType in requestProvider.documentTypes) {
+        final documentName = documentType.name.trim().toLowerCase();
+        if (documentName.isNotEmpty &&
+            notificationText.contains(documentName)) {
+          documentTypeId = documentType.id;
+          break;
+        }
+      }
+    }
+    if (documentTypeId != null) {
+      setState(() => _removedDocumentTypeIds.add(documentTypeId!));
+    }
+    await context.read<NotificationProvider>().dismiss(notification);
+  }
+
+  Future<void> _openCreateRequest({int? initialDocumentTypeId}) async {
+    _isCreateRequestOpen = true;
+    try {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => CreateRequestScreen(
+            initialDocumentTypeId: initialDocumentTypeId,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        _isCreateRequestOpen = false;
+        final notification = _pendingNotification;
+        _pendingNotification = null;
+        if (notification != null) unawaited(_showNotification(notification));
+      }
+    }
   }
 
   @override
@@ -177,12 +243,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  final List<Widget> _pages = const [
-    _DashboardTab(),
-    MyRequestsScreen(),
-    NotificationsScreen(),
-    ProfileScreen(),
-  ];
+  List<Widget> get _pages => [
+        _DashboardTab(
+          removedDocumentTypeIds: _removedDocumentTypeIds,
+          onRequestDocument: _openCreateRequest,
+        ),
+        const MyRequestsScreen(),
+        const NotificationsScreen(),
+        const ProfileScreen(),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -230,8 +299,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 }
 
 class _DashboardTab extends StatelessWidget {
-  const _DashboardTab();
+  const _DashboardTab({
+    this.removedDocumentTypeIds = const {},
+    required this.onRequestDocument,
+  });
 
+  final Set<int> removedDocumentTypeIds;
+  final Future<void> Function({int? initialDocumentTypeId}) onRequestDocument;
   static final _recommendationEngine = RecommendationEngine();
 
   // Display profile- and history-ranked documents below the resident greeting.
@@ -242,7 +316,9 @@ class _DashboardTab extends StatelessWidget {
     final user = auth.user;
     final showVerificationWarning = user != null && !user.isVerified;
     final activeDocumentTypes = requestProvider.documentTypes
-        .where((documentType) => documentType.isActive)
+        .where((documentType) =>
+            documentType.isActive &&
+            !removedDocumentTypeIds.contains(documentType.id))
         .toList(growable: false);
     final requestHistory = requestProvider.requests
         .where((request) => request.documentType != null)
@@ -303,27 +379,6 @@ class _DashboardTab extends StatelessWidget {
                             ),
                           ],
                         ),
-                        GestureDetector(
-                          onTap: () async {
-                            await auth.logout();
-                            if (context.mounted) {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (_) => const LandingScreen()),
-                                (r) => false,
-                              );
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.logout,
-                                color: AppColors.surface, size: 20),
-                          ),
-                        ),
                       ],
                     ),
                   ],
@@ -347,7 +402,6 @@ class _DashboardTab extends StatelessWidget {
                       const SizedBox(height: 16),
                       ForYouSection(
                         recommendedDocuments: recommendedDocuments,
-                        documentTypes: activeDocumentTypes,
                         status: requestProvider.documentTypesStatus,
                         ageGroup: user.ageGroup?.label,
                         errorMessage: requestProvider.documentTypesError,
@@ -356,13 +410,8 @@ class _DashboardTab extends StatelessWidget {
                               .read<RequestProvider>()
                               .fetchDocumentTypes(force: true),
                         ),
-                        onRequestDocument: (documentType) =>
-                            Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CreateRequestScreen(
-                              initialDocumentTypeId: documentType.id,
-                            ),
-                          ),
+                        onRequestDocument: (documentType) => onRequestDocument(
+                          initialDocumentTypeId: documentType.id,
                         ),
                       ),
                     ],
@@ -380,11 +429,7 @@ class _DashboardTab extends StatelessWidget {
                             icon: Icons.add_circle_outline,
                             label: 'Request\nDocument',
                             color: AppColors.primary,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const CreateRequestScreen()),
-                            ),
+                            onTap: onRequestDocument,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -413,11 +458,7 @@ class _DashboardTab extends StatelessWidget {
                       const Center(child: CircularProgressIndicator())
                     else if (requestProvider.requests.isEmpty)
                       _EmptyRequests(
-                        onRequest: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const CreateRequestScreen()),
-                        ),
+                        onRequest: onRequestDocument,
                       )
                     else
                       ...requestProvider.requests.take(3).map(

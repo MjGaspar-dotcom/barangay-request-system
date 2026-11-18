@@ -98,6 +98,10 @@ class ApiService {
     return dio.post('/profile', data: formData);
   }
 
+  static Future<Response> updatePassword(Map<String, dynamic> data) {
+    return dio.patch('/profile/password', data: data);
+  }
+
   // --- Document Types ---
   static Future<Response> getDocumentTypes({CancelToken? cancelToken}) {
     return dio.get('/document-types', cancelToken: cancelToken);
@@ -116,30 +120,24 @@ class ApiService {
     return dio.post('/barangay-requests', data: data);
   }
 
-  static Future<Response> updateBusinessDetails(
-    int requestId,
-    Map<String, String> data,
-  ) {
-    return dio.patch(
-      '/barangay-requests/$requestId/business-details',
-      data: data,
-    );
+  static Future<Response> createGuestRequest(FormData data) {
+    return dio.post('/guest-requests', data: data);
+  }
+
+  // --- Track ---
+  static Future<Response> trackRequest(String trackingNumber) {
+    return dio.get('/track/${Uri.encodeComponent(trackingNumber)}');
   }
 
   static Future<Response> getGeneratedDocument(int requestId) {
     return dio.get('/barangay-requests/$requestId/generated-document');
   }
 
-  static Future<Response<List<int>>> getGeneratedDocumentFile(int requestId) {
-    return dio.get<List<int>>(
+  static Future<Response> getGeneratedDocumentFile(int requestId) {
+    return dio.get(
       '/barangay-requests/$requestId/generated-document/file',
       options: Options(responseType: ResponseType.bytes),
     );
-  }
-
-  // --- Track ---
-  static Future<Response> trackRequest(String trackingNumber) {
-    return dio.get('/track/${Uri.encodeComponent(trackingNumber)}');
   }
 
   // --- Notifications ---

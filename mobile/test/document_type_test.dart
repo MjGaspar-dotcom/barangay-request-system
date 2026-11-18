@@ -54,6 +54,11 @@ void main() {
       'purpose': 'Employment requirement',
       'created_at': '2026-11-15T10:00:00Z',
       'qr_code': '<svg></svg>',
+      'request_data': {
+        'business_name': 'Sample Shop',
+        'business_address': '10 Main Street',
+        'business_activity': 'Retail',
+      },
       'document_type': {
         'document_type_id': 2,
         'document_name': 'Certificate of Residency',
@@ -65,6 +70,7 @@ void main() {
     expect(request.trackingNumber, 'BR-20261115-ABC123');
     expect(request.qrCodeSvg, '<svg></svg>');
     expect(request.documentType?.name, 'Certificate of Residency');
+    expect(request.requestData?['business_name'], 'Sample Shop');
   });
 
   test('sorts requests newest first with invalid dates last', () {
